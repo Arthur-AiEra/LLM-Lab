@@ -49,7 +49,7 @@ class LLMReranker:
         # 根据 provider 初始化 LLM 客户端
         load_dotenv()
         if self.provider == "openai":
-            return OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            return OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url="https://api.fe8.cn/v1")
         elif self.provider == "dashscope":
             import dashscope
             dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")

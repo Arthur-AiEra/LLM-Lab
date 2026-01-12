@@ -89,6 +89,7 @@ class VectorRetriever:
         # 默认使用 dashscope 作为 embedding provider
         self.embedding_provider = embedding_provider.lower()
         self.llm = self._set_up_llm()
+        print(f"[VectorRetriever] vector_db_dir: {vector_db_dir}, documents_dir: {documents_dir}")
 
     def _set_up_llm(self):
         # 根据 embedding_provider 初始化对应的 LLM 客户端
@@ -98,6 +99,7 @@ class VectorRetriever:
                 api_key=os.getenv("OPENAI_API_KEY"),
                 timeout=None,
                 max_retries=2
+                ,base_url="https://api.fe8.cn/v1"  # OpenAI API 代理
             )
             return llm
         elif self.embedding_provider == "dashscope":
@@ -146,6 +148,7 @@ class VectorRetriever:
             api_key=os.getenv("OPENAI_API_KEY"),
             timeout=None,
             max_retries=2
+            , base_url="https://api.fe8.cn/v1"  # OpenAI API 代理
         )
         return llm
 
@@ -153,6 +156,7 @@ class VectorRetriever:
         # 加载所有向量库和对应文档，建立映射
         all_dbs = []
         all_documents_paths = list(self.documents_dir.glob('*.json'))
+        _log.info(f"_load_dbs, all_documents_paths: {all_documents_paths}")
         for document_path in all_documents_paths:
             try:
                 with open(document_path, 'r', encoding='utf-8') as f:
@@ -285,8 +289,9 @@ class VectorRetriever:
 
 class HybridRetriever:
     def __init__(self, vector_db_dir: Path, documents_dir: Path):
-        self.vector_retriever = VectorRetriever(vector_db_dir, documents_dir)
-        self.reranker = LLMReranker()
+        self.vector_retriever = VectorRetriever(vector_db_dir, documents_dir, "openai")
+        self.reranker = LLMReranker("openai")
+        print(f"[HybridRetriever] vector_db_dir: {vector_db_dir}, documents_dir: {documents_dir}")
         
     def retrieve_by_company_name(
         self, 

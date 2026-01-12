@@ -1,0 +1,30 @@
+/usr/local/bin/python3.12 /private/var/www/github/Arthur-AiEra/LLM-Lab/B05_Embed-and-Retrieve/Case-ChatPDF-Faiss/chatpdf-faiss.py
+提取的文本长度: 3881 个字符。
+文本被分割成 5 个块。
+已从文本块创建知识库。
+向量数据库已保存到: ./vector_db
+页码信息已保存到: ./vector_db/page_info.pkl
+/private/var/www/github/Arthur-AiEra/LLM-Lab/B05_Embed-and-Retrieve/Case-ChatPDF-Faiss/chatpdf-faiss.py:220: LangChainDeprecationWarning: This class is deprecated. See the following migration guides for replacements based on `chain_type`:
+stuff: https://python.langchain.com/docs/versions/migrating_chains/stuff_docs_chain
+map_reduce: https://python.langchain.com/docs/versions/migrating_chains/map_reduce_chain
+refine: https://python.langchain.com/docs/versions/migrating_chains/refine_chain
+map_rerank: https://python.langchain.com/docs/versions/migrating_chains/map_rerank_docs_chain
+
+See also guides on retrieval and question-answering here: https://python.langchain.com/docs/how_to/#qa-with-rag
+  chain = load_qa_chain(llm, chain_type="stuff")
+查询已处理。成本: Tokens Used: 1299
+	Prompt Tokens: 1240
+		Prompt Tokens Cached: 0
+	Completion Tokens: 59
+		Reasoning Tokens: 0
+Successful Requests: 1
+Total Cost (USD): $0.0
+根据您提供的上下文，客户服务质量考核标准中明确说明：
+**"客户服务效率低，态度生硬或不及时为客户提供维护服务，有客户投诉的，每投诉一次扣2分。"**
+
+因此，客户经理被投诉一次会扣 **2分**。
+来源:
+文本块页码: 4
+文本块页码: 2
+
+Process finished with exit code 0

@@ -10,14 +10,21 @@ from rank_bm25 import BM25Okapi
 import jieba
 import re
 
-# 从环境变量中获取 API Key
-DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
+# # 从环境变量中获取 API Key
+# DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
+#
+# # 初始化百炼兼容的 OpenAI 客户端
+# client = OpenAI(
+#     api_key=DASHSCOPE_API_KEY,
+#     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+# )
 
-# 初始化百炼兼容的 OpenAI 客户端
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+
 client = OpenAI(
-    api_key=DASHSCOPE_API_KEY,
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
-)
+        api_key=OPENAI_KEY,
+        base_url="https://api.fe8.cn/v1" # OpenAI API 代理
+    )
 
 # 预处理AI响应中的JSON格式
 def preprocess_json_response(response):
@@ -220,7 +227,7 @@ class KnowledgeBaseOptimizer:
                 if scores[idx] > 0:  # 只返回有相关性的结果
                     metadata = metadata_store[idx]
                     # 将BM25分数转换为0-1范围的相似度
-                    similarity = min(1.0, scores[idx] / 10.0)  # 归一化
+                    similarity = min(1.0, scores[idx] / 10.0)  # 归一化qe
                     results.append({
                         "metadata": metadata,
                         "score": scores[idx],

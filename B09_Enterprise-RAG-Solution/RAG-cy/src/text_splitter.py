@@ -2,7 +2,8 @@ import json
 import tiktoken
 from pathlib import Path
 from typing import List, Dict, Optional
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+#from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter # pip install langchain-text-splitters
 import pandas as pd
 import os
 

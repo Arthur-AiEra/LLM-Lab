@@ -1,3 +1,5 @@
+import torch
+import os
 from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import DashScopeEmbeddings
@@ -5,16 +7,46 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.llms import Tongyi
 from langchain_core.documents import Document
 from rank_bm25 import BM25Okapi
-from modelscope import AutoModelForSequenceClassification, AutoTokenizer, snapshot_download
+# from modelscope import AutoModelForSequenceClassification, AutoTokenizer, snapshot_download
+from transformers import AutoModelForSequenceClassification, AutoTokenizer  # 正确导入方式
+from modelscope import snapshot_download  # ModelScope仅用于下载模型
 from typing import List, Tuple, Set
 import jieba
-import torch
-import os
 import pickle
 
-DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
-if not DASHSCOPE_API_KEY:
-    raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+# DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
+# if not DASHSCOPE_API_KEY:
+#     raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+from openai import OpenAI
+from langchain_openai import OpenAIEmbeddings
+
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+BASE_URL = "https://api.fe8.cn/v1"  # 参考附件中的代理地址
+
+client = OpenAI(
+        api_key=OPENAI_KEY,
+        base_url=BASE_URL # OpenAI API 代理
+    )
+
+# 基于 prompt 生成文本
+def get_completion(prompt, model="qwen-turbo-latest"):
+    messages = [{"role": "user", "content": prompt}]
+    # response = dashscope.Generation.call(
+    #     model=model,
+    #     messages=messages,
+    #     result_format='message',
+    #     temperature=0.3,
+    # )
+    # return response.output.choices[0].message.content
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=0.3,
+    )
+    return response.choices[0].message.content
 
 def extract_text_with_page_numbers(pdf) -> Tuple[str, List[int]]:
     """从PDF中提取文本并记录每行文本对应的页码"""
@@ -169,9 +201,15 @@ def process_text_with_splitter(text: str, page_numbers: List[int], save_path: st
     chunks = text_splitter.split_text(text)
     print(f"文本被分割成 {len(chunks)} 个块。")
 
-    embeddings = DashScopeEmbeddings(
-        model="text-embedding-v1",
-        dashscope_api_key=DASHSCOPE_API_KEY,
+    # embeddings = DashScopeEmbeddings(
+    #     model="text-embedding-v1",
+    #     dashscope_api_key=DASHSCOPE_API_KEY,
+    # )
+
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-ada-002",
+        openai_api_key=OPENAI_KEY,
+        openai_api_base=BASE_URL  # 将此处设置为您附件中的代理地址
     )
 
     knowledgeBase = FAISS.from_texts(chunks, embeddings)
@@ -182,15 +220,21 @@ def process_text_with_splitter(text: str, page_numbers: List[int], save_path: st
     for chunk in chunks:
         start_idx = text.find(chunk[:100])
         if start_idx == -1:
+            # for i, line in enumerate(lines):
+            #     if chunk.startswith(line[:min(50, len(line))]):
+            #         start_idx = i
+            #         break
+            # if start_idx == -1:
+            #     for i, line in enumerate(lines):
+            #         if line and line in chunk:
+            #             start_idx = text.find(line)
+            #             break
+
             for i, line in enumerate(lines):
-                if chunk.startswith(line[:min(50, len(line))]):
-                    start_idx = i
+                # 优化点：增加长度限制（例如 > 5），防止短行/短词误匹配
+                if line and len(line) > 5 and line in chunk:
+                    start_idx = text.find(line)
                     break
-            if start_idx == -1:
-                for i, line in enumerate(lines):
-                    if line and line in chunk:
-                        start_idx = text.find(line)
-                        break
         if start_idx != -1:
             line_count = text[:start_idx].count("\n")
             if line_count < len(page_numbers):
@@ -217,9 +261,15 @@ def process_text_with_splitter(text: str, page_numbers: List[int], save_path: st
 def load_knowledge_base(load_path: str, embeddings=None) -> Tuple[FAISS, List[str]]:
     """从磁盘加载向量数据库"""
     if embeddings is None:
-        embeddings = DashScopeEmbeddings(
-            model="text-embedding-v1",
-            dashscope_api_key=DASHSCOPE_API_KEY,
+        # embeddings = DashScopeEmbeddings(
+        #     model="text-embedding-v1",
+        #     dashscope_api_key=DASHSCOPE_API_KEY,
+        # )
+
+        embeddings = OpenAIEmbeddings(
+            model="text-embedding-ada-002",
+            openai_api_key=OPENAI_KEY,
+            openai_api_base=BASE_URL  # 将此处设置为您附件中的代理地址
         )
 
     knowledgeBase = FAISS.load_local(load_path, embeddings, allow_dangerous_deserialization=True)
@@ -248,7 +298,8 @@ def generate_multi_queries(query: str, llm, num_queries: int = 3) -> List[str]:
 
 请直接输出{num_queries}个查询，每行一个，不要编号和其他内容:"""
 
-    response = llm.invoke(prompt)
+    # response = llm.invoke(prompt)
+    response = get_completion(prompt, "gpt-4o")
     queries = [q.strip() for q in response.strip().split('\n') if q.strip()]
     return [query] + queries[:num_queries]
 
@@ -301,7 +352,8 @@ def process_query(
 
 问题: {query}"""
 
-    response = llm.invoke(prompt)
+    # response = llm.invoke(prompt)
+    response = get_completion(prompt, "gpt-4o")
 
     unique_pages = set()
     for doc in docs:
@@ -316,9 +368,14 @@ def main():
 
     if os.path.exists(vector_db_path) and os.path.isdir(vector_db_path):
         print(f"发现现有向量数据库: {vector_db_path}")
-        embeddings = DashScopeEmbeddings(
-            model="text-embedding-v1",
-            dashscope_api_key=DASHSCOPE_API_KEY,
+        # embeddings = DashScopeEmbeddings(
+        #     model="text-embedding-v1",
+        #     dashscope_api_key=DASHSCOPE_API_KEY,
+        # )
+        embeddings = OpenAIEmbeddings(
+            model="text-embedding-ada-002",
+            openai_api_key=OPENAI_KEY,
+            openai_api_base=BASE_URL  # 将此处设置为您附件中的代理地址
         )
         knowledgeBase, chunks = load_knowledge_base(vector_db_path, embeddings)
     else:
@@ -335,7 +392,8 @@ def main():
     # 创建Reranker (使用ModelScope上的轻量级模型)
     reranker = Reranker(model_name="BAAI/bge-reranker-base")
 
-    llm = Tongyi(model_name="deepseek-v3", dashscope_api_key=DASHSCOPE_API_KEY)
+    # llm = Tongyi(model_name="deepseek-v3", dashscope_api_key=DASHSCOPE_API_KEY)
+    llm = "null";
 
     queries = [
         "客户经理被投诉了，投诉一次扣多少分",

@@ -3,12 +3,19 @@ import numpy as np
 import faiss
 from openai import OpenAI
 
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+dimension = 1536  # 向量维度
 # Step1. 初始化 API 客户端
 try:
+    # client = OpenAI(
+    #     api_key=os.getenv("DASHSCOPE_API_KEY"),
+    #     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+    # )
     client = OpenAI(
-        api_key=os.getenv("DASHSCOPE_API_KEY"),
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+        api_key=OPENAI_KEY,
+        base_url="https://api.fe8.cn/v1"  # OpenAI API 代理
     )
+
 except Exception as e:
     print("初始化OpenAI客户端失败，请检查环境变量'DASHSCOPE_API_KEY'是否已设置。")
     print(f"错误信息: {e}")
@@ -51,10 +58,16 @@ print("正在为文档生成向量...")
 for i, doc in enumerate(documents):
     try:
         # 调用API生成向量
+        # completion = client.embeddings.create(
+        #     model="text-embedding-v4",
+        #     input=doc["text"],
+        #     dimensions=1024,
+        #     encoding_format="float"
+        # )
+
         completion = client.embeddings.create(
-            model="text-embedding-v4",
+            model="text-embedding-ada-002",  # OpenAI的文本嵌入模型
             input=doc["text"],
-            dimensions=1024,
             encoding_format="float"
         )
         
@@ -77,7 +90,7 @@ vectors_np = np.array(vectors_list).astype('float32')
 vector_ids_np = np.array(vector_ids)
 
 # Step4. 构建并填充 FAISS 索引
-dimension = 1024  # 向量维度
+# dimension = 1024  # 向量维度
 k = 3             # 查找最近的3个邻居
 
 # 创建一个基础的L2距离索引
@@ -99,12 +112,19 @@ print(f"\n正在为查询文本生成向量: '{query_text}'")
 
 try:
     # 为查询文本生成向量
+    # query_completion = client.embeddings.create(
+    #     model="text-embedding-v4",
+    #     input=query_text,
+    #     dimensions=1024,
+    #     encoding_format="float"
+    # )
+
     query_completion = client.embeddings.create(
-        model="text-embedding-v4",
+        model="text-embedding-ada-002",  # OpenAI的文本嵌入模型
         input=query_text,
-        dimensions=1024,
         encoding_format="float"
     )
+
     query_vector = np.array([query_completion.data[0].embedding]).astype('float32')
 
     # 在FAISS索引中执行搜索

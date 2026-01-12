@@ -1,16 +1,22 @@
 from PyPDF2 import PdfReader
-from langchain.chains.question_answering import load_qa_chain
+#from langchain.chains.question_answering import load_qa_chain
+from langchain_classic.chains.question_answering import load_qa_chain
 from langchain_community.callbacks.manager import get_openai_callback
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import DashScopeEmbeddings
+# from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+# from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from typing import List, Tuple
 import os
 import pickle
 
-DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
-if not DASHSCOPE_API_KEY:
-    raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+# DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
+# if not DASHSCOPE_API_KEY:
+#     raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+BASE_URL = "https://api.fe8.cn/v1"  # 参考附件中的代理地址
 
 def extract_text_with_page_numbers(pdf) -> Tuple[str, List[int]]:
     """
@@ -59,9 +65,14 @@ def process_text_with_splitter(text: str, page_numbers: List[int], save_path: st
     print(f"文本被分割成 {len(chunks)} 个块。")
         
     # 创建嵌入模型
-    embeddings = DashScopeEmbeddings(
-        model="text-embedding-v1",
-        dashscope_api_key=DASHSCOPE_API_KEY,
+    # embeddings = DashScopeEmbeddings(
+    #     model="text-embedding-v1",
+    #     dashscope_api_key=DASHSCOPE_API_KEY,
+    # )
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-ada-002",
+        openai_api_key=OPENAI_KEY,
+        openai_api_base=BASE_URL  # 将此处设置为您附件中的代理地址
     )
     
     # 从文本块创建知识库
@@ -188,8 +199,15 @@ docs = loaded_knowledgeBase.similarity_search("客户经理每年评聘申报时
 # 注意：使用这种方法加载时，需要手动加载页码信息
 """
 
-from langchain_community.llms import Tongyi
-llm = Tongyi(model_name="deepseek-v3", dashscope_api_key=DASHSCOPE_API_KEY) # qwen-turbo
+# from langchain_community.llms import Tongyi
+# llm = Tongyi(model_name="deepseek-v3", dashscope_api_key=DASHSCOPE_API_KEY) # qwen-turbo
+
+from langchain_openai import ChatOpenAI
+llm = ChatOpenAI(
+    model='deepseek-v3',
+    openai_api_key=OPENAI_KEY,
+    openai_api_base="https://api.fe8.cn/v1"
+ )
 
 # 设置查询问题
 query = "客户经理被投诉了，投诉一次扣多少分"

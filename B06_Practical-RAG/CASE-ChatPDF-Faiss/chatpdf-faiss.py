@@ -1,14 +1,19 @@
-from PyPDF2 import PdfReader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import DashScopeEmbeddings
-from langchain_community.vectorstores import FAISS
-from typing import List, Tuple
 import os
 import pickle
+from typing import List, Tuple
 
-DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
-if not DASHSCOPE_API_KEY:
-    raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+from PyPDF2 import PdfReader
+from langchain_community.vectorstores import FAISS
+# from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
+# if not DASHSCOPE_API_KEY:
+#     raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+BASE_URL = "https://api.fe8.cn/v1"  # 参考附件中的代理地址
 
 def extract_text_with_page_numbers(pdf) -> Tuple[str, List[Tuple[str, int]]]:
     """
@@ -60,11 +65,16 @@ def process_text_with_splitter(text: str, char_page_mapping: List[int], save_pat
     print(f"文本被分割成 {len(chunks)} 个块。")
         
     # 创建嵌入模型
-    embeddings = DashScopeEmbeddings(
-        model="text-embedding-v1",
-        dashscope_api_key=DASHSCOPE_API_KEY,
+    # embeddings = DashScopeEmbeddings(
+    #     model="text-embedding-v1",
+    #     dashscope_api_key=DASHSCOPE_API_KEY,
+    # )
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-ada-002",
+        openai_api_key=OPENAI_KEY,
+        openai_api_base=BASE_URL  # 将此处设置为您附件中的代理地址
     )
-    
+
     # 从文本块创建知识库
     knowledgeBase = FAISS.from_texts(chunks, embeddings)
     print("已从文本块创建知识库。")
@@ -105,12 +115,12 @@ def process_text_with_splitter(text: str, char_page_mapping: List[int], save_pat
         
         # 保存FAISS向量数据库
         knowledgeBase.save_local(save_path)
-        print(f"向量数据库已保存到: {save_path}")
+        print(f"######## 向量数据库已保存到: {save_path}")
         
         # 保存页码信息到同一目录
         with open(os.path.join(save_path, "page_info.pkl"), "wb") as f:
             pickle.dump(page_info, f)
-        print(f"页码信息已保存到: {os.path.join(save_path, 'page_info.pkl')}")
+        print(f"######## 页码信息已保存到: {os.path.join(save_path, 'page_info.pkl')}")
     
     return knowledgeBase
 
@@ -134,7 +144,7 @@ def load_knowledge_base(load_path: str, embeddings = None) -> FAISS:
     
     # 加载FAISS向量数据库，添加allow_dangerous_deserialization=True参数以允许反序列化
     knowledgeBase = FAISS.load_local(load_path, embeddings, allow_dangerous_deserialization=True)
-    print(f"向量数据库已从 {load_path} 加载。")
+    print(f"######## 向量数据库已从 {load_path} 加载。")
     
     # 加载页码信息
     page_info_path = os.path.join(load_path, "page_info.pkl")
@@ -142,14 +152,14 @@ def load_knowledge_base(load_path: str, embeddings = None) -> FAISS:
         with open(page_info_path, "rb") as f:
             page_info = pickle.load(f)
         knowledgeBase.page_info = page_info
-        print("页码信息已加载。")
+        print("######## 页码信息已加载。")
     else:
         print("警告: 未找到页码信息文件。")
     
     return knowledgeBase
 
 # 读取PDF文件
-pdf_reader = PdfReader('./浦发上海浦东发展银行西安分行个金客户经理考核办法.pdf')
+pdf_reader = PdfReader('./Shoe-Dog-CN-d359f17d46d34fb0bd84877c1d4e7423.pdf')
 # 提取文本和页码信息
 text, char_page_mapping = extract_text_with_page_numbers(pdf_reader)
 #print('page_numbers=',page_numbers)
@@ -158,7 +168,7 @@ text, char_page_mapping = extract_text_with_page_numbers(pdf_reader)
 # In[9]:
 
 
-print(f"提取的文本长度: {len(text)} 个字符。")
+print(f"######## 提取的文本长度: {len(text)} 个字符。")
     
 # 处理文本并创建知识库，同时保存到磁盘
 save_dir = "./vector_db"
@@ -175,6 +185,7 @@ embeddings = DashScopeEmbeddings(
 # 从磁盘加载向量数据库
 loaded_knowledgeBase = load_knowledge_base("./vector_db", embeddings)
 # 使用加载的知识库进行查询
+print("######## 使用加载的知识库进行查询")
 docs = loaded_knowledgeBase.similarity_search("客户经理每年评聘申报时间是怎样的？")
 
 # 直接使用FAISS.load_local方法加载（替代方法）
@@ -190,8 +201,8 @@ from langchain_community.llms import Tongyi
 llm = Tongyi(model_name="deepseek-v3", dashscope_api_key=DASHSCOPE_API_KEY) # qwen-turbo
 
 # 设置查询问题
-query = "客户经理被投诉了，投诉一次扣多少分"
-#query = "客户经理每年评聘申报时间是怎样的？"
+#query = "客户经理被投诉了，投诉一次扣多少分"
+query = "关于1962年作者的那个疯狂的相法，卡特留在夏威夷的原因是？"
 if query:
     # 执行相似度搜索，找到与查询相关的文档
     docs = knowledgeBase.similarity_search(query,k=10)
@@ -207,6 +218,7 @@ if query:
 问题: {query}"""
 
     # 直接调用 LLM
+    print("######## 直接调用 LLM")
     response = llm.invoke(prompt)
     print(response)
     print("来源:")

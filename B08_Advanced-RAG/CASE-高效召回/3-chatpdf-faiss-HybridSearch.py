@@ -1,6 +1,11 @@
 from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_openai import OpenAIEmbeddings
+# 引入OpenAI LLM类（替换原Tongyi导入）
+from langchain_openai import ChatOpenAI
+from openai import OpenAI
+
 from langchain_community.vectorstores import FAISS
 from langchain_community.llms import Tongyi
 from langchain_core.documents import Document
@@ -10,9 +15,35 @@ import jieba
 import os
 import pickle
 
-DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
-if not DASHSCOPE_API_KEY:
-    raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+BASE_URL = "https://api.fe8.cn/v1"  # 参考附件中的代理地址
+
+# DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
+# if not DASHSCOPE_API_KEY:
+#     raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+
+client = OpenAI(
+        api_key=OPENAI_KEY,
+        base_url=BASE_URL # OpenAI API 代理
+    )
+
+# 基于 prompt 生成文本
+def get_completion(prompt, model="qwen-turbo-latest"):
+    messages = [{"role": "user", "content": prompt}]
+    # response = dashscope.Generation.call(
+    #     model=model,
+    #     messages=messages,
+    #     result_format='message',
+    #     temperature=0.3,
+    # )
+    # return response.output.choices[0].message.content
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=0.3,
+    )
+    return response.choices[0].message.content
 
 def extract_text_with_page_numbers(pdf) -> Tuple[str, List[int]]:
     """从PDF中提取文本并记录每行文本对应的页码"""
@@ -115,9 +146,15 @@ def process_text_with_splitter(text: str, page_numbers: List[int], save_path: st
     chunks = text_splitter.split_text(text)
     print(f"文本被分割成 {len(chunks)} 个块。")
 
-    embeddings = DashScopeEmbeddings(
-        model="text-embedding-v1",
-        dashscope_api_key=DASHSCOPE_API_KEY,
+    # embeddings = DashScopeEmbeddings(
+    #     model="text-embedding-v1",
+    #     dashscope_api_key=DASHSCOPE_API_KEY,
+    # )
+
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-ada-002",
+        openai_api_key=OPENAI_KEY,
+        openai_api_base=BASE_URL  # 将此处设置为您附件中的代理地址
     )
 
     knowledgeBase = FAISS.from_texts(chunks, embeddings)
@@ -128,15 +165,20 @@ def process_text_with_splitter(text: str, page_numbers: List[int], save_path: st
     for chunk in chunks:
         start_idx = text.find(chunk[:100])
         if start_idx == -1:
+            # for i, line in enumerate(lines):
+            #     if chunk.startswith(line[:min(50, len(line))]):
+            #         # start_idx = i # 存在行号与偏移量混用的 Bug。
+            #         break
+            # if start_idx == -1:
+            #     for i, line in enumerate(lines):
+            #         if line and line in chunk:
+            #             start_idx = text.find(line)
+            #             break
             for i, line in enumerate(lines):
-                if chunk.startswith(line[:min(50, len(line))]):
-                    start_idx = i
+                # 优化点：增加长度限制（例如 > 5），防止短行/短词误匹配
+                if line and len(line) > 5 and line in chunk:
+                    start_idx = text.find(line)
                     break
-            if start_idx == -1:
-                for i, line in enumerate(lines):
-                    if line and line in chunk:
-                        start_idx = text.find(line)
-                        break
         if start_idx != -1:
             line_count = text[:start_idx].count("\n")
             if line_count < len(page_numbers):
@@ -164,9 +206,15 @@ def process_text_with_splitter(text: str, page_numbers: List[int], save_path: st
 def load_knowledge_base(load_path: str, embeddings=None) -> Tuple[FAISS, List[str]]:
     """从磁盘加载向量数据库、页码信息和chunks"""
     if embeddings is None:
-        embeddings = DashScopeEmbeddings(
-            model="text-embedding-v1",
-            dashscope_api_key=DASHSCOPE_API_KEY,
+        # embeddings = DashScopeEmbeddings(
+        #     model="text-embedding-v1",
+        #     dashscope_api_key=DASHSCOPE_API_KEY,
+        # )
+
+        embeddings = OpenAIEmbeddings(
+            model="text-embedding-ada-002",
+            openai_api_key=OPENAI_KEY,
+            openai_api_base=BASE_URL  # 将此处设置为您附件中的代理地址
         )
 
     knowledgeBase = FAISS.load_local(load_path, embeddings, allow_dangerous_deserialization=True)
@@ -188,7 +236,7 @@ def load_knowledge_base(load_path: str, embeddings=None) -> Tuple[FAISS, List[st
 
     return knowledgeBase, chunks
 
-def generate_multi_queries(query: str, llm, num_queries: int = 3) -> List[str]:
+def generate_multi_queries(query: str, num_queries: int = 3) -> List[str]:
     """使用LLM生成多个查询变体"""
     prompt = f"""你是一个AI助手，负责生成多个不同视角的搜索查询。
 给定一个用户问题，生成{num_queries}个不同但相关的查询，以帮助检索更全面的信息。
@@ -197,13 +245,14 @@ def generate_multi_queries(query: str, llm, num_queries: int = 3) -> List[str]:
 
 请直接输出{num_queries}个查询，每行一个，不要编号和其他内容:"""
 
-    response = llm.invoke(prompt)
+    # response = llm.invoke(prompt)
+    response = get_completion(prompt, "gpt-4o")
     queries = [q.strip() for q in response.strip().split('\n') if q.strip()]
     return [query] + queries[:num_queries]
 
-def hybrid_multi_query_search(query: str, hybrid_retriever: HybridRetriever, llm, k: int = 4) -> List[Document]:
+def hybrid_multi_query_search(query: str, hybrid_retriever: HybridRetriever, k: int = 4) -> List[Document]:
     """混合检索 + 多查询"""
-    queries = generate_multi_queries(query, llm)
+    queries = generate_multi_queries(query)
     print(f"生成的查询变体: {queries}")
 
     seen_contents = set()
@@ -218,9 +267,9 @@ def hybrid_multi_query_search(query: str, hybrid_retriever: HybridRetriever, llm
 
     return unique_docs
 
-def process_query(query: str, hybrid_retriever: HybridRetriever, vectorstore: FAISS, llm) -> Tuple[str, Set]:
+def process_query(query: str, hybrid_retriever: HybridRetriever, vectorstore: FAISS) -> Tuple[str, Set]:
     """处理查询并返回回答"""
-    docs = hybrid_multi_query_search(query, hybrid_retriever, llm)
+    docs = hybrid_multi_query_search(query, hybrid_retriever)
     print(f"找到 {len(docs)} 个相关文档")
 
     context = "\n\n".join([doc.page_content for doc in docs])
@@ -230,8 +279,8 @@ def process_query(query: str, hybrid_retriever: HybridRetriever, vectorstore: FA
 {context}
 
 问题: {query}"""
-
-    response = llm.invoke(prompt)
+    # response = llm.invoke(prompt)
+    response = get_completion(prompt, "gpt-4o")
 
     unique_pages = set()
     for doc in docs:
@@ -246,9 +295,15 @@ def main():
 
     if os.path.exists(vector_db_path) and os.path.isdir(vector_db_path):
         print(f"发现现有向量数据库: {vector_db_path}")
-        embeddings = DashScopeEmbeddings(
-            model="text-embedding-v1",
-            dashscope_api_key=DASHSCOPE_API_KEY,
+        # embeddings = DashScopeEmbeddings(
+        #     model="text-embedding-v1",
+        #     dashscope_api_key=DASHSCOPE_API_KEY,
+        # )
+        # 使用 OpenAI 的嵌入模型
+        embeddings = OpenAIEmbeddings(
+            model="text-embedding-ada-002",
+            openai_api_key=OPENAI_KEY,
+            openai_api_base=BASE_URL  # 将此处设置为您附件中的代理地址
         )
         knowledgeBase, chunks = load_knowledge_base(vector_db_path, embeddings)
     else:
@@ -262,7 +317,18 @@ def main():
     hybrid_retriever = HybridRetriever(chunks, knowledgeBase, alpha=0.5)
     print("混合检索器已创建 (BM25 + Vector, alpha=0.5)")
 
-    llm = Tongyi(model_name="deepseek-v3", dashscope_api_key=DASHSCOPE_API_KEY)
+    # llm = Tongyi(model_name="deepseek-v3", dashscope_api_key=DASHSCOPE_API_KEY)
+    # 使用OpenAI模型替换通义千问
+    # llm = ChatOpenAI(
+    #     model_name="gpt-4o",  # 推荐使用gpt-4o或gpt-3.5-turbo
+    #     api_key=OPENAI_KEY  # 需定义OPENAI_API_KEY环境变量
+    #     # temperature=0.7  # 保持与原代码相似的创造性，范围0-2
+    # )
+
+    # llm = OpenAI(
+    #     api_key=OPENAI_KEY,
+    #     base_url="https://api.fe8.cn/v1"  # OpenAI API 代理
+    # )
 
     queries = [
         "客户经理被投诉了，投诉一次扣多少分",
@@ -274,7 +340,7 @@ def main():
         print("\n" + "="*50)
         print(f"查询: {query}")
 
-        response, unique_pages = process_query(query, hybrid_retriever, knowledgeBase, llm)
+        response, unique_pages = process_query(query, hybrid_retriever, knowledgeBase)
 
         print("\n回答:")
         print(response)

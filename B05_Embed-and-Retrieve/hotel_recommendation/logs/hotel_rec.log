@@ -1,0 +1,188 @@
+/usr/local/bin/python3.12 /private/var/www/github/Arthur-AiEra/LLM-Lab/B05_Embed-and-Retrieve/hotel_recommendation/hotel_rec.py
+/private/var/www/github/Arthur-AiEra/LLM-Lab/B05_Embed-and-Retrieve/hotel_recommendation/hotel_rec.py:63: SyntaxWarning: invalid escape sequence '\['
+  REPLACE_BY_SPACE_RE = re.compile('[/(){}\[\]\|@,;]')
+Matplotlib is building the font cache; this may take a moment.
+                             name  \
+0  Hilton Garden Seattle Downtown
+1          Sheraton Grand Seattle
+2   Crowne Plaza Seattle Downtown
+3   Kimpton Hotel Monaco Seattle
+4              The Westin Seattle
+
+                                           address  \
+0  1821 Boren Avenue, Seattle Washington 98101 USA
+1   1400 6th Avenue, Seattle, Washington 98101 USA
+2                  1113 6th Ave, Seattle, WA 98101
+3                   1101 4th Ave, Seattle, WA98101
+4   1900 5th Avenue, Seattle, Washington 98101 USA
+
+                                                desc
+0  Located on the southern tip of Lake Union, the...
+1  Located in the city's vibrant core, the Sherat...
+2  Located in the heart of downtown Seattle, the ...
+3  What?s near our hotel downtown Seattle locatio...
+4  Situated amid incredible shopping and iconic a...
+数据集中的酒店个数： 152
+第10个酒店的描述：
+Soak up the vibrant scene in the Living Room Bar and get in the mix with our live music and DJ series before heading to a memorable dinner at TRACE. Offering inspired seasonal fare in an award-winning atmosphere, it's a not-to-be-missed culinary experience in downtown Seattle. Work it all off the next morning at FIT®, our state-of-the-art fitness center before wandering out to explore many of the area's nearby attractions, including Pike Place Market, Pioneer Square and the Seattle Art Museum. As always, we've got you covered during your time at W Seattle with our signature Whatever/Whenever® service - your wish is truly our command.
+Name: W Seattle
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 21435 (\N{CJK UNIFIED IDEOGRAPH-53BB}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 25481 (\N{CJK UNIFIED IDEOGRAPH-6389}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 20572 (\N{CJK UNIFIED IDEOGRAPH-505C}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 29992 (\N{CJK UNIFIED IDEOGRAPH-7528}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 35789 (\N{CJK UNIFIED IDEOGRAPH-8BCD}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 21518 (\N{CJK UNIFIED IDEOGRAPH-540E}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 65292 (\N{FULLWIDTH COMMA}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 37202 (\N{CJK UNIFIED IDEOGRAPH-9152}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 24215 (\N{CJK UNIFIED IDEOGRAPH-5E97}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 25551 (\N{CJK UNIFIED IDEOGRAPH-63CF}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 36848 (\N{CJK UNIFIED IDEOGRAPH-8FF0}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 20013 (\N{CJK UNIFIED IDEOGRAPH-4E2D}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 30340 (\N{CJK UNIFIED IDEOGRAPH-7684}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:82: UserWarning: Glyph 21333 (\N{CJK UNIFIED IDEOGRAPH-5355}) missing from font(s) DejaVu Sans.
+  FigureCanvasAgg.draw(self)
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+findfont: Generic family 'sans-serif' not found because none of the following families were found: SimHei
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 21435 (\N{CJK UNIFIED IDEOGRAPH-53BB}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 25481 (\N{CJK UNIFIED IDEOGRAPH-6389}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 20572 (\N{CJK UNIFIED IDEOGRAPH-505C}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 29992 (\N{CJK UNIFIED IDEOGRAPH-7528}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 35789 (\N{CJK UNIFIED IDEOGRAPH-8BCD}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 21518 (\N{CJK UNIFIED IDEOGRAPH-540E}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 65292 (\N{FULLWIDTH COMMA}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 37202 (\N{CJK UNIFIED IDEOGRAPH-9152}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 24215 (\N{CJK UNIFIED IDEOGRAPH-5E97}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 25551 (\N{CJK UNIFIED IDEOGRAPH-63CF}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 36848 (\N{CJK UNIFIED IDEOGRAPH-8FF0}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 20013 (\N{CJK UNIFIED IDEOGRAPH-4E2D}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 30340 (\N{CJK UNIFIED IDEOGRAPH-7684}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend/backend_interagg.py:85: UserWarning: Glyph 21333 (\N{CJK UNIFIED IDEOGRAPH-5355}) missing from font(s) DejaVu Sans.
+  self.print_png(buf)
+TFIDF feature names:
+3347
+(152, 152)
+idx= 49
+['Embassy Suites by Hilton Seattle Tacoma International Airport', 'DoubleTree by Hilton Hotel Seattle Airport', 'Seattle Airport Marriott', 'Four Points by Sheraton Downtown Seattle Center', 'Motel 6 Seattle Sea-Tac Airport South', 'Hampton Inn Seattle/Southcenter', 'Radisson Hotel Seattle Airport', 'Knights Inn Tukwila', 'Hotel Hotel', 'Home2 Suites by Hilton Seattle Airport']
+idx= 116
+['11th Avenue Inn Bed and Breakfast', 'Shafer Baillie Mansion Bed & Breakfast', 'Gaslight Inn', 'Bed and Breakfast Inn Seattle', 'Chittenden House Bed and Breakfast', 'Hyatt House Seattle', 'Mozart Guest House', 'Silver Cloud Hotel - Seattle Broadway', 'WorldMark Seattle - The Camlin', 'Pensione Nichols Bed and Breakfast']
+
+Process finished with exit code 0

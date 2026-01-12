@@ -37,13 +37,13 @@ class PipelineConfig:
         self.documents_dir = self.databases_path / "chunked_reports"
         self.bm25_db_path = self.databases_path / "bm25_dbs"
 
-        # self.parsed_reports_dirname = "01_parsed_reports"
-        # self.parsed_reports_debug_dirname = "01_parsed_reports_debug"
+        self.parsed_reports_dirname = "01_parsed_reports"
+        self.parsed_reports_debug_dirname = "01_parsed_reports_debug"
         # self.merged_reports_dirname = f"02_merged_reports{suffix}"
         self.reports_markdown_dirname = f"03_reports_markdown{suffix}"
 
-        #self.parsed_reports_path = self.debug_data_path / self.parsed_reports_dirname
-        #self.parsed_reports_debug_path = self.debug_data_path / self.parsed_reports_debug_dirname
+        self.parsed_reports_path = self.debug_data_path / self.parsed_reports_dirname
+        self.parsed_reports_debug_path = self.debug_data_path / self.parsed_reports_debug_dirname
         #self.merged_reports_path = self.debug_data_path / self.merged_reports_dirname
         self.reports_markdown_path = self.debug_data_path / self.reports_markdown_dirname
 
@@ -61,8 +61,10 @@ class RunConfig:
     pipeline_details: str = ""
     submission_file: bool = True
     full_context: bool = False
-    api_provider: str = "dashscope" #openai
-    answering_model: str = "qwen-turbo-latest" # gpt-4o-mini-2024-07-18 or "gpt-4o-2024-08-06"
+    # api_provider: str = "dashscope" #openai
+    # answering_model: str = "qwen-turbo-latest" # gpt-4o-mini-2024-07-18 or "gpt-4o-2024-08-06"
+    api_provider: str = "openai"  # openai
+    answering_model: str = "gpt-4o-2024-08-06"  # gpt-4o-mini-2024-07-18 or "gpt-4o-2024-08-06"
     config_suffix: str = ""
 
 class Pipeline:
@@ -132,6 +134,29 @@ class Pipeline:
         )
         print(f"PDF reports parsed and saved to {self.paths.parsed_reports_path}")
 
+    def parse_pdf_reports_sequence(self, chunk_size: int = 2, max_workers: int = 10):
+        """多进程并行解析PDF报告，提升处理效率
+        参数：
+            chunk_size: 每个worker处理的PDF数
+            num_workers: 并发worker数
+        """
+        logging.basicConfig(level=logging.DEBUG)
+
+        pdf_parser = PDFParser(
+            output_dir=self.paths.parsed_reports_path,
+            csv_metadata_path=self.paths.subset_path
+        )
+        pdf_parser.debug_data_path = self.paths.parsed_reports_debug_path
+
+        input_doc_paths = list(self.paths.pdf_reports_dir.glob("*.pdf"))
+
+        pdf_parser.parse_and_export_sequence(
+            input_doc_paths=input_doc_paths,
+            optimal_workers=max_workers,
+            chunk_size=chunk_size
+        )
+        print(f"PDF reports parsed and saved to {self.paths.parsed_reports_path}")
+
     def export_reports_to_markdown(self, file_name):
         """
         使用 pdf_mineru.py，将指定 PDF 文件转换为 markdown，并放到 reports_markdown_dirname 目录下。
@@ -194,6 +219,8 @@ class Pipeline:
         # 解析PDF报告，支持并行处理
         if parallel:
             self.parse_pdf_reports_parallel(chunk_size=chunk_size, max_workers=max_workers)
+        else:
+            self.parse_pdf_reports_sequence(chunk_size=chunk_size, max_workers=max_workers)
 
     def process_parsed_reports(self):
         """
@@ -249,7 +276,8 @@ class Pipeline:
             answering_model=self.run_config.answering_model,
             full_context=self.run_config.full_context            
         )
-        
+
+        # answers_gpt-4o-2024-08-06.json
         output_path = self._get_next_available_filename(self.paths.answers_file_path)
         
         _ = processor.process_all_questions(
@@ -316,9 +344,12 @@ max_config = RunConfig(
     llm_reranking=True,
     parallel_requests=4,
     submission_file=True,
-    pipeline_details="Custom pdf parsing + vDB + Router + Parent Document Retrieval + reranking + SO CoT; llm = qwen-turbo",
-    answering_model="qwen-turbo-latest",
-    config_suffix="_qwen_turbo"
+    # pipeline_details="Custom pdf parsing + vDB + Router + Parent Document Retrieval + reranking + SO CoT; llm = qwen-turbo",
+    # answering_model="qwen-turbo-latest",
+    # config_suffix="_qwen_turbo"
+    pipeline_details="Custom pdf parsing + vDB + Router + Parent Document Retrieval + reranking + SO CoT; llm = gpt-4o-2024-08-06",
+    answering_model='gpt-4o-2024-08-06',
+    config_suffix="_gpt-4o-2024-08-06"
 )
 
 
@@ -340,7 +371,7 @@ if __name__ == "__main__":
     pipeline = Pipeline(root_path, run_config=max_config)
     
     print('4. 将pdf转化为纯markdown文本')
-    #pipeline.export_reports_to_markdown('【财报】中芯国际：中芯国际2024年年度报告.pdf') 
+    # pipeline.export_reports_to_markdown('【财报】中芯国际：中芯国际2024年年度报告.pdf')
 
     # 5. 将规整后报告分块，便于后续向量化，输出到 databases/chunked_reports
     print('5. 将规整后报告分块，便于后续向量化，输出到 databases/chunked_reports')
@@ -348,7 +379,7 @@ if __name__ == "__main__":
     
     # 6. 从分块报告创建向量数据库，输出到 databases/vector_dbs
     print('6. 从分块报告创建向量数据库，输出到 databases/vector_dbs')
-    pipeline.create_vector_dbs()     
+    pipeline.create_vector_dbs()
     
     # 7. 处理问题并生成答案，具体逻辑取决于 run_config
     # 默认questions.json

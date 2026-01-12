@@ -13,11 +13,15 @@ from docling.backend.docling_parse_v2_backend import DoclingParseV2DocumentBacke
 from docling.datamodel.base_models import ConversionStatus
 from docling.datamodel.document import ConversionResult
 
+from docling.datamodel.pipeline_options import AcceleratorDevice, AcceleratorOptions
+
+
 _log = logging.getLogger(__name__)
 
 def _process_chunk(pdf_paths, pdf_backend, output_dir, num_threads, metadata_lookup, debug_data_path):
     """Helper function to process a chunk of PDFs in a separate process."""
     # Create a new parser instance for this process
+    _log.info(f'_process_chunk: {pdf_paths}')
     parser = PDFParser(
         pdf_backend=pdf_backend,
         output_dir=output_dir,
@@ -80,6 +84,15 @@ class PDFParser:
         pipeline_options.do_table_structure = True
         pipeline_options.table_structure_options.do_cell_matching = True
         pipeline_options.table_structure_options.mode = TableFormerMode.ACCURATE
+
+        # 1. Explicitly set the accelerator device to CPU
+        accelerator_options = AcceleratorOptions(
+            device=AcceleratorDevice.CPU,
+            num_threads=4  # Optional: specify the number of CPU threads
+        )
+
+        # 2. Set the accelerator options in the pipeline options
+        pipeline_options.accelerator_options = accelerator_options
         
         format_options = {
             InputFormat.PDF: FormatOption(
@@ -101,23 +114,31 @@ class PDFParser:
         success_count = 0
         failure_count = 0
 
-        for conv_res in conv_results:
-            if conv_res.status == ConversionStatus.SUCCESS:
-                success_count += 1
-                processor = JsonReportProcessor(metadata_lookup=self.metadata_lookup, debug_data_path=self.debug_data_path)
-                
-                # Normalize the document data to ensure sequential pages
-                data = conv_res.document.export_to_dict()
-                normalized_data = self._normalize_page_sequence(data)
-                
-                processed_report = processor.assemble_report(conv_res, normalized_data)
-                doc_filename = conv_res.input.file.stem
-                if self.output_dir is not None:
-                    with (self.output_dir / f"{doc_filename}.json").open("w", encoding="utf-8") as fp:
-                        json.dump(processed_report, fp, indent=2, ensure_ascii=False)
-            else:
-                failure_count += 1
-                _log.info(f"Document {conv_res.input.file} failed to convert.")
+        _log.info(f"process_documents#LOOP conv_results")
+
+        try:
+            for conv_res in conv_results:
+                _log.info(f"process_documents#LOOP conv_res, {conv_res}")
+                if conv_res.status == ConversionStatus.SUCCESS:
+                    success_count += 1
+                    processor = JsonReportProcessor(metadata_lookup=self.metadata_lookup,
+                                                    debug_data_path=self.debug_data_path)
+
+                    # Normalize the document data to ensure sequential pages
+                    data = conv_res.document.export_to_dict()
+                    normalized_data = self._normalize_page_sequence(data)
+                    _log.info(f"process_documents#assemble_report, {conv_res.input.file}")
+                    processed_report = processor.assemble_report(conv_res, normalized_data)
+                    doc_filename = conv_res.input.file.stem
+                    if self.output_dir is not None:
+                        with (self.output_dir / f"{doc_filename}.json").open("w", encoding="utf-8") as fp:
+                            json.dump(processed_report, fp, indent=2, ensure_ascii=False)
+                else:
+                    failure_count += 1
+                    _log.info(f"Document {conv_res.input.file} failed to convert.")
+        except Exception as e:
+            _log.error(f"Error process_documents: {e}")
+            raise
 
         _log.info(f"Processed {success_count + failure_count} docs, of which {failure_count} failed")
         return success_count, failure_count
@@ -160,9 +181,18 @@ class PDFParser:
         
         total_docs = len(input_doc_paths)
         _log.info(f"Starting to process {total_docs} documents")
-        
-        conv_results = self.convert_documents(input_doc_paths)
-        success_count, failure_count = self.process_documents(conv_results=conv_results)
+
+        try:
+            conv_results = self.convert_documents(input_doc_paths)
+            _log.info(f"Starting to process_documents, conv_results: {conv_results}")
+
+            success_count, failure_count = self.process_documents(conv_results=conv_results)
+        except Exception as e:
+            _log.error(f"Error parse_and_export, input_doc_paths: {input_doc_paths}, doc_dir: {doc_dir}")
+            raise
+
+        _log.info(f"Success process_documents, success_count: {success_count}, failure_count: {failure_count}")
+
         elapsed_time = time.time() - start_time
 
         if failure_count > 0:
@@ -242,6 +272,65 @@ class PDFParser:
                 except Exception as e:
                     _log.error(f"Error processing chunk: {str(e)}")
                     raise
+
+        elapsed_time = time.time() - start_time
+        _log.info(f"Parallel processing completed in {elapsed_time:.2f} seconds.")
+
+    def parse_and_export_sequence(
+            self,
+            input_doc_paths: List[Path] = None,
+            doc_dir: Path = None,
+            optimal_workers: int = 10,
+            chunk_size: int = None
+    ):
+        """Parse PDF files in parallel using multiple processes.
+
+        Args:
+            input_doc_paths: List of paths to PDF files to process
+            doc_dir: Directory containing PDF files (used if input_doc_paths is None)
+            optimal_workers: Number of worker processes to use. If None, uses CPU count.
+        """
+        import multiprocessing
+
+        # Get input paths if not provided
+        if input_doc_paths is None and doc_dir is not None:
+            input_doc_paths = list(doc_dir.glob("*.pdf"))
+
+        total_pdfs = len(input_doc_paths)
+        _log.info(f"Starting parallel processing of {total_pdfs} documents")
+
+        cpu_count = multiprocessing.cpu_count()
+
+        # Calculate optimal workers if not specified
+        if optimal_workers is None:
+            optimal_workers = min(cpu_count, total_pdfs)
+
+        if chunk_size is None:
+            # Calculate chunk size (ensure at least 1)
+            chunk_size = max(1, total_pdfs // optimal_workers)
+
+        # Split documents into chunks
+        chunks = [
+            input_doc_paths[i: i + chunk_size]
+            for i in range(0, total_pdfs, chunk_size)
+        ]
+
+        start_time = time.time()
+        processed_count = 0
+
+        for chunk in chunks:
+            try:
+                result = _process_chunk(chunk,
+                                        self.pdf_backend,
+                                        self.output_dir,
+                                        self.num_threads,
+                                        self.metadata_lookup,
+                                        self.debug_data_path)
+                processed_count += int(result.split()[1])  # Extract number from "Processed X PDFs"
+                _log.info(f"{'#' * 50}\n{result} ({processed_count}/{total_pdfs} total)\n{'#' * 50}")
+            except Exception as e:
+                _log.error(f"Error processing chunk: {str(e)}")
+                raise
 
         elapsed_time = time.time() - start_time
         _log.info(f"Parallel processing completed in {elapsed_time:.2f} seconds.")

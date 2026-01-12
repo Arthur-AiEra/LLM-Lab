@@ -1,0 +1,29 @@
+/usr/local/bin/python3.12 /private/var/www/github/Arthur-AiEra/LLM-Lab/B05_Embed-and-Retrieve/CASE-向量数据库/2-embedding-faiss-元数据.py
+正在为文档生成向量...
+  - 已处理文档 1/4
+  - 已处理文档 2/4
+  - 已处理文档 3/4
+  - 已处理文档 4/4
+
+FAISS 索引已成功创建，共包含 4 个向量。
+
+正在为查询文本生成向量: '我想了解一下迪士尼门票的退款流程'
+
+--- 搜索结果 ---
+
+--- 排名 1 (相似度得分/距离: 0.2185) ---
+ID: 0
+原始文本: 迪士尼乐园的门票一经售出，原则上不予退换。但在特殊情况下，如恶劣天气导致园区关闭，可在官方指引下进行改期或退款。
+元数据: {'source': 'official_faq_v1.pdf', 'category': '退票政策', 'author': 'Admin'}
+
+--- 排名 2 (相似度得分/距离: 0.2501) ---
+ID: 2
+原始文本: 对于在线购买的迪士尼门票，如果需要退票，必须在票面日期前48小时通过原购买渠道提交申请，并可能收取手续费。
+元数据: {'source': 'online_policy.html', 'category': '退票政策', 'author': 'E-commerceTeam'}
+
+--- 排名 3 (相似度得分/距离: 0.4398) ---
+ID: 1
+原始文本: 购买“奇妙年卡”的用户，可以享受一年内多次入园的特权，并且在餐饮和购物时有折扣。
+元数据: {'source': 'annual_pass_rules.docx', 'category': '会员权益', 'author': 'MarketingDept'}
+
+Process finished with exit code 0

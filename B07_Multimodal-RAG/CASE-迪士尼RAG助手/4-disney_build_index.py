@@ -99,7 +99,7 @@ def get_image_embedding(image_path):
         base64_image = base64.b64encode(f.read()).decode('utf-8')
 
     ext = os.path.splitext(image_path)[1].lower().lstrip('.')
-    if ext == 'jpg':
+    if ext == 'jpg' or ext == 'jpeg':
         ext = 'jpeg'
     image_data = f"data:image/{ext};base64,{base64_image}"
 

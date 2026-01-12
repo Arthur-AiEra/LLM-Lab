@@ -5,9 +5,17 @@ import os
 import json
 from datetime import datetime
 from collections import Counter
+from openai import OpenAI
 
 # 从环境变量中获取 API Key
-dashscope.api_key = os.getenv('DASHSCOPE_API_KEY')
+#dashscope.api_key = os.getenv('DASHSCOPE_API_KEY')
+
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+
+client = OpenAI(
+        api_key=OPENAI_KEY,
+        base_url="https://api.fe8.cn/v1" # OpenAI API 代理
+    )
 
 # 预处理AI响应中的JSON格式
 def preprocess_json_response(response):
@@ -29,13 +37,20 @@ def preprocess_json_response(response):
 # 基于 prompt 生成文本
 def get_completion(prompt, model="qwen-turbo-latest"):
     messages = [{"role": "user", "content": prompt}]
-    response = dashscope.Generation.call(
+    # response = dashscope.Generation.call(
+    #     model=model,
+    #     messages=messages,
+    #     result_format='message',
+    #     temperature=0.3,
+    # )
+    # return response.output.choices[0].message.content
+
+    response = client.chat.completions.create(
         model=model,
         messages=messages,
-        result_format='message',
         temperature=0.3,
     )
-    return response.output.choices[0].message.content
+    return response.choices[0].message.content
 
 class ConversationKnowledgeExtractor:
     def __init__(self, model="qwen-turbo-latest"):

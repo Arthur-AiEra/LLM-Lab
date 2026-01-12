@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pipeline.process_questions() 调用链路分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            margin-bottom: 40px;
+        }
+        .mermaid {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .note {
+            background-color: #e7f4ff;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f1f1f1;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .svg-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .svg-container img {
+            max-width: 100%;
+            height: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>pipeline.process_questions() 调用链路分析</h1>
+    
+    <div class="section">
+        <h2>1. 概述</h2>
+        <p><code>pipeline.process_questions()</code> 是财报问答系统的核心方法，负责处理问题并生成答案。它涉及多个组件的协同工作，包括问题处理、文档检索、LLM调用等。本文档将深入分析其内部调用流程和数据流向。</p>
+        
+        <div class="note">
+            <strong>核心功能：</strong> 处理用户问题，检索相关文档内容，调用大语言模型生成答案，并保存结果。
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. 调用链路总览</h2>
+        <p>下图展示了 <code>pipeline.process_questions()</code> 的主要调用链路：</p>
+        
+        <div class="mermaid">
+            flowchart TB
+                A[Pipeline.process_questions] --> B[初始化 QuestionsProcessor]
+                A --> C[获取输出路径]
+                A --> D[调用 process_all_questions]
+                D --> E[process_questions_list]
+                
+                subgraph 问题处理
+                E --> F{并行处理?}
+                F -->|是| G[ThreadPoolExecutor]
+                F -->|否| H[顺序处理]
+                G --> I[_process_single_question]
+                H --> I
+                I --> J[process_question]
+                end
+                
+                subgraph 检索与答案生成
+                J --> K{多公司比较?}
+                K -->|是| L[process_comparative_question]
+                K -->|否| M[get_answer_for_company]
+                L --> N[get_rephrased_questions]
+                L --> O[并行处理每个公司]
+                O --> M
+                M --> P{检索器类型}
+                P -->|向量检索| Q[VectorRetriever]
+                P -->|混合检索| R[HybridRetriever]
+                Q --> S[_format_retrieval_results]
+                R --> S
+                S --> T[get_answer_from_rag_context]
+                end
+                
+                subgraph 答案处理
+                T --> U[验证页面引用]
+                U --> V[提取引用信息]
+                V --> W[创建答案详情]
+                W --> X[保存进度]
+                end
+                
+                classDef primary fill:#d1e7dd,stroke:#198754,stroke-width:2px
+                classDef secondary fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px
+                classDef tertiary fill:#f8d7da,stroke:#dc3545,stroke-width:2px
+                
+                class A,D,T primary
+                class J,M,S secondary
+                class P,K tertiary
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>3. 数据流向图</h2>
+        <p>下图展示了数据在各组件间的流动：</p>
+        
+        <div class="mermaid">
+            flowchart LR
+                subgraph 输入数据
+                    A1[questions.json] --> A2[问题列表]
+                    B1[向量数据库] --> B2[检索索引]
+                    C1[文档目录] --> C2[文档内容]
+                end
+                
+                subgraph 处理流程
+                    D1[QuestionsProcessor] --> E1[问题解析]
+                    E1 --> F1[公司名提取]
+                    F1 --> G1[文档检索]
+                    G1 --> H1[上下文构建]
+                    H1 --> I1[LLM推理]
+                    I1 --> J1[答案验证]
+                    J1 --> K1[引用提取]
+                end
+                
+                subgraph 输出数据
+                    L1[结构化答案] --> M1[answers.json]
+                    L1 --> N1[answers_debug.json]
+                end
+                
+                A2 --> D1
+                B2 --> G1
+                C2 --> G1
+                K1 --> L1
+                
+                classDef input fill:#d1ecf1,stroke:#0c5460,stroke-width:2px
+                classDef process fill:#fff3cd,stroke:#856404,stroke-width:2px
+                classDef output fill:#d4edda,stroke:#155724,stroke-width:2px
+                
+                class A1,B1,C1,A2,B2,C2 input
+                class D1,E1,F1,G1,H1,I1,J1,K1 process
+                class L1,M1,N1 output
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>4. 组件关系图</h2>
+        <p>下图展示了各主要组件之间的依赖关系：</p>
+        
+        <div class="mermaid">
+            classDiagram
+                class Pipeline {
+                    +paths: PipelineConfig
+                    +run_config: RunConfig
+                    +process_questions()
+                    +_get_next_available_filename()
+                }
+                
+                class QuestionsProcessor {
+                    +questions: List
+                    +vector_db_dir: Path
+                    +documents_dir: Path
+                    +process_all_questions()
+                    +process_questions_list()
+                    +process_question()
+                    +get_answer_for_company()
+                }
+                
+                class VectorRetriever {
+                    +vector_db_dir: Path
+                    +documents_dir: Path
+                    +retrieve_by_company_name()
+                    +retrieve_all()
+                }
+                
+                class HybridRetriever {
+                    +vector_retriever: VectorRetriever
+                    +reranker: LLMReranker
+                    +retrieve_by_company_name()
+                }
+                
+                class APIProcessor {
+                    +processor: BaseProcessor
+                    +get_answer_from_rag_context()
+                    +get_rephrased_questions()
+                }
+                
+                class BaseOpenaiProcessor {
+                    +llm: OpenAI
+                    +send_message()
+                }
+                
+                class BaseDashscopeProcessor {
+                    +send_message()
+                }
+                
+                Pipeline --> QuestionsProcessor : 创建
+                QuestionsProcessor --> VectorRetriever : 使用
+                QuestionsProcessor --> HybridRetriever : 可选使用
+                QuestionsProcessor --> APIProcessor : 使用
+                HybridRetriever --> VectorRetriever : 使用
+                APIProcessor --> BaseOpenaiProcessor : 可能使用
+                APIProcessor --> BaseDashscopeProcessor : 可能使用
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>5. 详细调用序列</h2>
+        <p>下图展示了从问题到答案的详细处理序列：</p>
+        
+        <div class="mermaid">
+            sequenceDiagram
+                participant Pipeline
+                participant QP as QuestionsProcessor
+                participant VR as VectorRetriever
+                participant HR as HybridRetriever
+                participant AP as APIProcessor
+                participant LLM as LLM服务
+                
+                Pipeline->>QP: 创建(vector_db_dir, documents_dir, questions_file_path, ...)
+                Pipeline->>QP: process_all_questions(output_path, submission_file, pipeline_details)
+                QP->>QP: process_questions_list(questions_list)
+                
+                loop 对每个问题
+                    QP->>QP: _process_single_question(question_data)
+                    QP->>QP: process_question(question_text, schema)
+                    QP->>QP: 提取公司名
+                    
+                    alt 多公司比较
+                        QP->>AP: get_rephrased_questions(original_question, companies)
+                        AP->>LLM: send_message(...)
+                        LLM-->>AP: 返回重写的问题
+                        AP-->>QP: 返回每个公司的问题
+                        
+                        loop 对每个公司
+                            QP->>QP: get_answer_for_company(company, question, schema)
+                        end
+                    else 单公司问题
+                        QP->>QP: get_answer_for_company(company, question, schema)
+                    end
+                    
+                    alt 使用HybridRetriever
+                        QP->>HR: retrieve_by_company_name(company, query, ...)
+                        HR->>VR: retrieve_by_company_name(...)
+                        VR-->>HR: 返回初步检索结果
+                        HR->>HR: rerank_documents(...)
+                        HR-->>QP: 返回重排后的检索结果
+                    else 使用VectorRetriever
+                        QP->>VR: retrieve_by_company_name(company, query, ...)
+                        VR-->>QP: 返回检索结果
+                    end
+                    
+                    QP->>QP: _format_retrieval_results(retrieval_results)
+                    QP->>AP: get_answer_from_rag_context(question, rag_context, schema, model)
+                    AP->>LLM: send_message(...)
+                    LLM-->>AP: 返回答案
+                    AP-->>QP: 返回处理后的答案
+                    
+                    QP->>QP: _validate_page_references(pages, retrieval_results)
+                    QP->>QP: _extract_references(validated_pages, company_name)
+                    QP->>QP: _create_answer_detail_ref(answer_dict, question_index)
+                end
+                
+                QP->>QP: _save_progress(processed_questions, output_path, ...)
+                QP-->>Pipeline: 返回处理结果
+                Pipeline->>Pipeline: 打印完成信息
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>6. 核心方法详解</h2>
+        
+        <h3>6.1 Pipeline.process_questions()</h3>
+        <p>这是整个流程的入口方法，主要完成以下工作：</p>
+        <ul>
+            <li>初始化 QuestionsProcessor，传入必要的配置参数</li>
+            <li>获取下一个可用的输出文件名</li>
+            <li>调用 process_all_questions() 处理所有问题</li>
+            <li>打印完成信息</li>
+        </ul>
+        
+        <h3>6.2 QuestionsProcessor.process_all_questions()</h3>
+        <p>处理所有问题并生成答案文件：</p>
+        <ul>
+            <li>调用 process_questions_list() 处理问题列表</li>
+            <li>保存结果到指定路径</li>
+            <li>根据需要生成提交格式文件</li>
+        </ul>
+        
+        <h3>6.3 QuestionsProcessor.get_answer_for_company()</h3>
+        <p>这是核心的答案生成方法：</p>
+        <ul>
+            <li>根据配置初始化检索器（VectorRetriever 或 HybridRetriever）</li>
+            <li>检索与问题和公司相关的文档内容</li>
+            <li>格式化检索结果为 RAG 上下文</li>
+            <li>调用 LLM 生成答案</li>
+            <li>验证和处理页面引用</li>
+            <li>提取引用信息</li>
+        </ul>
+        
+        <h3>6.4 数据处理流程</h3>
+        <table>
+            <tr>
+                <th>阶段</th>
+                <th>输入</th>
+                <th>处理</th>
+                <th>输出</th>
+            </tr>
+            <tr>
+                <td>问题加载</td>
+                <td>questions.json</td>
+                <td>解析 JSON 文件</td>
+                <td>问题列表</td>
+            </tr>
+            <tr>
+                <td>公司提取</td>
+                <td>问题文本</td>
+                <td>正则匹配或子集匹配</td>
+                <td>公司名列表</td>
+            </tr>
+            <tr>
+                <td>文档检索</td>
+                <td>公司名、问题、向量数据库</td>
+                <td>向量相似度搜索</td>
+                <td>相关文本块列表</td>
+            </tr>
+            <tr>
+                <td>上下文构建</td>
+                <td>检索结果</td>
+                <td>格式化为 RAG 上下文</td>
+                <td>结构化上下文字符串</td>
+            </tr>
+            <tr>
+                <td>答案生成</td>
+                <td>问题、上下文、模型配置</td>
+                <td>LLM API 调用</td>
+                <td>结构化答案</td>
+            </tr>
+            <tr>
+                <td>引用处理</td>
+                <td>答案、检索结果</td>
+                <td>验证和提取页面引用</td>
+                <td>有效引用列表</td>
+            </tr>
+            <tr>
+                <td>结果保存</td>
+                <td>处理后的问题和答案</td>
+                <td>格式化和写入文件</td>
+                <td>answers.json, answers_debug.json</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>7. 关键配置参数影响</h2>
+        <p>下图展示了不同配置参数对处理流程的影响：</p>
+        
+        <div class="mermaid">
+            flowchart TD
+                A[RunConfig] --> B[parent_document_retrieval]
+                A --> C[llm_reranking]
+                A --> D[top_n_retrieval]
+                A --> E[parallel_requests]
+                A --> F[api_provider]
+                A --> G[answering_model]
+                
+                B -->|true| H[返回完整页面而非分块]
+                C -->|true| I[使用HybridRetriever]
+                C -->|false| J[使用VectorRetriever]
+                D --> K[检索结果数量]
+                E --> L[并行处理线程数]
+                F --> M[选择API提供商]
+                G --> N[选择LLM模型]
+                
+                I --> O[向量检索+LLM重排]
+                J --> P[仅向量检索]
+                M -->|openai| Q[使用OpenAI API]
+                M -->|dashscope| R[使用DashScope API]
+                
+                classDef config fill:#d1e7dd,stroke:#198754,stroke-width:2px
+                classDef effect fill:#f8f9fa,stroke:#6c757d,stroke-width:2px
+                classDef decision fill:#e2e3e5,stroke:#495057,stroke-width:2px
+                
+                class A,B,C,D,E,F,G config
+                class H,K,L,O,P,Q,R effect
+                class I,J,M,N decision
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>8. 完整流程 SVG 图</h2>
+        <p>下图是 pipeline.process_questions() 完整调用流程的 SVG 表示：</p>
+        
+        <div class="svg-container">
+            <svg width="1000" height="1200" xmlns="http://www.w3.org/2000/svg">
+                <!-- 主框架 -->
+                <rect x="10" y="10" width="980" height="1180" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5" />
+                <text x="500" y="40" font-family="Arial" font-size="24" text-anchor="middle" fill="#212529">pipeline.process_questions() 调用流程</text>
+                
+                <!-- 初始化阶段 -->
+                <rect x="50" y="70" width="900" height="150" fill="#e9ecef" stroke="#ced4da" stroke-width="2" rx="5" />
+                <text x="500" y="100" font-family="Arial" font-size="18" text-anchor="middle" fill="#495057">初始化阶段</text>
+                
+                <rect x="100" y="120" width="200" height="60" fill="#d1e7dd" stroke="#198754" stroke-width="2" rx="5" />
+                <text x="200" y="155" font-family="Arial" font-size="14" text-anchor="middle" fill="#0f5132">Pipeline.process_questions()</text>
+                
+                <rect x="400" y="120" width="200" height="60" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" rx="5" />
+                <text x="500" y="155" font-family="Arial" font-size="14" text-anchor="middle" fill="#084298">初始化 QuestionsProcessor</text>
+                
+                <rect x="700" y="120" width="200" height="60" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" rx="5" />
+                <text x="800" y="155" font-family="Arial" font-size="14" text-anchor="middle" fill="#084298">获取输出路径</text>
+                
+                <!-- 箭头 -->
+                <line x1="300" y1="150" x2="400" y2="150" stroke="#6c757d" stroke-width="2" />
+                <polygon points="395,145 405,150 395,155" fill="#6c757d" />
+                
+                <line x1="600" y1="150" x2="700" y2="150" stroke="#6c757d" stroke-width="2" />
+                <polygon points="695,145 705,150 695,155" fill="#6c757d" />
+                
+                <!-- 问题处理阶段 -->
+                <rect x="50" y="250" width="900" height="250" fill="#e9ecef" stroke="#ced4da" stroke-width="2" rx="5" />
+                <text x="500" y="280" font-family="Arial" font-size="18" text-anchor="middle" fill="#495057">问题处理阶段</text>
+                
+                <rect x="100" y="320" width="200" height="60" fill="#d1e7dd" stroke="#198754" stroke-width="2" rx="5" />
+                <text x="200" y="355" font-family="Arial" font-size="14" text-anchor="middle" fill="#0f5132">process_all_questions()</text>
+                
+                <rect x="400" y="320" width="200" height="60" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" rx="5" />
+                <text x="500" y="355" font-family="Arial" font-size="14" text-anchor="middle" fill="#084298">process_questions_list()</text>
+                
+                <rect x="250" y="420" width="200" height="60" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" rx="5" />
+                <text x="350" y="455" font-family="Arial" font-size="14" text-anchor="middle" fill="#084298">_process_single_question()</text>
+                
+                <rect x="550" y="420" width="200" height="60" fill="#f8d7da" stroke="#dc3545" stroke-width="2" rx="5" />
+                <text x="650" y="455" font-family="Arial" font-size="14" text-anchor="middle" fill="#842029">process_question()</text>
+                
+                <!-- 箭头 -->
+                <line x1="300" y1="350" x2="400" y2="350" stroke="#6c757d" stroke-width="2" />
+                <polygon points="395,345 405,350 395,355" fill="#6c757d" />
+                
+                <line x1="500" y1="380" x2="350" y2="420" stroke="#6c757d" stroke-width="2" />
+                <polygon points="352,415 348,425 345,415" fill="#6c757d" />
+                
+                <line x1="450" y1="450" x2="550" y2="450" stroke="#6c757d" stroke-width="2" />
+                <polygon points="545,445 555,450 545,455" fill="#6c757d" />
+                
+                <!-- 检索阶段 -->
+                <rect x="50" y="530" width="900" height="250" fill="#e9ecef" stroke="#ced4da" stroke-width="2" rx="5" />
+                <text x="500" y="560" font-family="Arial" font-size="18" text-anchor="middle" fill="#495057">检索阶段</text>
+                
+                <rect x="100" y="600" width="200" height="60" fill="#f8d7da" stroke="#dc3545" stroke-width="2" rx="5" />
+                <text x="200" y="635" font-family="Arial" font-size="14" text-anchor="middle" fill="#842029">get_answer_for_company()</text>
+                
+                <rect x="400" y="600" width="200" height="60" fill="#fff3cd" stroke="#ffc107" stroke-width="2" rx="5" />
+                <text x="500" y="635" font-family="Arial" font-size="14" text-anchor="middle" fill="#664d03">VectorRetriever</text>
+                
+                <rect x="700" y="600" width="200" height="60" fill="#fff3cd" stroke="#ffc107" stroke-width="2" rx="5" />
+                <text x="800" y="635" font-family="Arial" font-size="14" text-anchor="middle" fill="#664d03">HybridRetriever</text>
+                
+                <rect x="250" y="700" width="500" height="60" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" rx="5" />
+                <text x="500" y="735" font-family="Arial" font-size="14" text-anchor="middle" fill="#084298">_format_retrieval_results()</text>
+                
+                <!-- 箭头 -->
+                <line x1="300" y1="630" x2="400" y2="630" stroke="#6c757d" stroke-width="2" />
+                <polygon points="395,625 405,630 395,635" fill="#6c757d" />
+                
+                <line x1="600" y1="630" x2="700" y2="630" stroke="#6c757d" stroke-width="2" />
+                <polygon points="695,625 705,630 695,635" fill="#6c757d" />
+                
+                <line x1="500" y1="660" x2="500" y2="700" stroke="#6c757d" stroke-width="2" />
+                <polygon points="495,695 505,695 500,705" fill="#6c757d" />
+                
+                <!-- 答案生成阶段 -->
+                <rect x="50" y="810" width="900" height="150" fill="#e9ecef" stroke="#ced4da" stroke-width="2" rx="5" />
+                <text x="500" y="840" font-family="Arial" font-size="18" text-anchor="middle" fill="#495057">答案生成阶段</text>
+                
+                <rect x="100" y="870" width="200" height="60" fill="#d1e7dd" stroke="#198754" stroke-width="2" rx="5" />
+                <text x="200" y="905" font-family="Arial" font-size="14" text-anchor="middle" fill="#0f5132">get_answer_from_rag_context()</text>
+                
+                <rect x="400" y="870" width="200" height="60" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" rx="5" />
+                <text x="500" y="905" font-family="Arial" font-size="14" text-anchor="middle" fill="#084298">send_message()</text>
+                
+                <rect x="700" y="870" width="200" height="60" fill="#f8d7da" stroke="#dc3545" stroke-width="2" rx="5" />
+                <text x="800" y="905" font-family="Arial" font-size="14" text-anchor="middle" fill="#842029">LLM API调用</text>
+                
+                <!-- 箭头 -->
+                <line x1="300" y1="900" x2="400" y2="900" stroke="#6c757d" stroke-width="2" />
+                <polygon points="395,895 405,900 395,905" fill="#6c757d" />
+                
+                <line x1="600" y1="900" x2="700" y2="900" stroke="#6c757d" stroke-width="2" />
+                <polygon points="695,895 705,900 695,905" fill="#6c757d" />
+                
+                <!-- 后处理阶段 -->
+                <rect x="50" y="990" width="900" height="180" fill="#e9ecef" stroke="#ced4da" stroke-width="2" rx="5" />
+                <text x="500" y="1020" font-family="Arial" font-size="18" text-anchor="middle" fill="#495057">后处理阶段</text>
+                
+                <rect x="100" y="1050" width="200" height="60" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" rx="5" />
+                <text x="200" y="1085" font-family="Arial" font-size="14" text-anchor="middle" fill="#084298">_validate_page_references()</text>
+                
+                <rect x="400" y="1050" width="200" height="60" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" rx="5" />
+                <text x="500" y="1085" font-family="Arial" font-size="14" text-anchor="middle" fill="#084298">_extract_references()</text>
+                
+                <rect x="700" y="1050" width="200" height="60" fill="#d1e7dd" stroke="#198754" stroke-width="2" rx="5" />
+                <text x="800" y="1085" font-family="Arial" font-size="14" text-anchor="middle" fill="#0f5132">_save_progress()</text>
+                
+                <!-- 箭头 -->
+                <line x1="300" y1="1080" x2="400" y2="1080" stroke="#6c757d" stroke-width="2" />
+                <polygon points="395,1075 405,1080 395,1085" fill="#6c757d" />
+                
+                <line x1="600" y1="1080" x2="700" y2="1080" stroke="#6c757d" stroke-width="2" />
+                <polygon points="695,1075 705,1080 695,1085" fill="#6c757d" />
+                
+                <!-- 连接各阶段的箭头 -->
+                <line x1="500" y1="220" x2="500" y2="250" stroke="#212529" stroke-width="3" />
+                <polygon points="495,245 505,245 500,255" fill="#212529" />
+                
+                <line x1="500" y1="500" x2="500" y2="530" stroke="#212529" stroke-width="3" />
+                <polygon points="495,525 505,525 500,535" fill="#212529" />
+                
+                <line x1="500" y1="760" x2="500" y2="810" stroke="#212529" stroke-width="3" />
+                <polygon points="495,805 505,805 500,815" fill="#212529" />
+                
+                <line x1="500" y1="960" x2="500" y2="990" stroke="#212529" stroke-width="3" />
+                <polygon points="495,985 505,985 500,995" fill="#212529" />
+                
+                <!-- 图例 -->
+                <rect x="750" y="1130" width="20" height="20" fill="#d1e7dd" stroke="#198754" stroke-width="2" rx="2" />
+                <text x="780" y="1145" font-family="Arial" font-size="12" fill="#212529">核心方法</text>
+                
+                <rect x="850" y="1130" width="20" height="20" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" rx="2" />
+                <text x="880" y="1145" font-family="Arial" font-size="12" fill="#212529">辅助方法</text>
+                
+                <rect x="750" y="1160" width="20" height="20" fill="#f8d7da" stroke="#dc3545" stroke-width="2" rx="2" />
+                <text x="780" y="1175" font-family="Arial" font-size="12" fill="#212529">关键决策点</text>
+                
+                <rect x="850" y="1160" width="20" height="20" fill="#fff3cd" stroke="#ffc107" stroke-width="2" rx="2" />
+                <text x="880" y="1175" font-family="Arial" font-size="12" fill="#212529">外部组件</text>
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: { 
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>

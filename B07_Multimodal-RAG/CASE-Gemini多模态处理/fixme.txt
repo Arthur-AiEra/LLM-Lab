@@ -1,0 +1,28 @@
+251227-fix
+-------------------------
+1. fix1
+"/private/var/www/AI_Gallery/B07 RAG多模态数据处理/HOMEWORK_Gemini多模态处理/.venv/bin/python" /private/var/www/AI_Gallery/B07 RAG多模态数据处理/HOMEWORK_Gemini多模态处理/1-Gemini多模态处理.py
+Traceback (most recent call last):
+  File "/private/var/www/AI_Gallery/B07 RAG多模态数据处理/HOMEWORK_Gemini多模态处理/1-Gemini多模态处理.py", line 7, in <module>
+    from google import genai
+ImportError: cannot import name 'genai' from 'google' (unknown location)
+
+Process finished with exit code 1
+
+#######
+pip install --upgrade google-genai
+
+    Uninstalling httpx-0.25.2:
+      Successfully uninstalled httpx-0.25.2
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+openai 1.3.5 requires anyio<4,>=3.5.0, but you have anyio 4.12.0 which is incompatible.
+python-telegram-bot 20.7 requires httpx~=0.25.2, but you have httpx 0.28.1 which is incompatible.
+Successfully installed anyio-4.12.0 cachetools-6.2.4 google-auth-2.45.0 google-genai-1.56.0 httpx-0.28.1 pyasn1-0.6.1 pyasn1-modules-0.4.2 rsa-4.9.1 websockets-15.0.1
+
+
+#######
+ pip install google-generativeai
+
+
+
+

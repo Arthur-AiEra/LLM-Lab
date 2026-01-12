@@ -10,37 +10,59 @@ import pandas as pd
 import numpy as np
 import faiss
 from openai import OpenAI
+from openai import OpenAI
+import logging
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
 
-# 从环境变量中获取 API Key
-dashscope.api_key = os.getenv('DASHSCOPE_API_KEY')
+# 简单配置：设置根记录器的级别为 DEBUG
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+#
+# logging.debug('这是一条 Debug 消息，只有在级别设置为 DEBUG 时才会显示。')
+# logging.info('这是一条 Info 消息。')
 
-# 初始化百炼兼容的 OpenAI 客户端
+
 client = OpenAI(
-    api_key=dashscope.api_key,
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
-)
+        api_key=OPENAI_KEY,
+        base_url="https://api.fe8.cn/v1" # OpenAI API 代理
+    )
+# 从环境变量中获取 API Key
+# dashscope.api_key = os.getenv('DASHSCOPE_API_KEY')
+#
+# # 初始化百炼兼容的 OpenAI 客户端
+# client = OpenAI(
+#     api_key=dashscope.api_key,
+#     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+# )
 
 # 全局配置
-TEXT_EMBEDDING_MODEL = "text-embedding-v4"
-TEXT_EMBEDDING_DIM = 1024
+# TEXT_EMBEDDING_MODEL = "text-embedding-v4" # 阿里巴巴通义千问（Qwen） 推出的最新一代嵌入模型
+TEXT_EMBEDDING_MODEL = "text-embedding-ada-002" # OpenAI 的经典模型
+TEXT_EMBEDDING_DIM = 1536
 
 # 基于 prompt 生成文本
 def get_completion(prompt, model="qwen-turbo-latest"):
     messages = [{"role": "user", "content": prompt}]
-    response = dashscope.Generation.call(
+    # response = dashscope.Generation.call(
+    #     model=model,
+    #     messages=messages,
+    #     result_format='message',
+    #     temperature=0.3,
+    # )
+    # return response.output.choices[0].message.content
+
+    response = client.chat.completions.create(
         model=model,
         messages=messages,
-        result_format='message',
         temperature=0.3,
     )
-    return response.output.choices[0].message.content
+    return response.choices[0].message.content
 
 def get_text_embedding(text):
     """获取文本的 Embedding"""
     response = client.embeddings.create(
         model=TEXT_EMBEDDING_MODEL,
-        input=text,
-        dimensions=TEXT_EMBEDDING_DIM
+        input=text
+        # ,dimensions=TEXT_EMBEDDING_DIM
     )
     return response.data[0].embedding
 

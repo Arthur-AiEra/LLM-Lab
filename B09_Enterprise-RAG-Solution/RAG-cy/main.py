@@ -2,6 +2,15 @@ import click
 from pathlib import Path
 from src.pipeline import Pipeline, configs, preprocess_configs
 
+from pyprojroot import here
+import logging
+
+# 简单配置：设置根记录器的级别为 DEBUG
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+logging.debug('这是一条 Debug 消息，只有在级别设置为 DEBUG 时才会显示。')
+logging.info('这是一条 Info 消息。')
+
 @click.group()
 def cli():
     """Pipeline command line interface for processing PDF reports and questions."""
@@ -20,6 +29,8 @@ def download_models():
 def parse_pdfs(parallel, chunk_size, max_workers):
     """Parse PDF reports with optional parallel processing."""
     root_path = Path.cwd()
+    # root_path = here() / "data" / "stock_data"
+    print('root_path:', root_path)
     pipeline = Pipeline(root_path)
     
     click.echo(f"Parsing PDFs (parallel={parallel}, chunk_size={chunk_size}, max_workers={max_workers})")

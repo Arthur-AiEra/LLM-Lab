@@ -27,7 +27,7 @@ class BaseOpenaiProcessor:
         # 加载OpenAI API密钥，初始化LLM
         load_dotenv()
         llm = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY"),
+            api_key=os.getenv("OPENAI_API_KEY"), base_url="https://api.fe8.cn/v1",
             timeout=None,
             max_retries=2
             )
@@ -69,9 +69,12 @@ class BaseOpenaiProcessor:
 
             response = completion.choices[0].message.parsed
             content = response.dict()
+            # wesley debug
+            print(f"BaseOpenaiProcessor#send_message, response: {response}")
+
 
         self.response_data = {"model": completion.model, "input_tokens": completion.usage.prompt_tokens, "output_tokens": completion.usage.completion_tokens}
-        print(self.response_data)
+        print(f"BaseOpenaiProcessor#send_message: {self.response_data}, content: {content}")
 
         return content
 
@@ -188,7 +191,7 @@ class BaseIBMAPIProcessor:
 
             content = completion.get("results")[0].get("generated_text")
             self.response_data = {"model": completion.get("model_id"), "input_tokens": completion.get("results")[0].get("input_token_count"), "output_tokens": completion.get("results")[0].get("generated_token_count")}
-            print(self.response_data)
+            print(f"BaseIBMAPIProcessor#send_message: {self.response_data}, content: {content}")
             if is_structured and response_format is not None:
                 try:
                     repaired_json = repair_json(content)
@@ -360,7 +363,8 @@ class BaseGeminiProcessor:
                 "input_tokens": response.usage_metadata.prompt_token_count,
                 "output_tokens": response.usage_metadata.candidates_token_count
             }
-            print(self.response_data)
+            # print(self.response_data)
+            print(f"BaseGeminiProcessor#send_message: {self.response_data}, content: {response.text}")
             
             if is_structured and response_format is not None:
                 return self._parse_structured_response(response.text, response_format)
@@ -723,7 +727,8 @@ class BaseDashscopeProcessor:
             content = str(response)
         # 增加 response_data 属性，保证接口一致性
         self.response_data = {"model": model, "input_tokens": response.usage.input_tokens if hasattr(response, 'usage') and hasattr(response.usage, 'input_tokens') else None, "output_tokens": response.usage.output_tokens if hasattr(response, 'usage') and hasattr(response.usage, 'output_tokens') else None}
-        print('content=', content)
+        #print('content=', content)
+        print(f"BaseDashscopeProcessor#send_message: {self.response_data}, content: {content}")
         
         # 尝试解析 content 为 JSON，如果是结构化响应
         try:

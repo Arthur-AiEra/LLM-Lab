@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pipeline.process_questions() 调用链路图谱</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .mermaid {
+            margin: 20px 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .description {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>pipeline.process_questions() 调用链路图谱</h1>
+        
+        <div class="description">
+            <h2>调用流程概述</h2>
+            <p>本图展示了 Pipeline.process_questions() 方法的完整调用链路，包括问题处理、文档检索、LLM调用等关键环节。</p>
+        </div>
+
+        <div class="mermaid">
+            flowchart TD
+                A[Pipeline.process_questions] --> B[初始化 QuestionsProcessor]
+                A --> C[调用 process_all_questions]
+                
+                C --> D[process_questions_list]
+                D --> E{并行处理?}
+                
+                E -->|是| F[ThreadPoolExecutor]
+                E -->|否| G[顺序处理]
+                
+                F --> H[_process_single_question]
+                G --> H
+                
+                H --> I[process_question]
+                I --> J{多公司比较?}
+                
+                J -->|是| K[process_comparative_question]
+                J -->|否| L[get_answer_for_company]
+                
+                K --> M[get_rephrased_questions]
+                K --> N[并行处理每个公司]
+                N --> L
+                
+                L --> O{检索器类型}
+                O -->|HybridRetriever| P[HybridRetriever.retrieve_by_company_name]
+                O -->|VectorRetriever| Q[VectorRetriever.retrieve_by_company_name]
+                
+                P --> R[VectorRetriever.retrieve_by_company_name]
+                P --> S[LLMReranker.rerank_documents]
+                
+                Q --> T[_format_retrieval_results]
+                R --> T
+                S --> T
+                
+                T --> U[APIProcessor.get_answer_from_rag_context]
+                U --> V[BaseOpenaiProcessor/BaseDashscopeProcessor.send_message]
+                
+                V --> W[_validate_page_references]
+                W --> X[_extract_references]
+                
+                X --> Y[_create_answer_detail_ref]
+                Y --> Z[_save_progress]
+                
+                Z --> AA[_post_process_submission_answers]
+                Z --> AB[_calculate_statistics]
+        </div>
+
+        <div class="description">
+            <h2>详细组件关系</h2>
+            <p>下图展示了各主要组件之间的关系和数据流向。</p>
+        </div>
+
+        <div class="mermaid">
+            classDiagram
+                class Pipeline {
+                    +process_questions()
+                }
+                
+                class QuestionsProcessor {
+                    +process_all_questions()
+                    +process_questions_list()
+                    +_process_single_question()
+                    +process_question()
+                    +get_answer_for_company()
+                    +process_comparative_question()
+                }
+                
+                class VectorRetriever {
+                    +retrieve_by_company_name()
+                    +retrieve_all()
+                }
+                
+                class HybridRetriever {
+                    +retrieve_by_company_name()
+                }
+                
+                class LLMReranker {
+                    +rerank_documents()
+                }
+                
+                class APIProcessor {
+                    +get_answer_from_rag_context()
+                    +get_rephrased_questions()
+                }
+                
+                class BaseOpenaiProcessor {
+                    +send_message()
+                }
+                
+                class BaseDashscopeProcessor {
+                    +send_message()
+                }
+                
+                Pipeline --> QuestionsProcessor : 创建
+                QuestionsProcessor --> VectorRetriever : 使用
+                QuestionsProcessor --> HybridRetriever : 使用
+                QuestionsProcessor --> APIProcessor : 使用
+                HybridRetriever --> VectorRetriever : 使用
+                HybridRetriever --> LLMReranker : 使用
+                APIProcessor --> BaseOpenaiProcessor : 使用
+                APIProcessor --> BaseDashscopeProcessor : 使用
+        </div>
+
+        <div class="description">
+            <h2>检索与答案生成流程</h2>
+            <p>下图展示了从问题到答案的详细处理流程。</p>
+        </div>
+
+        <div class="mermaid">
+            sequenceDiagram
+                participant P as Pipeline
+                participant QP as QuestionsProcessor
+                participant VR as VectorRetriever/HybridRetriever
+                participant AP as APIProcessor
+                participant LLM as LLM服务(OpenAI/DashScope)
+                
+                P->>QP: process_questions()
+                QP->>QP: process_all_questions()
+                QP->>QP: 处理每个问题
+                QP->>VR: retrieve_by_company_name()
+                VR->>VR: 检索相关文档
+                VR-->>QP: 返回检索结果
+                QP->>QP: _format_retrieval_results()
+                QP->>AP: get_answer_from_rag_context()
+                AP->>LLM: send_message()
+                LLM-->>AP: 返回答案
+                AP-->>QP: 返回处理后的答案
+                QP->>QP: 验证页面引用
+                QP->>QP: 提取引用信息
+                QP->>QP: 创建答案详情
+                QP-->>P: 返回处理结果
+                P->>P: 保存答案
+        </div>
+
+        <script>
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default',
+                flowchart: {
+                    useMaxWidth: true,
+                    htmlLabels: true
+                },
+                securityLevel: 'loose'
+            });
+        </script>
+    </div>
+</body>
+</html>

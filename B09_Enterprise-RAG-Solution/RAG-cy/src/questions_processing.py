@@ -24,8 +24,10 @@ class QuestionsProcessor:
         llm_reranking_sample_size: int = 5,
         top_n_retrieval: int = 10,
         parallel_requests: int = 10,
-        api_provider: str = "dashscope", # openai
-        answering_model: str = "qwen-turbo-latest", # gpt-4o-2024-08-06
+        # api_provider: str = "dashscope", # openai
+        # answering_model: str = "qwen-turbo-latest", # gpt-4o-2024-08-06
+        api_provider: str = "openai",  # dashscope
+        answering_model: str = "gpt-4o-2024-08-06",  # qwen-turbo-latest
         full_context: bool = False
     ):
         # 初始化问题处理器，配置检索、模型、并发等参数
@@ -138,6 +140,7 @@ class QuestionsProcessor:
             retriever = VectorRetriever(
                 vector_db_dir=self.vector_db_dir,
                 documents_dir=self.documents_dir
+                #, embedding_provider="openai"
             )
         t1 = time.time()
         print(f"[计时] [get_answer_for_company] 检索器初始化耗时: {t1-t0:.2f} 秒")

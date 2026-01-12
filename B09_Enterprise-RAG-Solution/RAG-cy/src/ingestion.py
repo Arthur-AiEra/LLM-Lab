@@ -12,8 +12,26 @@ from rank_bm25 import BM25Okapi
 import faiss
 import numpy as np
 from tenacity import retry, wait_fixed, stop_after_attempt
-import dashscope
-from dashscope import TextEmbedding
+# import dashscope
+# from dashscope import TextEmbedding
+
+from openai import OpenAI
+import os
+
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+
+client = OpenAI(
+        api_key=OPENAI_KEY,
+        base_url="https://api.fe8.cn/v1" # OpenAI API 代理
+    )
+
+import logging
+
+# 简单配置：设置根记录器的级别为 DEBUG
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+#
+# logging.debug('这是一条 Debug 消息，只有在级别设置为 DEBUG 时才会显示。')
+# logging.info('这是一条 Info 消息。')
 
 # BM25Ingestor：BM25索引构建与保存工具
 class BM25Ingestor:
@@ -54,12 +72,12 @@ class BM25Ingestor:
 
 # VectorDBIngestor：向量库构建与保存工具
 class VectorDBIngestor:
-    def __init__(self):
+    # def __init__(self):
         # 初始化DashScope API Key
-        dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")
+        # dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")
 
     @retry(wait=wait_fixed(20), stop=stop_after_attempt(2))
-    def _get_embeddings(self, text: Union[str, List[str]], model: str = "text-embedding-v1") -> List[float]:
+    def _get_embeddings(self, text: Union[str, List[str]], model: str = "text-embedding-3-large") -> List[float]:
         # 获取文本或文本块的嵌入向量，支持重试（使用阿里云DashScope，分批处理）
         if isinstance(text, str) and not text.strip():
             raise ValueError("Input text cannot be an empty string.")
@@ -84,10 +102,17 @@ class VectorDBIngestor:
         LOG_FILE = 'embedding_error.log'
         for i in range(0, len(text_chunks), MAX_BATCH_SIZE):
             batch = text_chunks[i:i+MAX_BATCH_SIZE]
-            resp = TextEmbedding.call(
-                model=TextEmbedding.Models.text_embedding_v1,
+            # resp = TextEmbedding.call(
+            #     model=TextEmbedding.Models.text_embedding_v1,
+            #     input=batch
+            # )
+
+            # 调用OpenAI的embeddings API (新版本语法)
+            resp = client.embeddings.create(
+                model=model,  # OpenAI的文本嵌入模型
                 input=batch
             )
+
             # print('i=',i)
             # print('resp=',resp)
             # with open(LOG_FILE, 'a', encoding='utf-8') as f:
@@ -97,25 +122,41 @@ class VectorDBIngestor:
             #print('resp=',resp)
             # with open(LOG_FILE, 'a', encoding='utf-8') as f:
             #     f.write('resp='+str(resp)+'\n')
-            if 'output' in resp and 'embeddings' in resp['output']:
+
+            # openai embedding parse ===============
+            if resp.data:
                 print('11111111')
-                for emb in resp['output']['embeddings']:
-                    if emb['embedding'] is None or len(emb['embedding']) == 0:
-                        error_text = batch[emb.text_index] if hasattr(emb, 'text_index') else None
+                for emb in resp.data:
+                    if emb.embedding is None or len(emb.embedding) == 0:
+                        error_text = batch[emb.index] if hasattr(emb, 'index') else None
                         with open(LOG_FILE, 'a', encoding='utf-8') as f:
-                            f.write(f"DashScope返回的embedding为空，text_index={getattr(emb, 'text_index', None)}，文本内容如下：\n{error_text}\n{'-'*60}\n")
-                        raise RuntimeError(f"DashScope返回的embedding为空，text_index={getattr(emb, 'text_index', None)}，文本内容已写入 {LOG_FILE}")
-                    embeddings.append(emb['embedding'])
-            elif 'output' in resp and 'embedding' in resp['output']:
-                if resp['output']['embedding'] is None or len(resp['output']['embedding']) == 0:
-                    print('22222222')
-                    with open(LOG_FILE, 'a', encoding='utf-8') as f:
-                        f.write("DashScope返回的embedding为空，文本内容如下：\n{}\n{}\n".format(batch[0] if batch else None, '-'*60))
-                    raise RuntimeError("DashScope返回的embedding为空，文本内容已写入 {}".format(LOG_FILE))
-                embeddings.append(resp.output.embedding)
+                            f.write(f"DashScope返回的embedding为空，text_index={getattr(emb, 'index', None)}，文本内容如下：\n{error_text}\n{'-'*60}\n")
+                        raise RuntimeError(f"DashScope返回的embedding为空，text_index={getattr(emb, 'index', None)}，文本内容已写入 {LOG_FILE}")
+                    embeddings.append(emb.embedding)
             else:
-                print('33333333')
+                print('22222222')
                 raise RuntimeError(f"DashScope embedding API返回格式异常: {resp}")
+
+            # dashscope embedding parse ===============
+            # if 'output' in resp and 'embeddings' in resp['output']:
+            #     print('11111111')
+            #     for emb in resp['output']['embeddings']:
+            #         if emb['embedding'] is None or len(emb['embedding']) == 0:
+            #             error_text = batch[emb.text_index] if hasattr(emb, 'text_index') else None
+            #             with open(LOG_FILE, 'a', encoding='utf-8') as f:
+            #                 f.write(f"DashScope返回的embedding为空，text_index={getattr(emb, 'text_index', None)}，文本内容如下：\n{error_text}\n{'-'*60}\n")
+            #             raise RuntimeError(f"DashScope返回的embedding为空，text_index={getattr(emb, 'text_index', None)}，文本内容已写入 {LOG_FILE}")
+            #         embeddings.append(emb['embedding'])
+            # elif 'output' in resp and 'embedding' in resp['output']:
+            #     if resp['output']['embedding'] is None or len(resp['output']['embedding']) == 0:
+            #         print('22222222')
+            #         with open(LOG_FILE, 'a', encoding='utf-8') as f:
+            #             f.write("DashScope返回的embedding为空，文本内容如下：\n{}\n{}\n".format(batch[0] if batch else None, '-'*60))
+            #         raise RuntimeError("DashScope返回的embedding为空，文本内容已写入 {}".format(LOG_FILE))
+            #     embeddings.append(resp.output.embedding)
+            # else:
+            #     print('33333333')
+            #     raise RuntimeError(f"DashScope embedding API返回格式异常: {resp}")
         return embeddings
 
     def _create_vector_db(self, embeddings: List[float]):
@@ -132,7 +173,7 @@ class VectorDBIngestor:
         # 过滤空内容，超长内容截断到 2048 字符
         max_len = 2048
         text_chunks = [t[:max_len] for t in text_chunks if len(t) > 0]
-        embeddings = self._get_embeddings(text_chunks)
+        embeddings = self._get_embeddings(text_chunks, "text-embedding-3-large")
         index = self._create_vector_db(embeddings)
         return index
 
