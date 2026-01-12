@@ -9,7 +9,7 @@ from typing import Iterable, List
 
 # from docling.backend.docling_parse_backend import DoclingParseDocumentBackend
 from docling.backend.docling_parse_v2_backend import DoclingParseV2DocumentBackend
-# from docling.backend.pypdfium2_backend import PyPdfiumDocumentBackend
+from docling.backend.pypdfium2_backend import PyPdfiumDocumentBackend
 from docling.datamodel.base_models import ConversionStatus
 from docling.datamodel.document import ConversionResult
 
@@ -88,7 +88,7 @@ class PDFParser:
         # 1. Explicitly set the accelerator device to CPU
         accelerator_options = AcceleratorOptions(
             device=AcceleratorDevice.CPU,
-            num_threads=4  # Optional: specify the number of CPU threads
+            num_threads=1  # Optional: specify the number of CPU threads
         )
 
         # 2. Set the accelerator options in the pipeline options
@@ -105,6 +105,7 @@ class PDFParser:
         return DocumentConverter(format_options=format_options)
 
     def convert_documents(self, input_doc_paths: List[Path]) -> Iterable[ConversionResult]:
+
         conv_results = self.doc_converter.convert_all(source=input_doc_paths)
         return conv_results
     
@@ -118,7 +119,7 @@ class PDFParser:
 
         try:
             for conv_res in conv_results:
-                _log.info(f"process_documents#LOOP conv_res, {conv_res}")
+                _log.info(f"process_documents#LOOP conv_res.status: {conv_res.status}")
                 if conv_res.status == ConversionStatus.SUCCESS:
                     success_count += 1
                     processor = JsonReportProcessor(metadata_lookup=self.metadata_lookup,
@@ -184,7 +185,7 @@ class PDFParser:
 
         try:
             conv_results = self.convert_documents(input_doc_paths)
-            _log.info(f"Starting to process_documents, conv_results: {conv_results}")
+            _log.info(f"Starting to process_documents, input_doc_paths: {input_doc_paths}, conv_results: {conv_results}")
 
             success_count, failure_count = self.process_documents(conv_results=conv_results)
         except Exception as e:
@@ -297,7 +298,7 @@ class PDFParser:
             input_doc_paths = list(doc_dir.glob("*.pdf"))
 
         total_pdfs = len(input_doc_paths)
-        _log.info(f"Starting parallel processing of {total_pdfs} documents")
+        _log.info(f"Starting sequence processing of {total_pdfs} documents")
 
         cpu_count = multiprocessing.cpu_count()
 
