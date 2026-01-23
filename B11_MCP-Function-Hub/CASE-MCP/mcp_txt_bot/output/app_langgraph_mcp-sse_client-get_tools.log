@@ -1,0 +1,371 @@
+streamlit run app_langgraph_mcp-sse_client-get_tools.py
+import sys; print('Python %s on %s' % (sys.version, sys.platform))
+Connected to: <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 55635), raddr=('127.0.0.1', 55634)>.
+Connected to pydev debugger (build 253.28294.336)
+  You can now view your Streamlit app in your browser.
+  Local URL: http://localhost:8501
+  Network URL: http://26.26.26.1:8501
+2026-01-23 13:41:14,689 - DEBUG - Using selector: KqueueSelector
+2026-01-23 13:41:14,762 - DEBUG - Connecting to SSE endpoint: http://localhost:8001/sse
+2026-01-23 13:41:14,816 - DEBUG - connect_tcp.started host='localhost' port=8001 local_address=None timeout=5 socket_options=None
+2026-01-23 13:41:14,819 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x1742dc170>
+2026-01-23 13:41:14,819 - DEBUG - send_request_headers.started request=<Request [b'GET']>
+2026-01-23 13:41:14,820 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:14,820 - DEBUG - send_request_body.started request=<Request [b'GET']>
+2026-01-23 13:41:14,820 - DEBUG - send_request_body.complete
+2026-01-23 13:41:14,820 - DEBUG - receive_response_headers.started request=<Request [b'GET']>
+2026-01-23 13:41:14,821 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Fri, 23 Jan 2026 05:41:14 GMT'), (b'server', b'uvicorn'), (b'cache-control', b'no-store'), (b'connection', b'keep-alive'), (b'x-accel-buffering', b'no'), (b'content-type', b'text/event-stream; charset=utf-8'), (b'Transfer-Encoding', b'chunked')])
+2026-01-23 13:41:14,822 - INFO - HTTP Request: GET http://localhost:8001/sse "HTTP/1.1 200 OK"
+2026-01-23 13:41:14,822 - DEBUG - SSE connection established
+2026-01-23 13:41:14,822 - DEBUG - receive_response_body.started request=<Request [b'GET']>
+2026-01-23 13:41:14,823 - DEBUG - Received SSE event: endpoint
+2026-01-23 13:41:14,823 - DEBUG - Received endpoint URL: http://localhost:8001/messages/?session_id=5b3376ad2a8e4681a4f3c0127f0ddebf
+2026-01-23 13:41:14,823 - DEBUG - Starting post writer with endpoint URL: http://localhost:8001/messages/?session_id=5b3376ad2a8e4681a4f3c0127f0ddebf
+2026-01-23 13:41:14,824 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)), metadata=None)
+2026-01-23 13:41:14,824 - DEBUG - connect_tcp.started host='localhost' port=8001 local_address=None timeout=5 socket_options=None
+2026-01-23 13:41:14,826 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x174484800>
+2026-01-23 13:41:14,826 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:14,827 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:14,827 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:14,827 - DEBUG - send_request_body.complete
+2026-01-23 13:41:14,827 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:14,827 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:14 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:14,828 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=5b3376ad2a8e4681a4f3c0127f0ddebf "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:14,828 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:14,828 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:14,828 - DEBUG - response_closed.started
+2026-01-23 13:41:14,828 - DEBUG - response_closed.complete
+2026-01-23 13:41:14,828 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:14,829 - DEBUG - Received SSE event: message
+2026-01-23 13:41:14,829 - DEBUG - Received server message: root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2025-11-25', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'tools': {'listChanged': False}}, 'serverInfo': {'name': '桌面 TXT 文件统计器', 'version': '1.25.0'}})
+2026-01-23 13:41:14,830 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')), metadata=None)
+2026-01-23 13:41:14,830 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:14,830 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:14,831 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:14,831 - DEBUG - send_request_body.complete
+2026-01-23 13:41:14,831 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:14,832 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:14 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:14,832 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=5b3376ad2a8e4681a4f3c0127f0ddebf "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:14,832 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:14,832 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:14,832 - DEBUG - response_closed.started
+2026-01-23 13:41:14,832 - DEBUG - response_closed.complete
+2026-01-23 13:41:14,832 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:14,832 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=1)), metadata=None)
+2026-01-23 13:41:14,833 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:14,833 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:14,833 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:14,834 - DEBUG - send_request_body.complete
+2026-01-23 13:41:14,834 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:14,834 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:14 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:14,834 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=5b3376ad2a8e4681a4f3c0127f0ddebf "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:14,834 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:14,834 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:14,835 - DEBUG - response_closed.started
+2026-01-23 13:41:14,835 - DEBUG - response_closed.complete
+2026-01-23 13:41:14,835 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:14,835 - DEBUG - Received SSE event: message
+2026-01-23 13:41:14,836 - DEBUG - Received server message: root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'tools': [{'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'inputSchema': {'properties': {}, 'title': 'count_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'integer'}}, 'required': ['result'], 'title': 'count_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'inputSchema': {'properties': {}, 'title': 'list_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'list_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'inputSchema': {'properties': {'filename': {'title': 'Filename', 'type': 'string'}}, 'required': ['filename'], 'title': 'read_txt_fileArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'read_txt_fileOutput', 'type': 'object'}}]})
+2026-01-23 13:41:14,837 - DEBUG - response_closed.started
+2026-01-23 13:41:14,837 - DEBUG - receive_response_body.failed exception=CancelledError("Cancelled via cancel scope 174373a40 by <Task pending name='Task-46' coro=<load_mcp_tools() running at /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/langchain_mcp_adapters/tools.py:478> cb=[gather.<locals>._done_callback() at /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/tasks.py:767]>")
+2026-01-23 13:41:14,837 - DEBUG - response_closed.complete
+2026-01-23 13:41:14,837 - DEBUG - close.started
+2026-01-23 13:41:14,838 - DEBUG - close.complete
+2026-01-23 13:41:14,838 - INFO - 成功加载了 3 个 MCP 工具
+2026-01-23 13:41:15,550 - DEBUG - Request options: {'method': 'post', 'url': '/chat/completions', 'headers': {'X-Stainless-Raw-Response': 'true'}, 'files': None, 'idempotency_key': 'stainless-python-retry-c2e5e53d-5d40-4630-b462-a91990565501', 'json_data': {'messages': [{'content': '你是一个桌面文件管理助手。你通过 MCP 协议与本地文件系统交互。', 'role': 'system'}, {'content': '桌面上有什么 txt 文件？', 'role': 'user'}], 'model': 'gpt-4.1-mini', 'stream': False, 'temperature': 0.0, 'tools': [{'type': 'function', 'function': {'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'parameters': {'properties': {'filename': {'type': 'string'}}, 'required': ['filename'], 'type': 'object'}}}]}}
+2026-01-23 13:41:15,550 - DEBUG - Sending HTTP Request: POST https://api.fe8.cn/v1/chat/completions
+2026-01-23 13:41:15,551 - DEBUG - connect_tcp.started host='api.fe8.cn' port=443 local_address=None timeout=None socket_options=None
+2026-01-23 13:41:15,554 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x174dadb20>
+2026-01-23 13:41:15,555 - DEBUG - start_tls.started ssl_context=<ssl.SSLContext object at 0x174d5bc50> server_hostname='api.fe8.cn' timeout=None
+2026-01-23 13:41:15,641 - DEBUG - start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x174cd5d00>
+2026-01-23 13:41:15,641 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:15,642 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:15,642 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:15,642 - DEBUG - send_request_body.complete
+2026-01-23 13:41:15,642 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:17,409 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Server', b'nginx'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'no-cache, private'), (b'Date', b'Fri, 23 Jan 2026 05:41:17 GMT'), (b'Strict-Transport-Security', b'max-age=31536000'), (b'Content-Encoding', b'gzip')])
+2026-01-23 13:41:17,409 - INFO - HTTP Request: POST https://api.fe8.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-23 13:41:17,409 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:17,410 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:17,410 - DEBUG - response_closed.started
+2026-01-23 13:41:17,410 - DEBUG - response_closed.complete
+2026-01-23 13:41:17,410 - DEBUG - HTTP Response: POST https://api.fe8.cn/v1/chat/completions "200 OK" Headers({'server': 'nginx', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Accept-Encoding', 'cache-control': 'no-cache, private', 'date': 'Fri, 23 Jan 2026 05:41:17 GMT', 'strict-transport-security': 'max-age=31536000', 'content-encoding': 'gzip'})
+2026-01-23 13:41:17,410 - DEBUG - request_id: None
+2026-01-23 13:41:17,690 - DEBUG - Connecting to SSE endpoint: http://localhost:8001/sse
+2026-01-23 13:41:17,700 - DEBUG - connect_tcp.started host='localhost' port=8001 local_address=None timeout=5 socket_options=None
+2026-01-23 13:41:17,702 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x174de41d0>
+2026-01-23 13:41:17,702 - DEBUG - send_request_headers.started request=<Request [b'GET']>
+2026-01-23 13:41:17,702 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:17,702 - DEBUG - send_request_body.started request=<Request [b'GET']>
+2026-01-23 13:41:17,702 - DEBUG - send_request_body.complete
+2026-01-23 13:41:17,702 - DEBUG - receive_response_headers.started request=<Request [b'GET']>
+2026-01-23 13:41:17,704 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Fri, 23 Jan 2026 05:41:16 GMT'), (b'server', b'uvicorn'), (b'cache-control', b'no-store'), (b'connection', b'keep-alive'), (b'x-accel-buffering', b'no'), (b'content-type', b'text/event-stream; charset=utf-8'), (b'Transfer-Encoding', b'chunked')])
+2026-01-23 13:41:17,704 - INFO - HTTP Request: GET http://localhost:8001/sse "HTTP/1.1 200 OK"
+2026-01-23 13:41:17,704 - DEBUG - SSE connection established
+2026-01-23 13:41:17,704 - DEBUG - receive_response_body.started request=<Request [b'GET']>
+2026-01-23 13:41:17,704 - DEBUG - Received SSE event: endpoint
+2026-01-23 13:41:17,704 - DEBUG - Received endpoint URL: http://localhost:8001/messages/?session_id=265ce6594f644704b3bce16e82692e8d
+2026-01-23 13:41:17,705 - DEBUG - Starting post writer with endpoint URL: http://localhost:8001/messages/?session_id=265ce6594f644704b3bce16e82692e8d
+2026-01-23 13:41:17,705 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)), metadata=None)
+2026-01-23 13:41:17,706 - DEBUG - connect_tcp.started host='localhost' port=8001 local_address=None timeout=5 socket_options=None
+2026-01-23 13:41:17,707 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x174de4b60>
+2026-01-23 13:41:17,707 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:17,708 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:17,708 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:17,708 - DEBUG - send_request_body.complete
+2026-01-23 13:41:17,708 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:17,708 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:16 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:17,709 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=265ce6594f644704b3bce16e82692e8d "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:17,709 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:17,709 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:17,709 - DEBUG - response_closed.started
+2026-01-23 13:41:17,709 - DEBUG - response_closed.complete
+2026-01-23 13:41:17,709 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:17,710 - DEBUG - Received SSE event: message
+2026-01-23 13:41:17,710 - DEBUG - Received server message: root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2025-11-25', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'tools': {'listChanged': False}}, 'serverInfo': {'name': '桌面 TXT 文件统计器', 'version': '1.25.0'}})
+2026-01-23 13:41:17,710 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')), metadata=None)
+2026-01-23 13:41:17,711 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:17,711 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:17,711 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:17,711 - DEBUG - send_request_body.complete
+2026-01-23 13:41:17,711 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:17,712 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:16 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:17,712 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=265ce6594f644704b3bce16e82692e8d "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:17,712 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:17,712 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:17,712 - DEBUG - response_closed.started
+2026-01-23 13:41:17,712 - DEBUG - response_closed.complete
+2026-01-23 13:41:17,713 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:17,713 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/call', params={'name': 'list_desktop_txt_files', 'arguments': {}}, jsonrpc='2.0', id=1)), metadata=None)
+2026-01-23 13:41:17,713 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:17,714 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:17,714 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:17,714 - DEBUG - send_request_body.complete
+2026-01-23 13:41:17,714 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:17,714 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:16 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:17,714 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=265ce6594f644704b3bce16e82692e8d "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:17,714 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:17,715 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:17,715 - DEBUG - response_closed.started
+2026-01-23 13:41:17,715 - DEBUG - response_closed.complete
+2026-01-23 13:41:17,715 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:17,715 - DEBUG - Received SSE event: message
+2026-01-23 13:41:17,715 - DEBUG - Received server message: root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'content': [{'type': 'text', 'text': '桌面上找到的 .txt 文件有：\nhello_dual.txt'}], 'structuredContent': {'result': '桌面上找到的 .txt 文件有：\nhello_dual.txt'}, 'isError': False})
+2026-01-23 13:41:17,716 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=2)), metadata=None)
+2026-01-23 13:41:17,716 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:17,717 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:17,717 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:17,717 - DEBUG - send_request_body.complete
+2026-01-23 13:41:17,717 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:17,717 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:16 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:17,717 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=265ce6594f644704b3bce16e82692e8d "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:17,718 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:17,718 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:17,718 - DEBUG - response_closed.started
+2026-01-23 13:41:17,718 - DEBUG - response_closed.complete
+2026-01-23 13:41:17,718 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:17,718 - DEBUG - Received SSE event: message
+2026-01-23 13:41:17,718 - DEBUG - Received server message: root=JSONRPCResponse(jsonrpc='2.0', id=2, result={'tools': [{'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'inputSchema': {'properties': {}, 'title': 'count_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'integer'}}, 'required': ['result'], 'title': 'count_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'inputSchema': {'properties': {}, 'title': 'list_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'list_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'inputSchema': {'properties': {'filename': {'title': 'Filename', 'type': 'string'}}, 'required': ['filename'], 'title': 'read_txt_fileArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'read_txt_fileOutput', 'type': 'object'}}]})
+2026-01-23 13:41:17,721 - DEBUG - response_closed.started
+2026-01-23 13:41:17,721 - DEBUG - receive_response_body.failed exception=CancelledError("Cancelled via cancel scope 174dae990 by <Task pending name='Task-64' coro=<StructuredTool._arun() running at /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/langchain_core/tools/structured.py:121> cb=[Task.__wakeup()]>")
+2026-01-23 13:41:17,721 - DEBUG - response_closed.complete
+2026-01-23 13:41:17,721 - DEBUG - close.started
+2026-01-23 13:41:17,722 - DEBUG - close.complete
+2026-01-23 13:41:17,780 - DEBUG - Request options: {'method': 'post', 'url': '/chat/completions', 'headers': {'X-Stainless-Raw-Response': 'true'}, 'files': None, 'idempotency_key': 'stainless-python-retry-328dbd00-b15b-43a3-b460-0d0455ec4feb', 'json_data': {'messages': [{'content': '你是一个桌面文件管理助手。你通过 MCP 协议与本地文件系统交互。', 'role': 'system'}, {'content': '桌面上有什么 txt 文件？', 'role': 'user'}, {'content': None, 'role': 'assistant', 'tool_calls': [{'type': 'function', 'id': 'call_h48l6UbI3IaPOInUvfIjqX5s', 'function': {'name': 'list_desktop_txt_files', 'arguments': '{}'}}]}, {'content': [{'type': 'text', 'text': '桌面上找到的 .txt 文件有：\nhello_dual.txt', 'id': 'lc_35cf8e88-19b5-42e8-8e3a-2ce203834359'}], 'role': 'tool', 'tool_call_id': 'call_h48l6UbI3IaPOInUvfIjqX5s'}], 'model': 'gpt-4.1-mini', 'stream': False, 'temperature': 0.0, 'tools': [{'type': 'function', 'function': {'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'parameters': {'properties': {'filename': {'type': 'string'}}, 'required': ['filename'], 'type': 'object'}}}]}}
+2026-01-23 13:41:17,781 - DEBUG - Sending HTTP Request: POST https://api.fe8.cn/v1/chat/completions
+2026-01-23 13:41:17,781 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:17,781 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:17,781 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:17,782 - DEBUG - send_request_body.complete
+2026-01-23 13:41:17,782 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:19,828 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Server', b'nginx'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'no-cache, private'), (b'Date', b'Fri, 23 Jan 2026 05:41:20 GMT'), (b'Strict-Transport-Security', b'max-age=31536000'), (b'Content-Encoding', b'gzip')])
+2026-01-23 13:41:19,828 - INFO - HTTP Request: POST https://api.fe8.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-23 13:41:19,829 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:19,829 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:19,830 - DEBUG - response_closed.started
+2026-01-23 13:41:19,830 - DEBUG - response_closed.complete
+2026-01-23 13:41:19,830 - DEBUG - HTTP Response: POST https://api.fe8.cn/v1/chat/completions "200 OK" Headers({'server': 'nginx', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Accept-Encoding', 'cache-control': 'no-cache, private', 'date': 'Fri, 23 Jan 2026 05:41:20 GMT', 'strict-transport-security': 'max-age=31536000', 'content-encoding': 'gzip'})
+2026-01-23 13:41:19,830 - DEBUG - request_id: None
+2026-01-23 13:41:28,053 - DEBUG - Using selector: KqueueSelector
+2026-01-23 13:41:28,124 - DEBUG - Connecting to SSE endpoint: http://localhost:8001/sse
+2026-01-23 13:41:28,142 - DEBUG - connect_tcp.started host='localhost' port=8001 local_address=None timeout=5 socket_options=None
+2026-01-23 13:41:28,145 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x32cabf230>
+2026-01-23 13:41:28,145 - DEBUG - send_request_headers.started request=<Request [b'GET']>
+2026-01-23 13:41:28,146 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:28,146 - DEBUG - send_request_body.started request=<Request [b'GET']>
+2026-01-23 13:41:28,146 - DEBUG - send_request_body.complete
+2026-01-23 13:41:28,146 - DEBUG - receive_response_headers.started request=<Request [b'GET']>
+2026-01-23 13:41:28,148 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Fri, 23 Jan 2026 05:41:27 GMT'), (b'server', b'uvicorn'), (b'cache-control', b'no-store'), (b'connection', b'keep-alive'), (b'x-accel-buffering', b'no'), (b'content-type', b'text/event-stream; charset=utf-8'), (b'Transfer-Encoding', b'chunked')])
+2026-01-23 13:41:28,148 - INFO - HTTP Request: GET http://localhost:8001/sse "HTTP/1.1 200 OK"
+2026-01-23 13:41:28,149 - DEBUG - SSE connection established
+2026-01-23 13:41:28,149 - DEBUG - receive_response_body.started request=<Request [b'GET']>
+2026-01-23 13:41:28,149 - DEBUG - Received SSE event: endpoint
+2026-01-23 13:41:28,149 - DEBUG - Received endpoint URL: http://localhost:8001/messages/?session_id=4660fd574c1b4d9cb5d253cea1cfd6a0
+2026-01-23 13:41:28,150 - DEBUG - Starting post writer with endpoint URL: http://localhost:8001/messages/?session_id=4660fd574c1b4d9cb5d253cea1cfd6a0
+2026-01-23 13:41:28,150 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)), metadata=None)
+2026-01-23 13:41:28,151 - DEBUG - connect_tcp.started host='localhost' port=8001 local_address=None timeout=5 socket_options=None
+2026-01-23 13:41:28,153 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x174487ec0>
+2026-01-23 13:41:28,153 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:28,154 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:28,154 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:28,154 - DEBUG - send_request_body.complete
+2026-01-23 13:41:28,154 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:28,154 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:27 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:28,155 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=4660fd574c1b4d9cb5d253cea1cfd6a0 "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:28,155 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:28,155 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:28,155 - DEBUG - response_closed.started
+2026-01-23 13:41:28,155 - DEBUG - response_closed.complete
+2026-01-23 13:41:28,156 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:28,156 - DEBUG - Received SSE event: message
+2026-01-23 13:41:28,156 - DEBUG - Received server message: root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2025-11-25', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'tools': {'listChanged': False}}, 'serverInfo': {'name': '桌面 TXT 文件统计器', 'version': '1.25.0'}})
+2026-01-23 13:41:28,157 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')), metadata=None)
+2026-01-23 13:41:28,158 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:28,158 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:28,158 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:28,158 - DEBUG - send_request_body.complete
+2026-01-23 13:41:28,158 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:28,159 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:27 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:28,159 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=4660fd574c1b4d9cb5d253cea1cfd6a0 "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:28,159 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:28,159 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:28,159 - DEBUG - response_closed.started
+2026-01-23 13:41:28,160 - DEBUG - response_closed.complete
+2026-01-23 13:41:28,160 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:28,160 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=1)), metadata=None)
+2026-01-23 13:41:28,161 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:28,161 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:28,161 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:28,161 - DEBUG - send_request_body.complete
+2026-01-23 13:41:28,161 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:28,162 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:27 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:28,162 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=4660fd574c1b4d9cb5d253cea1cfd6a0 "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:28,162 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:28,162 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:28,162 - DEBUG - response_closed.started
+2026-01-23 13:41:28,162 - DEBUG - response_closed.complete
+2026-01-23 13:41:28,163 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:28,163 - DEBUG - Received SSE event: message
+2026-01-23 13:41:28,163 - DEBUG - Received server message: root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'tools': [{'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'inputSchema': {'properties': {}, 'title': 'count_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'integer'}}, 'required': ['result'], 'title': 'count_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'inputSchema': {'properties': {}, 'title': 'list_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'list_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'inputSchema': {'properties': {'filename': {'title': 'Filename', 'type': 'string'}}, 'required': ['filename'], 'title': 'read_txt_fileArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'read_txt_fileOutput', 'type': 'object'}}]})
+2026-01-23 13:41:28,164 - DEBUG - response_closed.started
+2026-01-23 13:41:28,164 - DEBUG - receive_response_body.failed exception=CancelledError("Cancelled via cancel scope 1743717c0 by <Task pending name='Task-144' coro=<load_mcp_tools() running at /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/langchain_mcp_adapters/tools.py:478> cb=[gather.<locals>._done_callback() at /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/tasks.py:767]>")
+2026-01-23 13:41:28,165 - DEBUG - response_closed.complete
+2026-01-23 13:41:28,165 - DEBUG - close.started
+2026-01-23 13:41:28,165 - DEBUG - close.complete
+2026-01-23 13:41:28,166 - INFO - 成功加载了 3 个 MCP 工具
+2026-01-23 13:41:28,176 - DEBUG - Request options: {'method': 'post', 'url': '/chat/completions', 'headers': {'X-Stainless-Raw-Response': 'true'}, 'files': None, 'idempotency_key': 'stainless-python-retry-5742b511-6987-4405-a7e6-a3b6c30b8c14', 'json_data': {'messages': [{'content': '你是一个桌面文件管理助手。你通过 MCP 协议与本地文件系统交互。', 'role': 'system'}, {'content': '桌面上有什么 txt 文件？', 'role': 'user'}, {'content': '桌面上有一个 txt 文件，名为 hello_dual.txt。需要我帮你查看这个文件的内容吗？', 'role': 'assistant'}, {'content': '好', 'role': 'user'}], 'model': 'gpt-4.1-mini', 'stream': False, 'temperature': 0.0, 'tools': [{'type': 'function', 'function': {'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'parameters': {'properties': {'filename': {'type': 'string'}}, 'required': ['filename'], 'type': 'object'}}}]}}
+2026-01-23 13:41:28,176 - DEBUG - Sending HTTP Request: POST https://api.fe8.cn/v1/chat/completions
+2026-01-23 13:41:28,177 - DEBUG - close.started
+2026-01-23 13:41:28,177 - DEBUG - close.complete
+2026-01-23 13:41:28,177 - DEBUG - connect_tcp.started host='api.fe8.cn' port=443 local_address=None timeout=None socket_options=None
+2026-01-23 13:41:28,180 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x174486ba0>
+2026-01-23 13:41:28,180 - DEBUG - start_tls.started ssl_context=<ssl.SSLContext object at 0x174d5bc50> server_hostname='api.fe8.cn' timeout=None
+2026-01-23 13:41:28,277 - DEBUG - start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x174485be0>
+2026-01-23 13:41:28,277 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:28,277 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:28,277 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:28,277 - DEBUG - send_request_body.complete
+2026-01-23 13:41:28,277 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:30,076 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Server', b'nginx'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'no-cache, private'), (b'Date', b'Fri, 23 Jan 2026 05:41:30 GMT'), (b'Strict-Transport-Security', b'max-age=31536000'), (b'Content-Encoding', b'gzip')])
+2026-01-23 13:41:30,077 - INFO - HTTP Request: POST https://api.fe8.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-23 13:41:30,078 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:30,079 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:30,079 - DEBUG - response_closed.started
+2026-01-23 13:41:30,079 - DEBUG - response_closed.complete
+2026-01-23 13:41:30,080 - DEBUG - HTTP Response: POST https://api.fe8.cn/v1/chat/completions "200 OK" Headers({'server': 'nginx', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Accept-Encoding', 'cache-control': 'no-cache, private', 'date': 'Fri, 23 Jan 2026 05:41:30 GMT', 'strict-transport-security': 'max-age=31536000', 'content-encoding': 'gzip'})
+2026-01-23 13:41:30,080 - DEBUG - request_id: None
+2026-01-23 13:41:30,346 - DEBUG - Connecting to SSE endpoint: http://localhost:8001/sse
+2026-01-23 13:41:30,356 - DEBUG - connect_tcp.started host='localhost' port=8001 local_address=None timeout=5 socket_options=None
+2026-01-23 13:41:30,358 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x174de4c20>
+2026-01-23 13:41:30,358 - DEBUG - send_request_headers.started request=<Request [b'GET']>
+2026-01-23 13:41:30,359 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:30,359 - DEBUG - send_request_body.started request=<Request [b'GET']>
+2026-01-23 13:41:30,359 - DEBUG - send_request_body.complete
+2026-01-23 13:41:30,359 - DEBUG - receive_response_headers.started request=<Request [b'GET']>
+2026-01-23 13:41:30,360 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Fri, 23 Jan 2026 05:41:29 GMT'), (b'server', b'uvicorn'), (b'cache-control', b'no-store'), (b'connection', b'keep-alive'), (b'x-accel-buffering', b'no'), (b'content-type', b'text/event-stream; charset=utf-8'), (b'Transfer-Encoding', b'chunked')])
+2026-01-23 13:41:30,360 - INFO - HTTP Request: GET http://localhost:8001/sse "HTTP/1.1 200 OK"
+2026-01-23 13:41:30,360 - DEBUG - SSE connection established
+2026-01-23 13:41:30,360 - DEBUG - receive_response_body.started request=<Request [b'GET']>
+2026-01-23 13:41:30,361 - DEBUG - Received SSE event: endpoint
+2026-01-23 13:41:30,361 - DEBUG - Received endpoint URL: http://localhost:8001/messages/?session_id=2d1833b310b045a391613f7029efac50
+2026-01-23 13:41:30,361 - DEBUG - Starting post writer with endpoint URL: http://localhost:8001/messages/?session_id=2d1833b310b045a391613f7029efac50
+2026-01-23 13:41:30,361 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)), metadata=None)
+2026-01-23 13:41:30,362 - DEBUG - connect_tcp.started host='localhost' port=8001 local_address=None timeout=5 socket_options=None
+2026-01-23 13:41:30,364 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x174de5af0>
+2026-01-23 13:41:30,364 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:30,364 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:30,364 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:30,364 - DEBUG - send_request_body.complete
+2026-01-23 13:41:30,364 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:30,365 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:29 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:30,365 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=2d1833b310b045a391613f7029efac50 "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:30,365 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:30,365 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:30,365 - DEBUG - response_closed.started
+2026-01-23 13:41:30,365 - DEBUG - response_closed.complete
+2026-01-23 13:41:30,365 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:30,366 - DEBUG - Received SSE event: message
+2026-01-23 13:41:30,366 - DEBUG - Received server message: root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2025-11-25', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'tools': {'listChanged': False}}, 'serverInfo': {'name': '桌面 TXT 文件统计器', 'version': '1.25.0'}})
+2026-01-23 13:41:30,366 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')), metadata=None)
+2026-01-23 13:41:30,367 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:30,367 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:30,367 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:30,367 - DEBUG - send_request_body.complete
+2026-01-23 13:41:30,367 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:30,368 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:29 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:30,368 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=2d1833b310b045a391613f7029efac50 "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:30,368 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:30,368 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:30,368 - DEBUG - response_closed.started
+2026-01-23 13:41:30,368 - DEBUG - response_closed.complete
+2026-01-23 13:41:30,368 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:30,368 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/call', params={'name': 'read_txt_file', 'arguments': {'filename': 'hello_dual.txt'}}, jsonrpc='2.0', id=1)), metadata=None)
+2026-01-23 13:41:30,369 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:30,370 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:30,370 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:30,370 - DEBUG - send_request_body.complete
+2026-01-23 13:41:30,370 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:30,370 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:29 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:30,371 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=2d1833b310b045a391613f7029efac50 "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:30,371 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:30,371 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:30,371 - DEBUG - response_closed.started
+2026-01-23 13:41:30,371 - DEBUG - response_closed.complete
+2026-01-23 13:41:30,371 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:30,372 - DEBUG - Received SSE event: message
+2026-01-23 13:41:30,372 - DEBUG - Received server message: root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'content': [{'type': 'text', 'text': "文件 'hello_dual.txt' 的内容：\n\nHello from Dual Decorator Agent!"}], 'structuredContent': {'result': "文件 'hello_dual.txt' 的内容：\n\nHello from Dual Decorator Agent!"}, 'isError': False})
+2026-01-23 13:41:30,373 - DEBUG - Sending client message: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=2)), metadata=None)
+2026-01-23 13:41:30,373 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:30,373 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:30,373 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:30,374 - DEBUG - send_request_body.complete
+2026-01-23 13:41:30,374 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:30,374 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'date', b'Fri, 23 Jan 2026 05:41:29 GMT'), (b'server', b'uvicorn'), (b'content-length', b'8')])
+2026-01-23 13:41:30,374 - INFO - HTTP Request: POST http://localhost:8001/messages/?session_id=2d1833b310b045a391613f7029efac50 "HTTP/1.1 202 Accepted"
+2026-01-23 13:41:30,374 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:30,374 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:30,375 - DEBUG - response_closed.started
+2026-01-23 13:41:30,375 - DEBUG - response_closed.complete
+2026-01-23 13:41:30,375 - DEBUG - Client message sent successfully: 202
+2026-01-23 13:41:30,375 - DEBUG - Received SSE event: message
+2026-01-23 13:41:30,375 - DEBUG - Received server message: root=JSONRPCResponse(jsonrpc='2.0', id=2, result={'tools': [{'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'inputSchema': {'properties': {}, 'title': 'count_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'integer'}}, 'required': ['result'], 'title': 'count_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'inputSchema': {'properties': {}, 'title': 'list_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'list_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'inputSchema': {'properties': {'filename': {'title': 'Filename', 'type': 'string'}}, 'required': ['filename'], 'title': 'read_txt_fileArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'read_txt_fileOutput', 'type': 'object'}}]})
+2026-01-23 13:41:30,377 - DEBUG - response_closed.started
+2026-01-23 13:41:30,377 - DEBUG - receive_response_body.failed exception=CancelledError("Cancelled via cancel scope 174486030 by <Task pending name='Task-162' coro=<StructuredTool._arun() running at /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/langchain_core/tools/structured.py:121> cb=[Task.__wakeup()]>")
+2026-01-23 13:41:30,378 - DEBUG - response_closed.complete
+2026-01-23 13:41:30,378 - DEBUG - close.started
+2026-01-23 13:41:30,378 - DEBUG - close.complete
+2026-01-23 13:41:30,440 - DEBUG - Request options: {'method': 'post', 'url': '/chat/completions', 'headers': {'X-Stainless-Raw-Response': 'true'}, 'files': None, 'idempotency_key': 'stainless-python-retry-1f9668b4-6619-4736-93f3-f938dfd68437', 'json_data': {'messages': [{'content': '你是一个桌面文件管理助手。你通过 MCP 协议与本地文件系统交互。', 'role': 'system'}, {'content': '桌面上有什么 txt 文件？', 'role': 'user'}, {'content': '桌面上有一个 txt 文件，名为 hello_dual.txt。需要我帮你查看这个文件的内容吗？', 'role': 'assistant'}, {'content': '好', 'role': 'user'}, {'content': None, 'role': 'assistant', 'tool_calls': [{'type': 'function', 'id': 'call_5b9GsLSfrEhHKIR6RQ4BWYrI', 'function': {'name': 'read_txt_file', 'arguments': '{"filename": "hello_dual.txt"}'}}]}, {'content': [{'type': 'text', 'text': "文件 'hello_dual.txt' 的内容：\n\nHello from Dual Decorator Agent!", 'id': 'lc_2a48531d-9b07-4ba9-af9b-84872a4a541e'}], 'role': 'tool', 'tool_call_id': 'call_5b9GsLSfrEhHKIR6RQ4BWYrI'}], 'model': 'gpt-4.1-mini', 'stream': False, 'temperature': 0.0, 'tools': [{'type': 'function', 'function': {'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'parameters': {'properties': {'filename': {'type': 'string'}}, 'required': ['filename'], 'type': 'object'}}}]}}
+2026-01-23 13:41:30,440 - DEBUG - Sending HTTP Request: POST https://api.fe8.cn/v1/chat/completions
+2026-01-23 13:41:30,441 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:30,441 - DEBUG - send_request_headers.complete
+2026-01-23 13:41:30,441 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:41:30,441 - DEBUG - send_request_body.complete
+2026-01-23 13:41:30,441 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:41:32,519 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Server', b'nginx'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'no-cache, private'), (b'Date', b'Fri, 23 Jan 2026 05:41:33 GMT'), (b'Strict-Transport-Security', b'max-age=31536000'), (b'Content-Encoding', b'gzip')])
+2026-01-23 13:41:32,520 - INFO - HTTP Request: POST https://api.fe8.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-23 13:41:32,521 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:41:32,522 - DEBUG - receive_response_body.complete
+2026-01-23 13:41:32,522 - DEBUG - response_closed.started
+2026-01-23 13:41:32,522 - DEBUG - response_closed.complete
+2026-01-23 13:41:32,523 - DEBUG - HTTP Response: POST https://api.fe8.cn/v1/chat/completions "200 OK" Headers({'server': 'nginx', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Accept-Encoding', 'cache-control': 'no-cache, private', 'date': 'Fri, 23 Jan 2026 05:41:33 GMT', 'strict-transport-security': 'max-age=31536000', 'content-encoding': 'gzip'})
+2026-01-23 13:41:32,523 - DEBUG - request_id: None

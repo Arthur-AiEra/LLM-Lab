@@ -1,0 +1,192 @@
+python txt_counter.py --transport sse
+2026-01-23 13:32:06,902 - DEBUG - Initializing server '桌面 TXT 文件统计器'
+2026-01-23 13:32:06,902 - DEBUG - Registering handler for ListToolsRequest
+2026-01-23 13:32:06,902 - DEBUG - Registering handler for CallToolRequest
+2026-01-23 13:32:06,902 - DEBUG - Registering handler for ListResourcesRequest
+2026-01-23 13:32:06,902 - DEBUG - Registering handler for ReadResourceRequest
+2026-01-23 13:32:06,902 - DEBUG - Registering handler for PromptListRequest
+2026-01-23 13:32:06,902 - DEBUG - Registering handler for GetPromptRequest
+2026-01-23 13:32:06,902 - DEBUG - Registering handler for ListResourceTemplatesRequest
+2026-01-23 13:32:06,907 - INFO - 正在以 sse 模式启动 MCP Server...
+2026-01-23 13:32:06,908 - DEBUG - Using selector: KqueueSelector
+2026-01-23 13:32:06,908 - DEBUG - SseServerTransport initialized with endpoint: /messages/
+INFO:     Started server process [15808]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+
+2026-01-23 13:41:14,820 - DEBUG - Setting up SSE connection
+2026-01-23 13:41:14,820 - DEBUG - Created new session with ID: 5b3376ad-2a8e-4681-a4f3-c0127f0ddebf
+2026-01-23 13:41:14,820 - DEBUG - Starting SSE response task
+2026-01-23 13:41:14,820 - DEBUG - Yielding read and write streams
+INFO:     127.0.0.1:55709 - "GET /sse HTTP/1.1" 200 OK
+2026-01-23 13:41:14,821 - DEBUG - Starting SSE writer
+2026-01-23 13:41:14,821 - DEBUG - Sent endpoint event: /messages/?session_id=5b3376ad2a8e4681a4f3c0127f0ddebf
+2026-01-23 13:41:14,821 - DEBUG - chunk: b'event: endpoint\r\ndata: /messages/?session_id=5b3376ad2a8e4681a4f3c0127f0ddebf\r\n\r\n'
+2026-01-23 13:41:14,827 - DEBUG - Handling POST message
+2026-01-23 13:41:14,827 - DEBUG - Parsed session ID: 5b3376ad-2a8e-4681-a4f3-c0127f0ddebf
+2026-01-23 13:41:14,827 - DEBUG - Received JSON: b'{"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"mcp","version":"0.1.0"}},"jsonrpc":"2.0","id":0}'
+2026-01-23 13:41:14,827 - DEBUG - Validated client message: root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)
+2026-01-23 13:41:14,827 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0b4770>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55711 - "POST /messages/?session_id=5b3376ad2a8e4681a4f3c0127f0ddebf HTTP/1.1" 202 Accepted
+2026-01-23 13:41:14,827 - DEBUG - Sending message via SSE: SessionMessage(message=JSONRPCMessage(root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2025-11-25', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'tools': {'listChanged': False}}, 'serverInfo': {'name': '桌面 TXT 文件统计器', 'version': '1.25.0'}})), metadata=None)
+2026-01-23 13:41:14,827 - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2025-11-25","capabilities":{"experimental":{},"prompts":{"listChanged":false},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false}},"serverInfo":{"name":"\xe6\xa1\x8c\xe9\x9d\xa2 TXT \xe6\x96\x87\xe4\xbb\xb6\xe7\xbb\x9f\xe8\xae\xa1\xe5\x99\xa8","version":"1.25.0"}}}\r\n\r\n'
+2026-01-23 13:41:14,831 - DEBUG - Handling POST message
+2026-01-23 13:41:14,831 - DEBUG - Parsed session ID: 5b3376ad-2a8e-4681-a4f3-c0127f0ddebf
+2026-01-23 13:41:14,831 - DEBUG - Received JSON: b'{"method":"notifications/initialized","jsonrpc":"2.0"}'
+2026-01-23 13:41:14,831 - DEBUG - Validated client message: root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:41:14,831 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0b6f90>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55711 - "POST /messages/?session_id=5b3376ad2a8e4681a4f3c0127f0ddebf HTTP/1.1" 202 Accepted
+2026-01-23 13:41:14,831 - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:41:14,833 - DEBUG - Handling POST message
+2026-01-23 13:41:14,833 - DEBUG - Parsed session ID: 5b3376ad-2a8e-4681-a4f3-c0127f0ddebf
+2026-01-23 13:41:14,834 - DEBUG - Received JSON: b'{"method":"tools/list","jsonrpc":"2.0","id":1}'
+2026-01-23 13:41:14,834 - DEBUG - Validated client message: root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=1)
+2026-01-23 13:41:14,834 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=1)), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0b7290>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55711 - "POST /messages/?session_id=5b3376ad2a8e4681a4f3c0127f0ddebf HTTP/1.1" 202 Accepted
+2026-01-23 13:41:14,834 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x10b0b72c0>
+2026-01-23 13:41:14,834 - INFO - Processing request of type ListToolsRequest
+2026-01-23 13:41:14,834 - DEBUG - Dispatching request of type ListToolsRequest
+2026-01-23 13:41:14,834 - DEBUG - Response sent
+2026-01-23 13:41:14,834 - DEBUG - Sending message via SSE: SessionMessage(message=JSONRPCMessage(root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'tools': [{'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'inputSchema': {'properties': {}, 'title': 'count_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'integer'}}, 'required': ['result'], 'title': 'count_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'inputSchema': {'properties': {}, 'title': 'list_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'list_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'inputSchema': {'properties': {'filename': {'title': 'Filename', 'type': 'string'}}, 'required': ['filename'], 'title': 'read_txt_fileArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'read_txt_fileOutput', 'type': 'object'}}]})), metadata=None)
+2026-01-23 13:41:14,834 - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":"count_desktop_txt_files","description":"\xe7\xbb\x9f\xe8\xae\xa1\xe6\xa1\x8c\xe9\x9d\xa2\xe4\xb8\x8a .txt \xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe6\x95\xb0\xe9\x87\x8f","inputSchema":{"properties":{},"title":"count_desktop_txt_filesArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"integer"}},"required":["result"],"title":"count_desktop_txt_filesOutput","type":"object"}},{"name":"list_desktop_txt_files","description":"\xe8\x8e\xb7\xe5\x8f\x96\xe6\xa1\x8c\xe9\x9d\xa2\xe4\xb8\x8a\xe6\x89\x80\xe6\x9c\x89 .txt \xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x88\x97\xe8\xa1\xa8","inputSchema":{"properties":{},"title":"list_desktop_txt_filesArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"list_desktop_txt_filesOutput","type":"object"}},{"name":"read_txt_file","description":"\xe8\xaf\xbb\xe5\x8f\x96\xe6\x8c\x87\xe5\xae\x9atxt\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x86\x85\xe5\xae\xb9\\n\\n    Args:\\n        filename: txt\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x90\x8d\xe7\xa7\xb0\xef\xbc\x88\xe4\xbe\x8b\xe5\xa6\x82\xef\xbc\x9atest.txt\xef\xbc\x89\\n    ","inputSchema":{"properties":{"filename":{"title":"Filename","type":"string"}},"required":["filename"],"title":"read_txt_fileArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"read_txt_fileOutput","type":"object"}}]}}\r\n\r\n'
+2026-01-23 13:41:14,837 - DEBUG - Got event: http.disconnect. Stop streaming.
+2026-01-23 13:41:14,837 - DEBUG - Client session disconnected 5b3376ad-2a8e-4681-a4f3-c0127f0ddebf
+2026-01-23 13:41:17,702 - DEBUG - Setting up SSE connection
+2026-01-23 13:41:17,702 - DEBUG - Created new session with ID: 265ce659-4f64-4704-b3bc-e16e82692e8d
+2026-01-23 13:41:17,702 - DEBUG - Starting SSE response task
+2026-01-23 13:41:17,702 - DEBUG - Yielding read and write streams
+INFO:     127.0.0.1:55715 - "GET /sse HTTP/1.1" 200 OK
+2026-01-23 13:41:17,703 - DEBUG - Starting SSE writer
+2026-01-23 13:41:17,703 - DEBUG - Sent endpoint event: /messages/?session_id=265ce6594f644704b3bce16e82692e8d
+2026-01-23 13:41:17,703 - DEBUG - chunk: b'event: endpoint\r\ndata: /messages/?session_id=265ce6594f644704b3bce16e82692e8d\r\n\r\n'
+2026-01-23 13:41:17,708 - DEBUG - Handling POST message
+2026-01-23 13:41:17,708 - DEBUG - Parsed session ID: 265ce659-4f64-4704-b3bc-e16e82692e8d
+2026-01-23 13:41:17,708 - DEBUG - Received JSON: b'{"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"mcp","version":"0.1.0"}},"jsonrpc":"2.0","id":0}'
+2026-01-23 13:41:17,708 - DEBUG - Validated client message: root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)
+2026-01-23 13:41:17,708 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b092720>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55717 - "POST /messages/?session_id=265ce6594f644704b3bce16e82692e8d HTTP/1.1" 202 Accepted
+2026-01-23 13:41:17,708 - DEBUG - Sending message via SSE: SessionMessage(message=JSONRPCMessage(root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2025-11-25', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'tools': {'listChanged': False}}, 'serverInfo': {'name': '桌面 TXT 文件统计器', 'version': '1.25.0'}})), metadata=None)
+2026-01-23 13:41:17,709 - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2025-11-25","capabilities":{"experimental":{},"prompts":{"listChanged":false},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false}},"serverInfo":{"name":"\xe6\xa1\x8c\xe9\x9d\xa2 TXT \xe6\x96\x87\xe4\xbb\xb6\xe7\xbb\x9f\xe8\xae\xa1\xe5\x99\xa8","version":"1.25.0"}}}\r\n\r\n'
+2026-01-23 13:41:17,711 - DEBUG - Handling POST message
+2026-01-23 13:41:17,711 - DEBUG - Parsed session ID: 265ce659-4f64-4704-b3bc-e16e82692e8d
+2026-01-23 13:41:17,711 - DEBUG - Received JSON: b'{"method":"notifications/initialized","jsonrpc":"2.0"}'
+2026-01-23 13:41:17,712 - DEBUG - Validated client message: root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:41:17,712 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0935c0>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55717 - "POST /messages/?session_id=265ce6594f644704b3bce16e82692e8d HTTP/1.1" 202 Accepted
+2026-01-23 13:41:17,712 - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:41:17,714 - DEBUG - Handling POST message
+2026-01-23 13:41:17,714 - DEBUG - Parsed session ID: 265ce659-4f64-4704-b3bc-e16e82692e8d
+2026-01-23 13:41:17,714 - DEBUG - Received JSON: b'{"method":"tools/call","params":{"name":"list_desktop_txt_files","arguments":{}},"jsonrpc":"2.0","id":1}'
+2026-01-23 13:41:17,714 - DEBUG - Validated client message: root=JSONRPCRequest(method='tools/call', params={'name': 'list_desktop_txt_files', 'arguments': {}}, jsonrpc='2.0', id=1)
+2026-01-23 13:41:17,714 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/call', params={'name': 'list_desktop_txt_files', 'arguments': {}}, jsonrpc='2.0', id=1)), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b093a10>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55717 - "POST /messages/?session_id=265ce6594f644704b3bce16e82692e8d HTTP/1.1" 202 Accepted
+2026-01-23 13:41:17,714 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x10a50d7f0>
+2026-01-23 13:41:17,714 - INFO - Processing request of type CallToolRequest
+2026-01-23 13:41:17,714 - DEBUG - Dispatching request of type CallToolRequest
+2026-01-23 13:41:17,715 - DEBUG - Response sent
+2026-01-23 13:41:17,715 - DEBUG - Sending message via SSE: SessionMessage(message=JSONRPCMessage(root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'content': [{'type': 'text', 'text': '桌面上找到的 .txt 文件有：\nhello_dual.txt'}], 'structuredContent': {'result': '桌面上找到的 .txt 文件有：\nhello_dual.txt'}, 'isError': False})), metadata=None)
+2026-01-23 13:41:17,715 - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"\xe6\xa1\x8c\xe9\x9d\xa2\xe4\xb8\x8a\xe6\x89\xbe\xe5\x88\xb0\xe7\x9a\x84 .txt \xe6\x96\x87\xe4\xbb\xb6\xe6\x9c\x89\xef\xbc\x9a\\nhello_dual.txt"}],"structuredContent":{"result":"\xe6\xa1\x8c\xe9\x9d\xa2\xe4\xb8\x8a\xe6\x89\xbe\xe5\x88\xb0\xe7\x9a\x84 .txt \xe6\x96\x87\xe4\xbb\xb6\xe6\x9c\x89\xef\xbc\x9a\\nhello_dual.txt"},"isError":false}}\r\n\r\n'
+2026-01-23 13:41:17,717 - DEBUG - Handling POST message
+2026-01-23 13:41:17,717 - DEBUG - Parsed session ID: 265ce659-4f64-4704-b3bc-e16e82692e8d
+2026-01-23 13:41:17,717 - DEBUG - Received JSON: b'{"method":"tools/list","jsonrpc":"2.0","id":2}'
+2026-01-23 13:41:17,717 - DEBUG - Validated client message: root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=2)
+2026-01-23 13:41:17,717 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=2)), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0b7aa0>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55717 - "POST /messages/?session_id=265ce6594f644704b3bce16e82692e8d HTTP/1.1" 202 Accepted
+2026-01-23 13:41:17,717 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x10a754aa0>
+2026-01-23 13:41:17,717 - INFO - Processing request of type ListToolsRequest
+2026-01-23 13:41:17,717 - DEBUG - Dispatching request of type ListToolsRequest
+2026-01-23 13:41:17,717 - DEBUG - Response sent
+2026-01-23 13:41:17,717 - DEBUG - Sending message via SSE: SessionMessage(message=JSONRPCMessage(root=JSONRPCResponse(jsonrpc='2.0', id=2, result={'tools': [{'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'inputSchema': {'properties': {}, 'title': 'count_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'integer'}}, 'required': ['result'], 'title': 'count_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'inputSchema': {'properties': {}, 'title': 'list_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'list_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'inputSchema': {'properties': {'filename': {'title': 'Filename', 'type': 'string'}}, 'required': ['filename'], 'title': 'read_txt_fileArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'read_txt_fileOutput', 'type': 'object'}}]})), metadata=None)
+2026-01-23 13:41:17,718 - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"count_desktop_txt_files","description":"\xe7\xbb\x9f\xe8\xae\xa1\xe6\xa1\x8c\xe9\x9d\xa2\xe4\xb8\x8a .txt \xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe6\x95\xb0\xe9\x87\x8f","inputSchema":{"properties":{},"title":"count_desktop_txt_filesArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"integer"}},"required":["result"],"title":"count_desktop_txt_filesOutput","type":"object"}},{"name":"list_desktop_txt_files","description":"\xe8\x8e\xb7\xe5\x8f\x96\xe6\xa1\x8c\xe9\x9d\xa2\xe4\xb8\x8a\xe6\x89\x80\xe6\x9c\x89 .txt \xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x88\x97\xe8\xa1\xa8","inputSchema":{"properties":{},"title":"list_desktop_txt_filesArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"list_desktop_txt_filesOutput","type":"object"}},{"name":"read_txt_file","description":"\xe8\xaf\xbb\xe5\x8f\x96\xe6\x8c\x87\xe5\xae\x9atxt\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x86\x85\xe5\xae\xb9\\n\\n    Args:\\n        filename: txt\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x90\x8d\xe7\xa7\xb0\xef\xbc\x88\xe4\xbe\x8b\xe5\xa6\x82\xef\xbc\x9atest.txt\xef\xbc\x89\\n    ","inputSchema":{"properties":{"filename":{"title":"Filename","type":"string"}},"required":["filename"],"title":"read_txt_fileArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"read_txt_fileOutput","type":"object"}}]}}\r\n\r\n'
+2026-01-23 13:41:17,721 - DEBUG - Got event: http.disconnect. Stop streaming.
+2026-01-23 13:41:17,721 - DEBUG - Client session disconnected 265ce659-4f64-4704-b3bc-e16e82692e8d
+2026-01-23 13:41:28,146 - DEBUG - Setting up SSE connection
+2026-01-23 13:41:28,146 - DEBUG - Created new session with ID: 4660fd57-4c1b-4d9c-b5d2-53cea1cfd6a0
+2026-01-23 13:41:28,146 - DEBUG - Starting SSE response task
+2026-01-23 13:41:28,146 - DEBUG - Yielding read and write streams
+INFO:     127.0.0.1:55732 - "GET /sse HTTP/1.1" 200 OK
+2026-01-23 13:41:28,148 - DEBUG - Starting SSE writer
+2026-01-23 13:41:28,148 - DEBUG - Sent endpoint event: /messages/?session_id=4660fd574c1b4d9cb5d253cea1cfd6a0
+2026-01-23 13:41:28,148 - DEBUG - chunk: b'event: endpoint\r\ndata: /messages/?session_id=4660fd574c1b4d9cb5d253cea1cfd6a0\r\n\r\n'
+2026-01-23 13:41:28,154 - DEBUG - Handling POST message
+2026-01-23 13:41:28,154 - DEBUG - Parsed session ID: 4660fd57-4c1b-4d9c-b5d2-53cea1cfd6a0
+2026-01-23 13:41:28,154 - DEBUG - Received JSON: b'{"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"mcp","version":"0.1.0"}},"jsonrpc":"2.0","id":0}'
+2026-01-23 13:41:28,154 - DEBUG - Validated client message: root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)
+2026-01-23 13:41:28,154 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0b6840>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55734 - "POST /messages/?session_id=4660fd574c1b4d9cb5d253cea1cfd6a0 HTTP/1.1" 202 Accepted
+2026-01-23 13:41:28,154 - DEBUG - Sending message via SSE: SessionMessage(message=JSONRPCMessage(root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2025-11-25', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'tools': {'listChanged': False}}, 'serverInfo': {'name': '桌面 TXT 文件统计器', 'version': '1.25.0'}})), metadata=None)
+2026-01-23 13:41:28,155 - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2025-11-25","capabilities":{"experimental":{},"prompts":{"listChanged":false},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false}},"serverInfo":{"name":"\xe6\xa1\x8c\xe9\x9d\xa2 TXT \xe6\x96\x87\xe4\xbb\xb6\xe7\xbb\x9f\xe8\xae\xa1\xe5\x99\xa8","version":"1.25.0"}}}\r\n\r\n'
+2026-01-23 13:41:28,158 - DEBUG - Handling POST message
+2026-01-23 13:41:28,158 - DEBUG - Parsed session ID: 4660fd57-4c1b-4d9c-b5d2-53cea1cfd6a0
+2026-01-23 13:41:28,158 - DEBUG - Received JSON: b'{"method":"notifications/initialized","jsonrpc":"2.0"}'
+2026-01-23 13:41:28,158 - DEBUG - Validated client message: root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:41:28,158 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0b4f80>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55734 - "POST /messages/?session_id=4660fd574c1b4d9cb5d253cea1cfd6a0 HTTP/1.1" 202 Accepted
+2026-01-23 13:41:28,159 - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:41:28,161 - DEBUG - Handling POST message
+2026-01-23 13:41:28,161 - DEBUG - Parsed session ID: 4660fd57-4c1b-4d9c-b5d2-53cea1cfd6a0
+2026-01-23 13:41:28,161 - DEBUG - Received JSON: b'{"method":"tools/list","jsonrpc":"2.0","id":1}'
+2026-01-23 13:41:28,161 - DEBUG - Validated client message: root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=1)
+2026-01-23 13:41:28,161 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=1)), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0b5280>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55734 - "POST /messages/?session_id=4660fd574c1b4d9cb5d253cea1cfd6a0 HTTP/1.1" 202 Accepted
+2026-01-23 13:41:28,161 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x10b0b4c20>
+2026-01-23 13:41:28,162 - INFO - Processing request of type ListToolsRequest
+2026-01-23 13:41:28,162 - DEBUG - Dispatching request of type ListToolsRequest
+2026-01-23 13:41:28,162 - DEBUG - Response sent
+2026-01-23 13:41:28,162 - DEBUG - Sending message via SSE: SessionMessage(message=JSONRPCMessage(root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'tools': [{'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'inputSchema': {'properties': {}, 'title': 'count_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'integer'}}, 'required': ['result'], 'title': 'count_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'inputSchema': {'properties': {}, 'title': 'list_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'list_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'inputSchema': {'properties': {'filename': {'title': 'Filename', 'type': 'string'}}, 'required': ['filename'], 'title': 'read_txt_fileArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'read_txt_fileOutput', 'type': 'object'}}]})), metadata=None)
+2026-01-23 13:41:28,162 - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":"count_desktop_txt_files","description":"\xe7\xbb\x9f\xe8\xae\xa1\xe6\xa1\x8c\xe9\x9d\xa2\xe4\xb8\x8a .txt \xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe6\x95\xb0\xe9\x87\x8f","inputSchema":{"properties":{},"title":"count_desktop_txt_filesArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"integer"}},"required":["result"],"title":"count_desktop_txt_filesOutput","type":"object"}},{"name":"list_desktop_txt_files","description":"\xe8\x8e\xb7\xe5\x8f\x96\xe6\xa1\x8c\xe9\x9d\xa2\xe4\xb8\x8a\xe6\x89\x80\xe6\x9c\x89 .txt \xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x88\x97\xe8\xa1\xa8","inputSchema":{"properties":{},"title":"list_desktop_txt_filesArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"list_desktop_txt_filesOutput","type":"object"}},{"name":"read_txt_file","description":"\xe8\xaf\xbb\xe5\x8f\x96\xe6\x8c\x87\xe5\xae\x9atxt\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x86\x85\xe5\xae\xb9\\n\\n    Args:\\n        filename: txt\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x90\x8d\xe7\xa7\xb0\xef\xbc\x88\xe4\xbe\x8b\xe5\xa6\x82\xef\xbc\x9atest.txt\xef\xbc\x89\\n    ","inputSchema":{"properties":{"filename":{"title":"Filename","type":"string"}},"required":["filename"],"title":"read_txt_fileArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"read_txt_fileOutput","type":"object"}}]}}\r\n\r\n'
+2026-01-23 13:41:28,165 - DEBUG - Got event: http.disconnect. Stop streaming.
+2026-01-23 13:41:28,165 - DEBUG - Client session disconnected 4660fd57-4c1b-4d9c-b5d2-53cea1cfd6a0
+2026-01-23 13:41:30,359 - DEBUG - Setting up SSE connection
+2026-01-23 13:41:30,359 - DEBUG - Created new session with ID: 2d1833b3-10b0-45a3-9161-3f7029efac50
+2026-01-23 13:41:30,359 - DEBUG - Starting SSE response task
+2026-01-23 13:41:30,359 - DEBUG - Yielding read and write streams
+INFO:     127.0.0.1:55742 - "GET /sse HTTP/1.1" 200 OK
+2026-01-23 13:41:30,360 - DEBUG - Starting SSE writer
+2026-01-23 13:41:30,360 - DEBUG - Sent endpoint event: /messages/?session_id=2d1833b310b045a391613f7029efac50
+2026-01-23 13:41:30,360 - DEBUG - chunk: b'event: endpoint\r\ndata: /messages/?session_id=2d1833b310b045a391613f7029efac50\r\n\r\n'
+2026-01-23 13:41:30,364 - DEBUG - Handling POST message
+2026-01-23 13:41:30,364 - DEBUG - Parsed session ID: 2d1833b3-10b0-45a3-9161-3f7029efac50
+2026-01-23 13:41:30,364 - DEBUG - Received JSON: b'{"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"mcp","version":"0.1.0"}},"jsonrpc":"2.0","id":0}'
+2026-01-23 13:41:30,364 - DEBUG - Validated client message: root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)
+2026-01-23 13:41:30,364 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0dc830>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55744 - "POST /messages/?session_id=2d1833b310b045a391613f7029efac50 HTTP/1.1" 202 Accepted
+2026-01-23 13:41:30,365 - DEBUG - Sending message via SSE: SessionMessage(message=JSONRPCMessage(root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2025-11-25', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'tools': {'listChanged': False}}, 'serverInfo': {'name': '桌面 TXT 文件统计器', 'version': '1.25.0'}})), metadata=None)
+2026-01-23 13:41:30,365 - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2025-11-25","capabilities":{"experimental":{},"prompts":{"listChanged":false},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false}},"serverInfo":{"name":"\xe6\xa1\x8c\xe9\x9d\xa2 TXT \xe6\x96\x87\xe4\xbb\xb6\xe7\xbb\x9f\xe8\xae\xa1\xe5\x99\xa8","version":"1.25.0"}}}\r\n\r\n'
+2026-01-23 13:41:30,367 - DEBUG - Handling POST message
+2026-01-23 13:41:30,367 - DEBUG - Parsed session ID: 2d1833b3-10b0-45a3-9161-3f7029efac50
+2026-01-23 13:41:30,367 - DEBUG - Received JSON: b'{"method":"notifications/initialized","jsonrpc":"2.0"}'
+2026-01-23 13:41:30,367 - DEBUG - Validated client message: root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:41:30,367 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0b7ad0>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55744 - "POST /messages/?session_id=2d1833b310b045a391613f7029efac50 HTTP/1.1" 202 Accepted
+2026-01-23 13:41:30,368 - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:41:30,370 - DEBUG - Handling POST message
+2026-01-23 13:41:30,370 - DEBUG - Parsed session ID: 2d1833b3-10b0-45a3-9161-3f7029efac50
+2026-01-23 13:41:30,370 - DEBUG - Received JSON: b'{"method":"tools/call","params":{"name":"read_txt_file","arguments":{"filename":"hello_dual.txt"}},"jsonrpc":"2.0","id":1}'
+2026-01-23 13:41:30,370 - DEBUG - Validated client message: root=JSONRPCRequest(method='tools/call', params={'name': 'read_txt_file', 'arguments': {'filename': 'hello_dual.txt'}}, jsonrpc='2.0', id=1)
+2026-01-23 13:41:30,370 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/call', params={'name': 'read_txt_file', 'arguments': {'filename': 'hello_dual.txt'}}, jsonrpc='2.0', id=1)), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0b4dd0>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55744 - "POST /messages/?session_id=2d1833b310b045a391613f7029efac50 HTTP/1.1" 202 Accepted
+2026-01-23 13:41:30,370 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x10a50d7f0>
+2026-01-23 13:41:30,370 - INFO - Processing request of type CallToolRequest
+2026-01-23 13:41:30,370 - DEBUG - Dispatching request of type CallToolRequest
+2026-01-23 13:41:30,371 - INFO - 文件 'hello_dual.txt' 的内容：
+
+Hello from Dual Decorator Agent!
+2026-01-23 13:41:30,372 - DEBUG - Response sent
+2026-01-23 13:41:30,372 - DEBUG - Sending message via SSE: SessionMessage(message=JSONRPCMessage(root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'content': [{'type': 'text', 'text': "文件 'hello_dual.txt' 的内容：\n\nHello from Dual Decorator Agent!"}], 'structuredContent': {'result': "文件 'hello_dual.txt' 的内容：\n\nHello from Dual Decorator Agent!"}, 'isError': False})), metadata=None)
+2026-01-23 13:41:30,372 - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"\xe6\x96\x87\xe4\xbb\xb6 \'hello_dual.txt\' \xe7\x9a\x84\xe5\x86\x85\xe5\xae\xb9\xef\xbc\x9a\\n\\nHello from Dual Decorator Agent!"}],"structuredContent":{"result":"\xe6\x96\x87\xe4\xbb\xb6 \'hello_dual.txt\' \xe7\x9a\x84\xe5\x86\x85\xe5\xae\xb9\xef\xbc\x9a\\n\\nHello from Dual Decorator Agent!"},"isError":false}}\r\n\r\n'
+2026-01-23 13:41:30,374 - DEBUG - Handling POST message
+2026-01-23 13:41:30,374 - DEBUG - Parsed session ID: 2d1833b3-10b0-45a3-9161-3f7029efac50
+2026-01-23 13:41:30,374 - DEBUG - Received JSON: b'{"method":"tools/list","jsonrpc":"2.0","id":2}'
+2026-01-23 13:41:30,374 - DEBUG - Validated client message: root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=2)
+2026-01-23 13:41:30,374 - DEBUG - Sending session message to writer: SessionMessage(message=JSONRPCMessage(root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=2)), metadata=ServerMessageMetadata(related_request_id=None, request_context=<starlette.requests.Request object at 0x10b0b61e0>, close_sse_stream=None, close_standalone_sse_stream=None))
+INFO:     127.0.0.1:55744 - "POST /messages/?session_id=2d1833b310b045a391613f7029efac50 HTTP/1.1" 202 Accepted
+2026-01-23 13:41:30,374 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x10b0b5760>
+2026-01-23 13:41:30,374 - INFO - Processing request of type ListToolsRequest
+2026-01-23 13:41:30,374 - DEBUG - Dispatching request of type ListToolsRequest
+2026-01-23 13:41:30,374 - DEBUG - Response sent
+2026-01-23 13:41:30,374 - DEBUG - Sending message via SSE: SessionMessage(message=JSONRPCMessage(root=JSONRPCResponse(jsonrpc='2.0', id=2, result={'tools': [{'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'inputSchema': {'properties': {}, 'title': 'count_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'integer'}}, 'required': ['result'], 'title': 'count_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'inputSchema': {'properties': {}, 'title': 'list_desktop_txt_filesArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'list_desktop_txt_filesOutput', 'type': 'object'}}, {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'inputSchema': {'properties': {'filename': {'title': 'Filename', 'type': 'string'}}, 'required': ['filename'], 'title': 'read_txt_fileArguments', 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': 'read_txt_fileOutput', 'type': 'object'}}]})), metadata=None)
+2026-01-23 13:41:30,374 - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"count_desktop_txt_files","description":"\xe7\xbb\x9f\xe8\xae\xa1\xe6\xa1\x8c\xe9\x9d\xa2\xe4\xb8\x8a .txt \xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe6\x95\xb0\xe9\x87\x8f","inputSchema":{"properties":{},"title":"count_desktop_txt_filesArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"integer"}},"required":["result"],"title":"count_desktop_txt_filesOutput","type":"object"}},{"name":"list_desktop_txt_files","description":"\xe8\x8e\xb7\xe5\x8f\x96\xe6\xa1\x8c\xe9\x9d\xa2\xe4\xb8\x8a\xe6\x89\x80\xe6\x9c\x89 .txt \xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x88\x97\xe8\xa1\xa8","inputSchema":{"properties":{},"title":"list_desktop_txt_filesArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"list_desktop_txt_filesOutput","type":"object"}},{"name":"read_txt_file","description":"\xe8\xaf\xbb\xe5\x8f\x96\xe6\x8c\x87\xe5\xae\x9atxt\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x86\x85\xe5\xae\xb9\\n\\n    Args:\\n        filename: txt\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe5\x90\x8d\xe7\xa7\xb0\xef\xbc\x88\xe4\xbe\x8b\xe5\xa6\x82\xef\xbc\x9atest.txt\xef\xbc\x89\\n    ","inputSchema":{"properties":{"filename":{"title":"Filename","type":"string"}},"required":["filename"],"title":"read_txt_fileArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"read_txt_fileOutput","type":"object"}}]}}\r\n\r\n'
+2026-01-23 13:41:30,378 - DEBUG - Got event: http.disconnect. Stop streaming.
+2026-01-23 13:41:30,378 - DEBUG - Client session disconnected 2d1833b3-10b0-45a3-9161-3f7029efac50

@@ -1,0 +1,157 @@
+streamlit run app_langgraph_mcp-stdio_client-get_tools.py
+import sys; print('Python %s on %s' % (sys.version, sys.platform))
+Connected to: <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 53261), raddr=('127.0.0.1', 53260)>.
+Connected to pydev debugger (build 253.28294.336)
+  You can now view your Streamlit app in your browser.
+  Local URL: http://localhost:8501
+  Network URL: http://26.26.26.1:8501
+2026-01-23 13:28:42,756 - DEBUG - Using selector: KqueueSelector
+Connected to: <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 53362), raddr=('127.0.0.1', 53260)>.
+2026-01-23 13:28:44,381 - DEBUG - Initializing server '桌面 TXT 文件统计器'
+2026-01-23 13:28:44,381 - DEBUG - Registering handler for ListToolsRequest
+2026-01-23 13:28:44,381 - DEBUG - Registering handler for CallToolRequest
+2026-01-23 13:28:44,381 - DEBUG - Registering handler for ListResourcesRequest
+2026-01-23 13:28:44,381 - DEBUG - Registering handler for ReadResourceRequest
+2026-01-23 13:28:44,381 - DEBUG - Registering handler for PromptListRequest
+2026-01-23 13:28:44,381 - DEBUG - Registering handler for GetPromptRequest
+2026-01-23 13:28:44,381 - DEBUG - Registering handler for ListResourceTemplatesRequest
+2026-01-23 13:28:44,396 - INFO - 正在以 stdio 模式启动 MCP Server...
+2026-01-23 13:28:44,399 - DEBUG - Using selector: KqueueSelector
+2026-01-23 13:28:44,405 - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:28:44,406 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x10cbdfb00>
+2026-01-23 13:28:44,406 - INFO - Processing request of type ListToolsRequest
+2026-01-23 13:28:44,406 - DEBUG - Dispatching request of type ListToolsRequest
+2026-01-23 13:28:44,406 - DEBUG - Response sent
+2026-01-23 13:28:44,457 - INFO - 成功加载了 3 个 MCP 工具
+2026-01-23 13:28:45,183 - DEBUG - Request options: {'method': 'post', 'url': '/chat/completions', 'headers': {'X-Stainless-Raw-Response': 'true'}, 'files': None, 'idempotency_key': 'stainless-python-retry-6d12343f-ccc3-4be4-b7a8-f71305e78e18', 'json_data': {'messages': [{'content': '你是一个桌面文件管理助手。你通过 MCP 协议与本地文件系统交互', 'role': 'system'}, {'content': '桌面上有什么 txt 文件？', 'role': 'user'}], 'model': 'gpt-4.1-mini', 'stream': False, 'temperature': 0.0, 'tools': [{'type': 'function', 'function': {'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'parameters': {'properties': {'filename': {'type': 'string'}}, 'required': ['filename'], 'type': 'object'}}}]}}
+2026-01-23 13:28:45,184 - DEBUG - Sending HTTP Request: POST https://api.fe8.cn/v1/chat/completions
+2026-01-23 13:28:45,184 - DEBUG - connect_tcp.started host='api.fe8.cn' port=443 local_address=None timeout=None socket_options=None
+2026-01-23 13:28:45,798 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x173169a90>
+2026-01-23 13:28:45,798 - DEBUG - start_tls.started ssl_context=<ssl.SSLContext object at 0x173116ed0> server_hostname='api.fe8.cn' timeout=None
+2026-01-23 13:28:45,885 - DEBUG - start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x172977c20>
+2026-01-23 13:28:45,886 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:28:45,887 - DEBUG - send_request_headers.complete
+2026-01-23 13:28:45,887 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:28:45,888 - DEBUG - send_request_body.complete
+2026-01-23 13:28:45,888 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:28:47,393 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Server', b'nginx'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'no-cache, private'), (b'Date', b'Fri, 23 Jan 2026 05:28:47 GMT'), (b'Strict-Transport-Security', b'max-age=31536000'), (b'Content-Encoding', b'gzip')])
+2026-01-23 13:28:47,394 - INFO - HTTP Request: POST https://api.fe8.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-23 13:28:47,394 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:28:47,394 - DEBUG - receive_response_body.complete
+2026-01-23 13:28:47,394 - DEBUG - response_closed.started
+2026-01-23 13:28:47,394 - DEBUG - response_closed.complete
+2026-01-23 13:28:47,395 - DEBUG - HTTP Response: POST https://api.fe8.cn/v1/chat/completions "200 OK" Headers({'server': 'nginx', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Accept-Encoding', 'cache-control': 'no-cache, private', 'date': 'Fri, 23 Jan 2026 05:28:47 GMT', 'strict-transport-security': 'max-age=31536000', 'content-encoding': 'gzip'})
+2026-01-23 13:28:47,395 - DEBUG - request_id: None
+Connected to: <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 53372), raddr=('127.0.0.1', 53260)>.
+2026-01-23 13:28:48,996 - DEBUG - Initializing server '桌面 TXT 文件统计器'
+2026-01-23 13:28:48,997 - DEBUG - Registering handler for ListToolsRequest
+2026-01-23 13:28:48,997 - DEBUG - Registering handler for CallToolRequest
+2026-01-23 13:28:48,997 - DEBUG - Registering handler for ListResourcesRequest
+2026-01-23 13:28:48,997 - DEBUG - Registering handler for ReadResourceRequest
+2026-01-23 13:28:48,997 - DEBUG - Registering handler for PromptListRequest
+2026-01-23 13:28:48,997 - DEBUG - Registering handler for GetPromptRequest
+2026-01-23 13:28:48,997 - DEBUG - Registering handler for ListResourceTemplatesRequest
+2026-01-23 13:28:49,011 - INFO - 正在以 stdio 模式启动 MCP Server...
+2026-01-23 13:28:49,013 - DEBUG - Using selector: KqueueSelector
+2026-01-23 13:28:49,020 - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:28:49,020 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x106311670>
+2026-01-23 13:28:49,020 - INFO - Processing request of type CallToolRequest
+2026-01-23 13:28:49,020 - DEBUG - Dispatching request of type CallToolRequest
+2026-01-23 13:28:49,021 - DEBUG - Tool cache miss for list_desktop_txt_files, refreshing cache
+2026-01-23 13:28:49,022 - DEBUG - Response sent
+2026-01-23 13:28:49,023 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x106740770>
+2026-01-23 13:28:49,023 - INFO - Processing request of type ListToolsRequest
+2026-01-23 13:28:49,023 - DEBUG - Dispatching request of type ListToolsRequest
+2026-01-23 13:28:49,024 - DEBUG - Response sent
+2026-01-23 13:28:49,139 - DEBUG - Request options: {'method': 'post', 'url': '/chat/completions', 'headers': {'X-Stainless-Raw-Response': 'true'}, 'files': None, 'idempotency_key': 'stainless-python-retry-c65b40b2-f05a-47be-bc1d-744c82cb19d5', 'json_data': {'messages': [{'content': '你是一个桌面文件管理助手。你通过 MCP 协议与本地文件系统交互', 'role': 'system'}, {'content': '桌面上有什么 txt 文件？', 'role': 'user'}, {'content': None, 'role': 'assistant', 'tool_calls': [{'type': 'function', 'id': 'call_pMEkPMF3Vx6LLqT1JCMYzZzs', 'function': {'name': 'list_desktop_txt_files', 'arguments': '{}'}}]}, {'content': [{'type': 'text', 'text': '桌面上找到的 .txt 文件有：\nhello_dual.txt', 'id': 'lc_6f1f1e83-eb86-481c-8d10-103f0f94c4b6'}], 'role': 'tool', 'tool_call_id': 'call_pMEkPMF3Vx6LLqT1JCMYzZzs'}], 'model': 'gpt-4.1-mini', 'stream': False, 'temperature': 0.0, 'tools': [{'type': 'function', 'function': {'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'parameters': {'properties': {'filename': {'type': 'string'}}, 'required': ['filename'], 'type': 'object'}}}]}}
+2026-01-23 13:28:49,139 - DEBUG - Sending HTTP Request: POST https://api.fe8.cn/v1/chat/completions
+2026-01-23 13:28:49,140 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:28:49,140 - DEBUG - send_request_headers.complete
+2026-01-23 13:28:49,140 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:28:49,141 - DEBUG - send_request_body.complete
+2026-01-23 13:28:49,141 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:28:51,187 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Server', b'nginx'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'no-cache, private'), (b'Date', b'Fri, 23 Jan 2026 05:28:51 GMT'), (b'Strict-Transport-Security', b'max-age=31536000'), (b'Content-Encoding', b'gzip')])
+2026-01-23 13:28:51,188 - INFO - HTTP Request: POST https://api.fe8.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-23 13:28:51,189 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:28:51,189 - DEBUG - receive_response_body.complete
+2026-01-23 13:28:51,189 - DEBUG - response_closed.started
+2026-01-23 13:28:51,190 - DEBUG - response_closed.complete
+2026-01-23 13:28:51,190 - DEBUG - HTTP Response: POST https://api.fe8.cn/v1/chat/completions "200 OK" Headers({'server': 'nginx', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Accept-Encoding', 'cache-control': 'no-cache, private', 'date': 'Fri, 23 Jan 2026 05:28:51 GMT', 'strict-transport-security': 'max-age=31536000', 'content-encoding': 'gzip'})
+2026-01-23 13:28:51,190 - DEBUG - request_id: None
+2026-01-23 13:29:02,645 - DEBUG - Using selector: KqueueSelector
+Connected to: <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 53385), raddr=('127.0.0.1', 53260)>.
+2026-01-23 13:29:04,059 - DEBUG - Initializing server '桌面 TXT 文件统计器'
+2026-01-23 13:29:04,059 - DEBUG - Registering handler for ListToolsRequest
+2026-01-23 13:29:04,059 - DEBUG - Registering handler for CallToolRequest
+2026-01-23 13:29:04,059 - DEBUG - Registering handler for ListResourcesRequest
+2026-01-23 13:29:04,059 - DEBUG - Registering handler for ReadResourceRequest
+2026-01-23 13:29:04,059 - DEBUG - Registering handler for PromptListRequest
+2026-01-23 13:29:04,059 - DEBUG - Registering handler for GetPromptRequest
+2026-01-23 13:29:04,059 - DEBUG - Registering handler for ListResourceTemplatesRequest
+2026-01-23 13:29:04,074 - INFO - 正在以 stdio 模式启动 MCP Server...
+2026-01-23 13:29:04,076 - DEBUG - Using selector: KqueueSelector
+2026-01-23 13:29:04,083 - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:29:04,083 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x10507a5d0>
+2026-01-23 13:29:04,083 - INFO - Processing request of type ListToolsRequest
+2026-01-23 13:29:04,083 - DEBUG - Dispatching request of type ListToolsRequest
+2026-01-23 13:29:04,084 - DEBUG - Response sent
+2026-01-23 13:29:04,135 - INFO - 成功加载了 3 个 MCP 工具
+2026-01-23 13:29:04,145 - DEBUG - Request options: {'method': 'post', 'url': '/chat/completions', 'headers': {'X-Stainless-Raw-Response': 'true'}, 'files': None, 'idempotency_key': 'stainless-python-retry-35b05434-93e4-4502-a490-a652698a9ffd', 'json_data': {'messages': [{'content': '你是一个桌面文件管理助手。你通过 MCP 协议与本地文件系统交互', 'role': 'system'}, {'content': '桌面上有什么 txt 文件？', 'role': 'user'}, {'content': None, 'role': 'assistant', 'tool_calls': [{'type': 'function', 'id': 'call_pMEkPMF3Vx6LLqT1JCMYzZzs', 'function': {'name': 'list_desktop_txt_files', 'arguments': '{}'}}]}, {'content': [{'type': 'text', 'text': '桌面上找到的 .txt 文件有：\nhello_dual.txt', 'id': 'lc_6f1f1e83-eb86-481c-8d10-103f0f94c4b6'}], 'role': 'tool', 'tool_call_id': 'call_pMEkPMF3Vx6LLqT1JCMYzZzs'}, {'content': '桌面上有一个 txt 文件，名为 "hello_dual.txt"。您需要我帮您查看这个文件的内容吗？', 'role': 'assistant'}, {'content': '好', 'role': 'user'}], 'model': 'gpt-4.1-mini', 'stream': False, 'temperature': 0.0, 'tools': [{'type': 'function', 'function': {'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'parameters': {'properties': {'filename': {'type': 'string'}}, 'required': ['filename'], 'type': 'object'}}}]}}
+2026-01-23 13:29:04,146 - DEBUG - Sending HTTP Request: POST https://api.fe8.cn/v1/chat/completions
+2026-01-23 13:29:04,146 - DEBUG - close.started
+2026-01-23 13:29:04,146 - DEBUG - close.complete
+2026-01-23 13:29:04,146 - DEBUG - connect_tcp.started host='api.fe8.cn' port=443 local_address=None timeout=None socket_options=None
+2026-01-23 13:29:04,149 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x173169b50>
+2026-01-23 13:29:04,149 - DEBUG - start_tls.started ssl_context=<ssl.SSLContext object at 0x173116ed0> server_hostname='api.fe8.cn' timeout=None
+2026-01-23 13:29:04,243 - DEBUG - start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x17316bf50>
+2026-01-23 13:29:04,243 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:29:04,244 - DEBUG - send_request_headers.complete
+2026-01-23 13:29:04,244 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:29:04,244 - DEBUG - send_request_body.complete
+2026-01-23 13:29:04,244 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:29:07,014 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Server', b'nginx'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'no-cache, private'), (b'Date', b'Fri, 23 Jan 2026 05:29:07 GMT'), (b'Strict-Transport-Security', b'max-age=31536000'), (b'Content-Encoding', b'gzip')])
+2026-01-23 13:29:07,018 - INFO - HTTP Request: POST https://api.fe8.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-23 13:29:07,019 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:29:07,020 - DEBUG - receive_response_body.complete
+2026-01-23 13:29:07,020 - DEBUG - response_closed.started
+2026-01-23 13:29:07,021 - DEBUG - response_closed.complete
+2026-01-23 13:29:07,021 - DEBUG - HTTP Response: POST https://api.fe8.cn/v1/chat/completions "200 OK" Headers({'server': 'nginx', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Accept-Encoding', 'cache-control': 'no-cache, private', 'date': 'Fri, 23 Jan 2026 05:29:07 GMT', 'strict-transport-security': 'max-age=31536000', 'content-encoding': 'gzip'})
+2026-01-23 13:29:07,022 - DEBUG - request_id: None
+Connected to: <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 53391), raddr=('127.0.0.1', 53260)>.
+2026-01-23 13:29:08,593 - DEBUG - Initializing server '桌面 TXT 文件统计器'
+2026-01-23 13:29:08,593 - DEBUG - Registering handler for ListToolsRequest
+2026-01-23 13:29:08,593 - DEBUG - Registering handler for CallToolRequest
+2026-01-23 13:29:08,593 - DEBUG - Registering handler for ListResourcesRequest
+2026-01-23 13:29:08,594 - DEBUG - Registering handler for ReadResourceRequest
+2026-01-23 13:29:08,594 - DEBUG - Registering handler for PromptListRequest
+2026-01-23 13:29:08,594 - DEBUG - Registering handler for GetPromptRequest
+2026-01-23 13:29:08,594 - DEBUG - Registering handler for ListResourceTemplatesRequest
+2026-01-23 13:29:08,608 - INFO - 正在以 stdio 模式启动 MCP Server...
+2026-01-23 13:29:08,610 - DEBUG - Using selector: KqueueSelector
+2026-01-23 13:29:08,616 - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2026-01-23 13:29:08,617 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x10527a090>
+2026-01-23 13:29:08,617 - INFO - Processing request of type CallToolRequest
+2026-01-23 13:29:08,617 - DEBUG - Dispatching request of type CallToolRequest
+2026-01-23 13:29:08,617 - DEBUG - Tool cache miss for read_txt_file, refreshing cache
+2026-01-23 13:29:08,618 - INFO - 文件 'hello_dual.txt' 的内容：
+Hello from Dual Decorator Agent!
+2026-01-23 13:29:08,620 - DEBUG - Response sent
+2026-01-23 13:29:08,621 - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x105304cb0>
+2026-01-23 13:29:08,621 - INFO - Processing request of type ListToolsRequest
+2026-01-23 13:29:08,621 - DEBUG - Dispatching request of type ListToolsRequest
+2026-01-23 13:29:08,621 - DEBUG - Response sent
+2026-01-23 13:29:08,736 - DEBUG - Request options: {'method': 'post', 'url': '/chat/completions', 'headers': {'X-Stainless-Raw-Response': 'true'}, 'files': None, 'idempotency_key': 'stainless-python-retry-06f300aa-8e80-488c-a0e6-19f0b8c93d58', 'json_data': {'messages': [{'content': '你是一个桌面文件管理助手。你通过 MCP 协议与本地文件系统交互', 'role': 'system'}, {'content': '桌面上有什么 txt 文件？', 'role': 'user'}, {'content': None, 'role': 'assistant', 'tool_calls': [{'type': 'function', 'id': 'call_pMEkPMF3Vx6LLqT1JCMYzZzs', 'function': {'name': 'list_desktop_txt_files', 'arguments': '{}'}}]}, {'content': [{'type': 'text', 'text': '桌面上找到的 .txt 文件有：\nhello_dual.txt', 'id': 'lc_6f1f1e83-eb86-481c-8d10-103f0f94c4b6'}], 'role': 'tool', 'tool_call_id': 'call_pMEkPMF3Vx6LLqT1JCMYzZzs'}, {'content': '桌面上有一个 txt 文件，名为 "hello_dual.txt"。您需要我帮您查看这个文件的内容吗？', 'role': 'assistant'}, {'content': '好', 'role': 'user'}, {'content': None, 'role': 'assistant', 'tool_calls': [{'type': 'function', 'id': 'call_2z5for1KiregEwd9MabDF9mf', 'function': {'name': 'read_txt_file', 'arguments': '{"filename": "hello_dual.txt"}'}}]}, {'content': [{'type': 'text', 'text': "文件 'hello_dual.txt' 的内容：\n\nHello from Dual Decorator Agent!", 'id': 'lc_d454f139-8508-4072-8065-3d4b4cc6d0d0'}], 'role': 'tool', 'tool_call_id': 'call_2z5for1KiregEwd9MabDF9mf'}], 'model': 'gpt-4.1-mini', 'stream': False, 'temperature': 0.0, 'tools': [{'type': 'function', 'function': {'name': 'count_desktop_txt_files', 'description': '统计桌面上 .txt 文件的数量', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'list_desktop_txt_files', 'description': '获取桌面上所有 .txt 文件的列表', 'parameters': {'properties': {}, 'type': 'object'}}}, {'type': 'function', 'function': {'name': 'read_txt_file', 'description': '读取指定txt文件的内容\n\n    Args:\n        filename: txt文件的名称（例如：test.txt）\n    ', 'parameters': {'properties': {'filename': {'type': 'string'}}, 'required': ['filename'], 'type': 'object'}}}]}}
+2026-01-23 13:29:08,737 - DEBUG - Sending HTTP Request: POST https://api.fe8.cn/v1/chat/completions
+2026-01-23 13:29:08,737 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2026-01-23 13:29:08,738 - DEBUG - send_request_headers.complete
+2026-01-23 13:29:08,738 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2026-01-23 13:29:08,738 - DEBUG - send_request_body.complete
+2026-01-23 13:29:08,738 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2026-01-23 13:29:10,560 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Server', b'nginx'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'no-cache, private'), (b'Date', b'Fri, 23 Jan 2026 05:29:11 GMT'), (b'Strict-Transport-Security', b'max-age=31536000'), (b'Content-Encoding', b'gzip')])
+2026-01-23 13:29:10,562 - INFO - HTTP Request: POST https://api.fe8.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-23 13:29:10,562 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2026-01-23 13:29:10,563 - DEBUG - receive_response_body.complete
+2026-01-23 13:29:10,564 - DEBUG - response_closed.started
+2026-01-23 13:29:10,564 - DEBUG - response_closed.complete
+2026-01-23 13:29:10,565 - DEBUG - HTTP Response: POST https://api.fe8.cn/v1/chat/completions "200 OK" Headers({'server': 'nginx', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Accept-Encoding', 'cache-control': 'no-cache, private', 'date': 'Fri, 23 Jan 2026 05:29:11 GMT', 'strict-transport-security': 'max-age=31536000', 'content-encoding': 'gzip'})
+2026-01-23 13:29:10,565 - DEBUG - request_id: None

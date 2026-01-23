@@ -69,8 +69,6 @@ class BaseOpenaiProcessor:
 
             response = completion.choices[0].message.parsed
             content = response.dict()
-            # wesley debug
-            print(f"BaseOpenaiProcessor#send_message, response: {response}")
 
 
         self.response_data = {"model": completion.model, "input_tokens": completion.usage.prompt_tokens, "output_tokens": completion.usage.completion_tokens}
