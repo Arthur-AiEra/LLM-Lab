@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能投研助手 (Deliberative Agent) 代码分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f6f8;
+            color: #2c3e50;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .tag-tool { background-color: #e3f2fd; color: #1565c0; }
+        .tag-func { background-color: #e8f5e9; color: #2e7d32; }
+        .tag-class { background-color: #fff3e0; color: #ef6c00; }
+        
+        .diagram-container {
+            overflow-x: auto;
+            background: white;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📊 智能投研助手代码分析报告</h1>
+    <p>文件：<code>deliberative_research_qwen_agent.py</code></p>
+    <p>本报告梳理了代码中的函数定义、类结构以及核心调用流程。该系统基于 Qwen-Agent 框架，模拟了一个包含感知、建模、推理、决策、报告五个阶段的智能投研分析师。</p>
+
+    <div class="container">
+        <h2>1. 函数与类清单</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>类型</th>
+                    <th>名称</th>
+                    <th>描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="tag tag-func">Function</span></td>
+                    <td><code>app_gui()</code></td>
+                    <td><strong>程序入口 (Web)</strong>。初始化助手并启动 WebUI 图形界面。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-func">Function</span></td>
+                    <td><code>app_tui()</code></td>
+                    <td><strong>程序入口 (终端)</strong>。初始化助手并启动命令行交互模式。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-func">Function</span></td>
+                    <td><code>init_agent_service()</code></td>
+                    <td>配置 LLM 参数，注册工具列表，实例化 <code>Assistant</code> 对象。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-func">Function</span></td>
+                    <td><code>get_session_id(kwargs)</code></td>
+                    <td>辅助函数。从参数中提取会话 ID，用于隔离不同用户的存储数据。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-class">Class (Tool)</span></td>
+                    <td><code>CompleteAnalysisTool</code></td>
+                    <td><strong>核心工具</strong>。一次性执行完整的五阶段分析流程，并生成最终报告。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-class">Class (Tool)</span></td>
+                    <td><code>MarketPerceptionTool</code></td>
+                    <td>阶段1：感知。收集市场概况、指标和新闻。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-class">Class (Tool)</span></td>
+                    <td><code>MarketModelingTool</code></td>
+                    <td>阶段2：建模。构建市场状态、经济周期和风险模型。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-class">Class (Tool)</span></td>
+                    <td><code>InvestmentReasoningTool</code></td>
+                    <td>阶段3：推理。生成多个候选投资方案并评估。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-class">Class (Tool)</span></td>
+                    <td><code>InvestmentDecisionTool</code></td>
+                    <td>阶段4：决策。从候选方案中选择最优策略。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-class">Class (Tool)</span></td>
+                    <td><code>GenerateReportTool</code></td>
+                    <td>阶段5：报告。整合所有数据生成 Markdown 报告文件。</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container">
+        <h2>2. 系统调用架构图 (Mermaid)</h2>
+        <p>下图展示了程序的启动流程以及 <code>Assistant</code> 与各个工具类之间的注册关系。</p>
+        <div class="mermaid">
+        graph TD
+            subgraph EntryPoints [程序入口]
+                Main(Main_Entry) -->|默认| GUI[app_gui]
+                Main -->|可选| TUI[app_tui]
+            end
+
+            subgraph Initialization [初始化服务]
+                GUI --> Init[init_agent_service]
+                TUI --> Init
+                Init -->|配置 LLM & Tools| Agent[Assistant 实例]
+            end
+
+            subgraph ToolSet [工具集 - 继承自 BaseTool]
+                Agent -.->|注册| T_Complete[CompleteAnalysisTool]
+                Agent -.->|注册| T_Perception[MarketPerceptionTool]
+                Agent -.->|注册| T_Modeling[MarketModelingTool]
+                Agent -.->|注册| T_Reasoning[InvestmentReasoningTool]
+                Agent -.->|注册| T_Decision[InvestmentDecisionTool]
+                Agent -.->|注册| T_Report[GenerateReportTool]
+            end
+
+            subgraph Storage [数据存储]
+                SessionStore[(_last_analysis_dict)]
+                T_Complete -->|读写| SessionStore
+                T_Perception -->|写入| SessionStore
+                T_Modeling -->|写入| SessionStore
+            end
+
+            style Main fill:#f9f,stroke:#333,stroke-width:2px
+            style Agent fill:#ff9,stroke:#333,stroke-width:2px
+            style T_Complete fill:#bbf,stroke:#333,stroke-width:4px
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>3. 核心业务逻辑流向</h2>
+        <p>代码中存在两条主要的业务路径：<strong>全自动路径</strong>（推荐）和<strong>分步执行路径</strong>。</p>
+        
+        <div class="mermaid">
+        sequenceDiagram
+            participant User as 用户
+            participant Agent as 智能体 (Assistant)
+            participant CompleteTool as CompleteAnalysisTool
+            participant StepTools as 分步工具集
+            
+            User->>Agent: 提出投资研究需求
+            
+            alt 路径 A: 全自动分析 (优先)
+                Agent->>CompleteTool: call(topic, industry, time)
+                activate CompleteTool
+                Note right of CompleteTool: 内部模拟执行
+                CompleteTool->>CompleteTool: 1. 生成感知数据
+                CompleteTool->>CompleteTool: 2. 构建市场模型
+                CompleteTool->>CompleteTool: 3. 生成推理方案
+                CompleteTool->>CompleteTool: 4. 做出投资决策
+                CompleteTool->>CompleteTool: 5. 生成并保存报告
+                CompleteTool-->>Agent: 返回完整分析结果
+                deactivate CompleteTool
+            else 路径 B: 分步分析 (由 LLM 规划)
+                Agent->>StepTools: MarketPerceptionTool.call()
+                StepTools-->>Agent: 返回感知数据
+                Agent->>StepTools: MarketModelingTool.call()
+                StepTools-->>Agent: 返回模型数据
+                Note over Agent, StepTools: ...依次调用后续工具...
+                Agent->>StepTools: GenerateReportTool.call()
+                StepTools-->>Agent: 返回最终报告
+            end
+            
+            Agent->>User: 展示最终回复
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>4. 详细类图结构</h2>
+        <p>展示了工具类的继承关系以及它们各自处理的关键数据字段。</p>
+        <div class="mermaid">
+        classDiagram
+            class BaseTool {
+                +str name
+                +str description
+                +list parameters
+                +call(params)
+            }
+
+            class Assistant {
+                +dict llm
+                +list function_list
+                +run(messages)
+            }
+
+            BaseTool <|-- MarketPerceptionTool
+            BaseTool <|-- MarketModelingTool
+            BaseTool <|-- InvestmentReasoningTool
+            BaseTool <|-- InvestmentDecisionTool
+            BaseTool <|-- GenerateReportTool
+            BaseTool <|-- CompleteAnalysisTool
+
+            class CompleteAnalysisTool {
+                +call()
+                -Internal_Generate_Perception_Data()
+                -Internal_Build_World_Model()
+                -Internal_Create_Reasoning_Plans()
+                -Internal_Select_Plan()
+                -Internal_Write_File()
+            }
+
+            class MarketPerceptionTool {
+                +Output_market_overview
+                +Output_key_indicators
+            }
+
+            class MarketModelingTool {
+                +Input_perception_data
+                +Output_world_model
+            }
+            
+            Assistant ..> BaseTool : Uses
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

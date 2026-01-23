@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>深思熟虑智能体 (Deliberative Agent) 代码分析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); padding: 20px; margin-bottom: 20px; }
+        h2 { color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }
+        .badge-func { background-color: #dbeafe; color: #1e40af; }
+        .badge-class { background-color: #dcfce7; color: #166534; }
+    </style>
+</head>
+<body class="p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-slate-800">深思熟虑智能体 (Deliberative Agent)</h1>
+            <p class="text-slate-600 mt-2">基于 LangGraph 的智能投研助手代码结构与调用关系分析</p>
+        </header>
+
+        <!-- 1. 概念架构图 (SVG) -->
+        <div class="card">
+            <h2>1. 核心逻辑架构 (Conceptual Architecture)</h2>
+            <div class="flex justify-center">
+                <svg width="800" height="200" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Definitions -->
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                        </marker>
+                    </defs>
+
+                    <!-- Background Track -->
+                    <line x1="50" y1="100" x2="750" y2="100" stroke="#e2e8f0" stroke-width="4" />
+
+                    <!-- Nodes -->
+                    <!-- Perception -->
+                    <g transform="translate(100, 100)">
+                        <circle cx="0" cy="0" r="40" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                        <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e3a8a">感知</text>
+                        <text x="0" y="60" text-anchor="middle" font-size="10" fill="#64748b">Perception</text>
+                    </g>
+
+                    <!-- Modeling -->
+                    <g transform="translate(250, 100)">
+                        <circle cx="0" cy="0" r="40" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+                        <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="bold" fill="#14532d">建模</text>
+                        <text x="0" y="60" text-anchor="middle" font-size="10" fill="#64748b">Modeling</text>
+                    </g>
+
+                    <!-- Reasoning -->
+                    <g transform="translate(400, 100)">
+                        <circle cx="0" cy="0" r="40" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+                        <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="bold" fill="#7c2d12">推理</text>
+                        <text x="0" y="60" text-anchor="middle" font-size="10" fill="#64748b">Reasoning</text>
+                    </g>
+
+                    <!-- Decision -->
+                    <g transform="translate(550, 100)">
+                        <circle cx="0" cy="0" r="40" fill="#faf5ff" stroke="#a855f7" stroke-width="2"/>
+                        <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="bold" fill="#581c87">决策</text>
+                        <text x="0" y="60" text-anchor="middle" font-size="10" fill="#64748b">Decision</text>
+                    </g>
+
+                    <!-- Report -->
+                    <g transform="translate(700, 100)">
+                        <circle cx="0" cy="0" r="40" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+                        <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="bold" fill="#7f1d1d">报告</text>
+                        <text x="0" y="60" text-anchor="middle" font-size="10" fill="#64748b">Report</text>
+                    </g>
+
+                    <!-- Arrows -->
+                    <line x1="140" y1="100" x2="210" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+                    <line x1="290" y1="100" x2="360" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+                    <line x1="440" y1="100" x2="510" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+                    <line x1="590" y1="100" x2="660" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+                </svg>
+            </div>
+        </div>
+
+        <!-- 2. LangGraph 工作流 (Mermaid) -->
+        <div class="card">
+            <h2>2. LangGraph 状态机工作流 (State Graph)</h2>
+            <p class="mb-4 text-sm text-gray-600">这是代码中定义的实际执行流程，展示了数据如何在各个节点之间流转。</p>
+            <div class="mermaid">
+                graph LR
+                    Start((Start)) --> Perception[perception<br/>感知阶段]
+                    
+                    subgraph Core Process [核心处理链路]
+                        direction LR
+                        Perception -->|收集数据| Modeling[modeling<br/>建模阶段]
+                        Modeling -->|构建世界模型| Reasoning[reasoning<br/>推理阶段]
+                        Reasoning -->|生成候选方案| Decision[decision<br/>决策阶段]
+                        Decision -->|选定最优方案| Report[report_generation<br/>报告生成]
+                    end
+
+                    Report --> End((End))
+
+                    %% Error Handling Loops (Implicit in code logic)
+                    Perception -.->|Error| Perception
+                    Modeling -.->|Error| Modeling
+                    Reasoning -.->|Error| Reasoning
+                    Decision -.->|Error| Decision
+                    Report -.->|Error| Report
+
+                    style Start fill:#333,stroke:#333,color:#fff
+                    style End fill:#333,stroke:#333,color:#fff
+                    style Perception fill:#dbeafe,stroke:#3b82f6
+                    style Modeling fill:#dcfce7,stroke:#22c55e
+                    style Reasoning fill:#ffedd5,stroke:#f97316
+                    style Decision fill:#f3e8ff,stroke:#a855f7
+                    style Report fill:#fee2e2,stroke:#ef4444
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 3. 函数调用关系 (Mermaid) -->
+            <div class="card">
+                <h2>3. Python 函数调用层级 (Call Hierarchy)</h2>
+                <p class="mb-4 text-sm text-gray-600">展示了程序入口到具体功能实现的调用堆栈。</p>
+                <div class="mermaid">
+                    graph TD
+                        Main[if __name__ == '__main__'] -->|调用| RunAgent[run_research_agent]
+                        
+                        RunAgent -->|1. 构建图| CreateGraph[create_research_agent_workflow]
+                        RunAgent -->|2. 执行图| Invoke[agent.invoke]
+                        
+                        subgraph Graph Construction
+                            CreateGraph -->|注册节点| NodePerception[perception]
+                            CreateGraph -->|注册节点| NodeModeling[modeling]
+                            CreateGraph -->|注册节点| NodeReasoning[reasoning]
+                            CreateGraph -->|注册节点| NodeDecision[decision]
+                            CreateGraph -->|注册节点| NodeReport[report_generation]
+                        end
+
+                        subgraph LLM Interaction
+                            NodePerception -->|Invoke| LLM[LLM Chain]
+                            NodeModeling -->|Invoke| LLM
+                            NodeReasoning -->|Invoke| LLM
+                            NodeDecision -->|Invoke| LLM
+                            NodeReport -->|Invoke| LLM
+                        end
+                        
+                        %% Styling
+                        style Main fill:#f1f5f9,stroke:#64748b
+                        style RunAgent fill:#e2e8f0,stroke:#475569
+                        style CreateGraph fill:#cbd5e1,stroke:#334155
+                        style LLM fill:#fff1f2,stroke:#be123c,stroke-dasharray: 5 5
+                </div>
+            </div>
+
+            <!-- 4. 数据结构 (Mermaid Class Diagram) -->
+            <div class="card">
+                <h2>4. 数据模型与状态 (Data Models)</h2>
+                <p class="mb-4 text-sm text-gray-600">基于 Pydantic 定义的数据结构和 LangGraph 状态定义。</p>
+                <div class="mermaid">
+                    classDiagram
+                        class ResearchAgentState {
+                            +str research_topic
+                            +str industry_focus
+                            +str time_horizon
+                            +dict perception_data
+                            +dict world_model
+                            +list reasoning_plans
+                            +dict selected_plan
+                            +str final_report
+                            +str current_phase
+                        }
+
+                        class PerceptionOutput {
+                            +str market_overview
+                            +dict key_indicators
+                            +list recent_news
+                            +dict industry_trends
+                        }
+
+                        class ModelingOutput {
+                            +str market_state
+                            +str economic_cycle
+                            +list risk_factors
+                            +list opportunity_areas
+                            +str market_sentiment
+                        }
+
+                        class ReasoningPlan {
+                            +str plan_id
+                            +str hypothesis
+                            +str analysis_approach
+                            +float confidence_level
+                            +list pros
+                            +list cons
+                        }
+
+                        class DecisionOutput {
+                            +str selected_plan_id
+                            +str investment_thesis
+                            +list supporting_evidence
+                            +str risk_assessment
+                            +str recommendation
+                        }
+
+                        ResearchAgentState --> PerceptionOutput : contains
+                        ResearchAgentState --> ModelingOutput : contains
+                        ResearchAgentState --> ReasoningPlan : contains list of
+                        ResearchAgentState --> DecisionOutput : contains
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 详细函数说明表 -->
+        <div class="card">
+            <h2>5. 核心函数功能详解</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">函数名</th>
+                            <th scope="col" class="px-6 py-3">输入 (State)</th>
+                            <th scope="col" class="px-6 py-3">输出 (State Update)</th>
+                            <th scope="col" class="px-6 py-3">功能描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900"><code>perception</code></td>
+                            <td class="px-6 py-4">Topic, Industry, Horizon</td>
+                            <td class="px-6 py-4"><code>perception_data</code></td>
+                            <td class="px-6 py-4">调用 LLM 搜集市场概况、关键指标和新闻。</td>
+                        </tr>
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900"><code>modeling</code></td>
+                            <td class="px-6 py-4"><code>perception_data</code></td>
+                            <td class="px-6 py-4"><code>world_model</code></td>
+                            <td class="px-6 py-4">基于感知数据，构建包含市场状态、周期和风险的内部模型。</td>
+                        </tr>
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900"><code>reasoning</code></td>
+                            <td class="px-6 py-4"><code>world_model</code></td>
+                            <td class="px-6 py-4"><code>reasoning_plans</code></td>
+                            <td class="px-6 py-4">生成 3 个不同的投资分析方案（假设、方法、优劣势）。</td>
+                        </tr>
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900"><code>decision</code></td>
+                            <td class="px-6 py-4"><code>world_model</code>, <code>reasoning_plans</code></td>
+                            <td class="px-6 py-4"><code>selected_plan</code></td>
+                            <td class="px-6 py-4">评估候选方案，选择最优方案并给出理由。</td>
+                        </tr>
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900"><code>report_generation</code></td>
+                            <td class="px-6 py-4">All Data</td>
+                            <td class="px-6 py-4"><code>final_report</code></td>
+                            <td class="px-6 py-4">整合所有阶段的信息，生成最终的文本报告。</td>
+                        </tr>
+                        <tr class="bg-white hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900"><code>create_research_agent_workflow</code></td>
+                            <td class="px-6 py-4">-</td>
+                            <td class="px-6 py-4"><code>StateGraph</code> (Compiled)</td>
+                            <td class="px-6 py-4">定义图的节点、边和入口点，编译 LangGraph 工作流。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

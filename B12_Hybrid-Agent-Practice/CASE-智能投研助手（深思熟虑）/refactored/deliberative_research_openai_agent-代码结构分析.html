@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI 智能投研助手代码分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f6f8;
+            color: #2c3e50;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .tag-ui { background-color: #e3f2fd; color: #1565c0; }
+        .tag-logic { background-color: #e8f5e9; color: #2e7d32; }
+        .tag-config { background-color: #fff3e0; color: #ef6c00; }
+        
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📊 OpenAI 智能投研助手代码分析报告</h1>
+    <p>文件：<code>deliberative_research_openai_agent.py</code></p>
+    <p>该程序是一个基于 Streamlit 的 Web 应用，利用 OpenAI 的 Function Calling 能力，模拟了一个包含感知、建模、推理、决策、报告五个阶段的投资分析流程。</p>
+
+    <div class="container">
+        <h2>1. 函数清单</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>类型</th>
+                    <th>名称</th>
+                    <th>描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="tag tag-ui">UI / Entry</span></td>
+                    <td><code>main()</code></td>
+                    <td><strong>主程序入口</strong>。负责渲染 Streamlit 界面，处理用户输入，调用 OpenAI API，并解析返回的工具调用请求。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-logic">Core Logic</span></td>
+                    <td><code>perform_complete_analysis(...)</code></td>
+                    <td><strong>核心业务逻辑</strong>。模拟“深思熟虑”的分析过程。接收研究主题、行业和时间范围，返回格式化的 Markdown 报告。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-config">Global</span></td>
+                    <td><code>TOOLS (List)</code></td>
+                    <td><strong>工具定义</strong>。定义了传给 OpenAI 的 JSON Schema，描述了 <code>complete_analysis</code> 函数的参数结构。</td>
+                </tr>
+                <tr>
+                    <td><span class="tag tag-config">Global</span></td>
+                    <td><code>SYSTEM_PROMPT</code></td>
+                    <td><strong>系统提示词</strong>。定义了 AI 助手的角色（深思熟虑型分析师）和工作流程。</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container">
+        <h2>2. 系统架构与数据流 (Flowchart)</h2>
+        <p>展示了从用户输入到最终报告生成的完整数据流向。</p>
+        <div class="mermaid">
+        graph TD
+            subgraph Frontend [Streamlit UI 界面]
+                Start((用户输入)) --> ChatInput[st.chat_input]
+                ChatInput --> Session[Session State 历史记录]
+            end
+
+            subgraph Controller [main 函数逻辑]
+                Session --> API_Call[OpenAI API 请求]
+                API_Call -->|返回响应| Check{包含 tool_calls?}
+                
+                Check -->|No| DirectReply[直接回复文本]
+                Check -->|Yes| ParseArgs[解析 JSON 参数]
+                
+                ParseArgs --> ExecTool[执行分析函数]
+                ExecTool -->|返回 Report| Render[渲染 Markdown]
+            end
+
+            subgraph Backend [业务逻辑]
+                ExecTool -.->|调用| AnalysisFunc[perform_complete_analysis]
+                
+                AnalysisFunc --> Step1[1. 感知阶段]
+                Step1 --> Step2[2. 建模阶段]
+                Step2 --> Step3[3. 推理阶段]
+                Step3 --> Step4[4. 决策阶段]
+                Step4 --> Step5[5. 报告生成]
+                
+                Step5 -->|返回 String| ExecTool
+            end
+
+            DirectReply --> Display[st.markdown 显示]
+            Render --> Display
+
+            style Start fill:#f9f,stroke:#333
+            style AnalysisFunc fill:#bbf,stroke:#333
+            style API_Call fill:#ff9,stroke:#333
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>3. 交互时序图 (Sequence Diagram)</h2>
+        <p>详细展示了用户、Streamlit 前端、OpenAI 模型与本地工具函数之间的交互顺序。</p>
+        <div class="mermaid">
+        sequenceDiagram
+            participant User as 用户
+            participant UI as Streamlit UI (main)
+            participant LLM as OpenAI API (GPT)
+            participant Tool as perform_complete_analysis
+            
+            User->>UI: 输入: "分析新能源汽车..."
+            UI->>UI: 更新 Session State
+            UI->>LLM: 发送消息 + TOOLS 定义
+            
+            alt 模型判定需要调用工具
+                LLM-->>UI: 返回 tool_calls (name="complete_analysis")
+                UI->>UI: 解析 arguments (topic, industry...)
+                
+                note right of UI: 显示状态: "正在进行深思熟虑分析..."
+                
+                UI->>Tool: 调用 perform_complete_analysis()
+                activate Tool
+                Tool->>Tool: 生成感知/建模/推理/决策数据
+                Tool-->>UI: 返回完整 Markdown 报告
+                deactivate Tool
+                
+                UI->>UI: 更新 Session State (Assistant Role)
+                UI->>User: 显示完整报告
+            else 模型直接回复
+                LLM-->>UI: 返回普通文本内容
+                UI->>User: 显示回复
+            end
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>
