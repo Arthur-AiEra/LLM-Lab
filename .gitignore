@@ -1,6 +1,8 @@
 **/models/BAAI/
 **/models/.lock/
 **/.DS_Store/
+**/processed_data/
+
 
 data/erc2_set/pdf_reports/
 data/erc2_set/debug_data/
