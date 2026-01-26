@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>财富管理混合智能体 - 代码结构与调用关系分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f6f8;
+        }
+        h1, h2, h3 { color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px; }
+        .container { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; color: white; }
+        .badge-core { background-color: #3498db; }
+        .badge-test { background-color: #27ae60; }
+        .mermaid { margin: 20px 0; text-align: center; }
+        code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; color: #c7254e; }
+        .note { background-color: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+    <h1>🧠 混合智能体 (Hybrid Agent) 代码分析报告</h1>
+    <p>该报告基于 <code>1-hybrid_wealth_advisor_langgraph_langsmith.py</code> (核心逻辑) 和 <code>2-langsmith_testing_evaluation.py</code> (测试评估) 生成。</p>
+
+    <!-- 模块 1：LangGraph 工作流 -->
+    <div class="container">
+        <h2>1. 核心智能体工作流 (LangGraph State Machine)</h2>
+        <p>这是文件 <code>1-hybrid_wealth_advisor...py</code> 中定义的智能体内部状态流转逻辑。它展示了系统如何根据用户查询的类型（紧急 vs 分析）动态选择路径。</p>
+        <div class="mermaid">
+            stateDiagram-v2
+                direction TB
+
+                classDef reactive fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+                classDef deliberative fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+                classDef router fill:#f3e5f5,stroke:#4a148c,stroke-width:2px;
+
+                [*] --> assess_query:::router
+
+                note right of assess_query
+                    <b>评估节点 (Router)</b>
+                    LLM判断查询意图
+                    输出: query_type, processing_mode
+                end note
+
+                assess_query --> reactive_processing:::reactive : 模式 = reactive
+                assess_query --> collect_data:::deliberative : 模式 = deliberative
+
+                state "⚡ 反应式处理 (Reactive)" as ReactiveBlock {
+                    reactive_processing --> query_shanghai_index : 可选调用工具
+                    query_shanghai_index --> reactive_processing : 返回行情数据
+                }
+
+                state "🐢 深思熟虑处理 (Deliberative)" as DeliberativeBlock {
+                    collect_data : 收集市场/财务数据
+                    collect_data --> analyze_data
+                    analyze_data : 深度投资分析
+                    analyze_data --> generate_recommendations
+                    generate_recommendations : 生成最终建议
+                }
+
+                ReactiveBlock --> respond_function
+                DeliberativeBlock --> respond_function
+
+                respond_function --> [*]
+        </div>
+    </div>
+
+    <!-- 模块 2：函数调用关系 -->
+    <div class="container">
+        <h2>2. 跨文件函数调用关系图 (Call Graph)</h2>
+        <p>展示了测试脚本（File 2）如何调用核心智能体（File 1），以及各个主要函数的层级关系。</p>
+        <div class="mermaid">
+            graph LR
+                subgraph File2 [📂 2-langsmith_testing_evaluation.py]
+                    direction TB
+                    Main_Test[Main Execution]
+                    CreateDS[create_test_dataset]
+                    RunEval[run_evaluation]
+                    RunSingle[run_single_test]
+
+                    subgraph Evaluators [自定义评估器类]
+                        EvalMode[ProcessingModeEvaluator]
+                        EvalComp[ResponseCompletenessEvaluator]
+                    end
+
+                    Main_Test --> CreateDS
+                    Main_Test --> RunEval
+                    RunEval -.->|使用| Evaluators
+                end
+
+                subgraph File1 [📂 1-hybrid_wealth_advisor...py]
+                    direction TB
+                    RunAgent[run_wealth_advisor]
+                    CreateWorkflow[create_wealth_advisor_workflow]
+
+                    subgraph Nodes [Graph Nodes]
+                        N_Assess[assess_query]
+                        N_Reactive[reactive_processing]
+                        N_Collect[collect_data]
+                        N_Analyze[analyze_data]
+                        N_Rec[generate_recommendations]
+                    end
+
+                    subgraph Tools [Tools]
+                        T_Index[query_shanghai_index]
+                    end
+                end
+
+                %% 跨文件调用
+                RunEval -->|调用| RunAgent
+                RunSingle -->|调用| RunAgent
+
+                %% File 1 内部调用
+                RunAgent --> CreateWorkflow
+                RunAgent -->|invoke| N_Assess
+
+                %% 节点逻辑连接
+                N_Reactive -.->|调用| T_Index
+
+                style File2 fill:#f9fbe7,stroke:#827717,stroke-width:2px
+                style File1 fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+        </div>
+    </div>
+
+    <!-- 模块 3：详细结构列表 -->
+    <div class="container">
+        <h2>3. 关键函数与类功能梳理</h2>
+
+        <h3>📂 文件 1: 核心智能体</h3>
+        <table border="1" style="border-collapse: collapse; width: 100%; border-color: #ddd;">
+            <tr style="background-color: #f8f9fa; text-align: left;">
+                <th style="padding: 10px;">函数/类名</th>
+                <th style="padding: 10px;">类型</th>
+                <th style="padding: 10px;">功能描述</th>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><code>WealthAdvisorState</code></td>
+                <td style="padding: 8px;">TypedDict</td>
+                <td style="padding: 8px;">定义图的状态 Schema，包含 query_type, processing_mode, market_data 等字段。</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><code>assess_query</code></td>
+                <td style="padding: 8px;">Node</td>
+                <td style="padding: 8px;"><b>路由节点</b>。分析用户意图，决定走“反应式”还是“深思熟虑”路径。</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><code>reactive_processing</code></td>
+                <td style="padding: 8px;">Node</td>
+                <td style="padding: 8px;"><b>快思考</b>。处理简单查询，具备调用 <code>query_shanghai_index</code> 工具的能力。</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><code>collect_data</code> → <code>analyze_data</code> → <code>generate_recommendations</code></td>
+                <td style="padding: 8px;">Nodes</td>
+                <td style="padding: 8px;"><b>慢思考链条</b>。依次执行：确定所需数据 -> 深度分析 -> 生成建议。</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><code>create_wealth_advisor_workflow</code></td>
+                <td style="padding: 8px;">Function</td>
+                <td style="padding: 8px;">构建 LangGraph 实例，定义节点（Nodes）和边（Edges/Conditional Edges）。</td>
+            </tr>
+        </table>
+
+        <h3 style="margin-top: 30px;">📂 文件 2: 测试与评估</h3>
+        <table border="1" style="border-collapse: collapse; width: 100%; border-color: #ddd;">
+            <tr style="background-color: #f8f9fa; text-align: left;">
+                <th style="padding: 10px;">函数/类名</th>
+                <th style="padding: 10px;">类型</th>
+                <th style="padding: 10px;">功能描述</th>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><code>ProcessingModeEvaluator</code></td>
+                <td style="padding: 8px;">Class</td>
+                <td style="padding: 8px;">自定义评估器。检查 Agent 选择的模式（reactive/deliberative）是否符合预期。</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><code>create_test_dataset</code></td>
+                <td style="padding: 8px;">Function</td>
+                <td style="padding: 8px;">将定义的测试用例（简单查询、复杂查询、边界情况）上传至 LangSmith。</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><code>run_evaluation</code></td>
+                <td style="padding: 8px;">Function</td>
+                <td style="padding: 8px;">使用 <code>langsmith.evaluation.evaluate</code> 批量运行测试，并计算分数。</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

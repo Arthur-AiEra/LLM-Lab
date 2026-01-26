@@ -7,31 +7,16 @@
 本文件用于测试评估器的使用，查看评估结果的格式和内容。
 """
 
-import os
-from langchain_community.chat_models import ChatTongyi
-from openevals.prompts import CORRECTNESS_PROMPT
 from openevals.llm import create_llm_as_judge
+from openevals.prompts import CORRECTNESS_PROMPT
 
-# ==================== 配置 ====================
-
-DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
-if not DASHSCOPE_API_KEY:
-    print("错误: 请设置 DASHSCOPE_API_KEY 环境变量")
-    print("Windows PowerShell: $env:DASHSCOPE_API_KEY='your-key'")
-    print("Linux/Mac: export DASHSCOPE_API_KEY='your-key'")
-    exit(1)
+from app_config import eval_llm
 
 # ==================== 创建评估 LLM ====================
 
 print("=" * 60)
 print("创建评估 LLM...")
 print("=" * 60)
-
-eval_llm = ChatTongyi(
-    model_name="qwen-turbo",
-    dashscope_api_key=DASHSCOPE_API_KEY,
-    temperature=0
-)
 
 print("[OK] 评估 LLM 创建成功\n")
 

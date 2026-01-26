@@ -28,14 +28,14 @@ LangSmith 集成：
 可以在 https://smith.langchain.com 查看详细的执行追踪、性能指标和调试信息。
 """
 
-import os
 import json
-import re
+import os
 from datetime import datetime
 from typing import Dict, List, Any, Literal, TypedDict, Optional
 
 # 修复 langchain 1.1.x 版本兼容性问题：在导入 langchain_core 之前设置必要的属性
 import langchain
+
 if not hasattr(langchain, 'verbose'):
     langchain.verbose = False
 if not hasattr(langchain, 'debug'):
@@ -44,16 +44,14 @@ if not hasattr(langchain, 'llm_cache'):
     langchain.llm_cache = None
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_community.llms import Tongyi
+from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_core.runnables import RunnableConfig
 from pydantic import BaseModel, Field
 from langgraph.graph import StateGraph, END
 import warnings
-warnings.filterwarnings("ignore")
 
-# 设置API密钥
-DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
+warnings.filterwarnings("ignore")
 
 # ==================== LangSmith 配置 ====================
 # LangSmith 用于 Agent 调试、追踪和监控
@@ -69,7 +67,8 @@ LANGSMITH_PROJECT = os.getenv("LANGCHAIN_PROJECT", "wealth-advisor-hybrid-agent"
 print("LANGSMITH_ENABLED=", LANGSMITH_ENABLED)
 
 # 创建LLM实例
-llm = Tongyi(model_name="qwen-turbo-latest", dashscope_api_key=DASHSCOPE_API_KEY)
+llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
+
 
 # 定义客户信息数据结构
 class CustomerProfile(BaseModel):
@@ -82,6 +81,7 @@ class CustomerProfile(BaseModel):
     portfolio_value: float = Field(..., description="投资组合总价值")
     current_allocations: Dict[str, float] = Field(..., description="当前资产配置")
 
+
 # 定义应急响应输出
 class EmergencyResponseOutput(BaseModel):
     """紧急查询的即时响应"""
@@ -89,6 +89,7 @@ class EmergencyResponseOutput(BaseModel):
     direct_answer: str = Field(..., description="直接回答")
     data_points: Optional[Dict[str, Any]] = Field(None, description="相关数据点")
     suggested_actions: Optional[List[str]] = Field(None, description="建议操作")
+
 
 # 定义深度分析输出
 class InvestmentAnalysisOutput(BaseModel):
@@ -98,27 +99,30 @@ class InvestmentAnalysisOutput(BaseModel):
     recommendations: List[Dict[str, Any]] = Field(..., description="投资建议")
     risk_analysis: Dict[str, Any] = Field(..., description="风险分析")
     expected_outcomes: Dict[str, Any] = Field(..., description="预期结果")
-    
+
+
 # 定义状态类型
 class WealthAdvisorState(TypedDict):
     """财富顾问智能体的状态"""
     # 输入
     user_query: str  # 用户查询
     customer_profile: Optional[Dict[str, Any]]  # 客户画像
-    
+
     # 处理状态
     query_type: Optional[Literal["emergency", "informational", "analytical"]]  # 查询类型
     processing_mode: Optional[Literal["reactive", "deliberative"]]  # 处理模式
     emergency_response: Optional[Dict[str, Any]]  # 紧急响应结果
     market_data: Optional[Dict[str, Any]]  # 市场数据
     analysis_results: Optional[Dict[str, Any]]  # 分析结果
-    
+
     # 输出
     final_response: Optional[str]  # 最终响应
-    
+    context: Optional[str]  # 检索到的上下文信息
+
     # 控制流
     current_phase: Optional[str]
     error: Optional[str]  # 错误信息
+
 
 # 提示模板
 ASSESSMENT_PROMPT = """你是一个财富管理投顾AI助手的协调层。请评估以下用户查询，确定其类型和应该采用的处理模式。
@@ -229,6 +233,7 @@ RECOMMENDATION_PROMPT = """你是一个财富管理投顾AI助手。请根据深
 返回格式应为自然语言文本，适合直接呈现给客户。
 """
 
+
 def query_shanghai_index(_: str = "") -> str:
     """上证指数实时查询工具（模拟版），返回固定的行情数据"""
     # 直接返回模拟数据，避免外部API不可用导致报错
@@ -240,25 +245,27 @@ def query_shanghai_index(_: str = "") -> str:
     print('result=', result)
     return result
 
+
 # 第一阶段：情境评估 - 确定查询类型和处理模式
 def assess_query(state: WealthAdvisorState) -> WealthAdvisorState:
     print("[DEBUG] 进入节点: assess_query")
     """评估用户查询，确定类型和处理模式"""
-    
+
     try:
         # 准备提示
         prompt = ChatPromptTemplate.from_template(ASSESSMENT_PROMPT)
-        
+
         # 构建输入
         input_data = {
             "user_query": state["user_query"],
         }
-        
+
         # 调用LLM
         chain = prompt | llm | JsonOutputParser()
         result = chain.invoke(input_data)
         print("[DEBUG] LLM评估输出:", result)
-        print(f"[DEBUG] 分支判断: processing_mode={result.get('processing_mode', '未知')}, query_type={result.get('query_type', '未知')}")
+        print(
+            f"[DEBUG] 分支判断: processing_mode={result.get('processing_mode', '未知')}, query_type={result.get('query_type', '未知')}")
         # 获取处理模式，确保有值
         processing_mode = result.get("processing_mode", "reactive")
         if processing_mode not in ["reactive", "deliberative"]:
@@ -281,6 +288,7 @@ def assess_query(state: WealthAdvisorState) -> WealthAdvisorState:
             "error": f"评估阶段出错: {str(e)}",
             "final_response": "评估查询时发生错误，无法处理您的请求。"
         }
+
 
 # 反应式处理 - 快速响应简单查询
 def reactive_processing(state: WealthAdvisorState) -> WealthAdvisorState:
@@ -343,25 +351,26 @@ def reactive_processing(state: WealthAdvisorState) -> WealthAdvisorState:
             "final_response": "处理您的查询时发生错误，无法提供响应。"
         }
 
+
 # 数据收集 - 收集进行深度分析所需的数据
 def collect_data(state: WealthAdvisorState) -> WealthAdvisorState:
     print("[DEBUG] 进入节点: collect_data")
     """收集市场数据和客户信息进行深入分析"""
-    
+
     try:
         # 准备提示
         prompt = ChatPromptTemplate.from_template(DATA_COLLECTION_PROMPT)
-        
+
         # 构建输入
         input_data = {
             "user_query": state["user_query"],
             "customer_profile": json.dumps(state.get("customer_profile", {}), ensure_ascii=False, indent=2)
         }
-        
+
         # 调用LLM
         chain = prompt | llm | JsonOutputParser()
         result = chain.invoke(input_data)
-        
+
         # 更新状态
         return {
             **state,
@@ -375,11 +384,12 @@ def collect_data(state: WealthAdvisorState) -> WealthAdvisorState:
             "current_phase": "collect_data"  # 保持在当前阶段
         }
 
+
 # 深度分析 - 分析数据和客户情况
 def analyze_data(state: WealthAdvisorState) -> WealthAdvisorState:
     print("[DEBUG] 进入节点: analyze_data")
     """进行深度投资分析"""
-    
+
     try:
         # 确保必要数据已收集
         if not state.get("market_data"):
@@ -388,25 +398,28 @@ def analyze_data(state: WealthAdvisorState) -> WealthAdvisorState:
                 "error": "分析阶段缺少市场数据",
                 "current_phase": "collect_data"  # 回到数据收集阶段
             }
-        
+
         # 准备提示
         prompt = ChatPromptTemplate.from_template(ANALYSIS_PROMPT)
-        
+
         # 构建输入
         input_data = {
             "user_query": state["user_query"],
             "customer_profile": json.dumps(state.get("customer_profile", {}), ensure_ascii=False, indent=2),
             "market_data": json.dumps(state.get("market_data", {}), ensure_ascii=False, indent=2)
         }
-        
+
         # 调用LLM
         chain = prompt | llm | JsonOutputParser()
         result = chain.invoke(input_data)
-        
+
         # 更新状态
+        # 将市场数据和分析结果作为 context 保存，供评估器使用
+        context_str = f"市场数据: {json.dumps(state.get('market_data', {}), ensure_ascii=False)}\n分析结果: {json.dumps(result, ensure_ascii=False)}"
         return {
             **state,
             "analysis_results": result,
+            "context": context_str,
             "current_phase": "recommend"
         }
     except Exception as e:
@@ -416,11 +429,12 @@ def analyze_data(state: WealthAdvisorState) -> WealthAdvisorState:
             "current_phase": "analyze"  # 保持在当前阶段
         }
 
+
 # 生成建议 - 根据分析结果提供投资建议
 def generate_recommendations(state: WealthAdvisorState) -> WealthAdvisorState:
     print("[DEBUG] 进入节点: generate_recommendations")
     """生成投资建议和行动计划"""
-    
+
     try:
         # 确保分析结果已存在
         if not state.get("analysis_results"):
@@ -429,21 +443,21 @@ def generate_recommendations(state: WealthAdvisorState) -> WealthAdvisorState:
                 "error": "建议生成阶段缺少分析结果",
                 "current_phase": "analyze"  # 回到分析阶段
             }
-        
+
         # 准备提示
         prompt = ChatPromptTemplate.from_template(RECOMMENDATION_PROMPT)
-        
+
         # 构建输入
         input_data = {
             "user_query": state["user_query"],
             "customer_profile": json.dumps(state.get("customer_profile", {}), ensure_ascii=False, indent=2),
             "analysis_results": json.dumps(state.get("analysis_results", {}), ensure_ascii=False, indent=2)
         }
-        
+
         # 调用LLM
         chain = prompt | llm | StrOutputParser()
         result = chain.invoke(input_data)
-        
+
         # 更新状态
         return {
             **state,
@@ -457,20 +471,21 @@ def generate_recommendations(state: WealthAdvisorState) -> WealthAdvisorState:
             "current_phase": "recommend"  # 保持在当前阶段
         }
 
+
 # 创建智能体工作流
 def create_wealth_advisor_workflow() -> StateGraph:
     """创建财富顾问混合智能体工作流"""
-    
+
     # 创建状态图
     workflow = StateGraph(WealthAdvisorState)
-    
+
     # 添加节点，每个节点都确保返回完整的状态
     workflow.add_node("assess", assess_query)
     workflow.add_node("reactive", reactive_processing)
     workflow.add_node("collect_data", collect_data)
     workflow.add_node("analyze", analyze_data)
     workflow.add_node("recommend", generate_recommendations)
-    
+
     # 定义一个显式的响应节点函数
     def respond_function(state: WealthAdvisorState) -> WealthAdvisorState:
         """最终响应生成节点，原样返回状态"""
@@ -482,12 +497,12 @@ def create_wealth_advisor_workflow() -> StateGraph:
                 "error": state.get("error", "未知错误")
             }
         return state
-    
+
     workflow.add_node("respond", respond_function)
-    
+
     # 设置入口点
     workflow.set_entry_point("assess")
-    
+
     # 添加分支路由
     workflow.add_conditional_edges(
         "assess",
@@ -497,16 +512,17 @@ def create_wealth_advisor_workflow() -> StateGraph:
             "collect_data": "collect_data"
         }
     )
-    
+
     # 添加固定路径边
     workflow.add_edge("reactive", "respond")
     workflow.add_edge("collect_data", "analyze")
     workflow.add_edge("analyze", "recommend")
     workflow.add_edge("recommend", "respond")
     workflow.add_edge("respond", END)
-    
+
     # 编译工作流
     return workflow.compile()
+
 
 # 示例客户画像数据
 SAMPLE_CUSTOMER_PROFILES = {
@@ -540,16 +556,17 @@ SAMPLE_CUSTOMER_PROFILES = {
     }
 }
 
+
 # 运行智能体
 def run_wealth_advisor(user_query: str, customer_id: str = "customer1") -> Dict[str, Any]:
     """运行财富顾问智能体并返回结果"""
-    
+
     # 创建工作流
     agent = create_wealth_advisor_workflow()
-    
+
     # 获取客户画像
     customer_profile = SAMPLE_CUSTOMER_PROFILES.get(customer_id, SAMPLE_CUSTOMER_PROFILES["customer1"])
-    
+
     # 准备初始状态
     initial_state = {
         "user_query": user_query,
@@ -560,10 +577,11 @@ def run_wealth_advisor(user_query: str, customer_id: str = "customer1") -> Dict[
         "market_data": None,
         "analysis_results": None,
         "final_response": None,
+        "context": "",
         "current_phase": "assess",
         "error": None
     }
-    
+
     try:
         print("LangGraph Mermaid流程图：")
         print(agent.get_graph().draw_mermaid())
@@ -606,11 +624,12 @@ def run_wealth_advisor(user_query: str, customer_id: str = "customer1") -> Dict[
             "final_response": "很抱歉，处理您的请求时出现了问题。"
         }
 
+
 # 主函数
 if __name__ == "__main__":
     print("=== 混合智能体 - 财富管理投顾AI助手 ===\n")
     print("使用模型：Qwen-Turbo-Latest\n")
-    
+
     # 显示 LangSmith 状态
     if LANGSMITH_ENABLED:
         print(f"✓ LangSmith 追踪已启用")
@@ -622,30 +641,30 @@ if __name__ == "__main__":
         print("  - LANGSMITH_API_KEY: 您的 API 密钥")
         print("  - LANGCHAIN_TRACING_V2: true")
         print("  - LANGCHAIN_PROJECT: 项目名称（可选）\n")
-    
-    print("-"*50 + "\n")
-    
+
+    print("-" * 50 + "\n")
+
     # 示例查询
     SAMPLE_QUERIES = [
         # 紧急/简单查询 - 适合反应式处理
         "今天上证指数的表现如何？",
         "我的投资组合中科技股占比是多少？",
         "请解释一下什么是ETF？",
-        
+
         # 分析性查询 - 适合深思熟虑处理
         "根据当前市场情况，我应该如何调整投资组合以应对可能的经济衰退？",
         "考虑到我的退休目标，请评估我当前的投资策略并提供优化建议。",
         "我想为子女准备教育金，请帮我设计一个10年期的投资计划。"
     ]
-    
+
     # 用户选择查询示例或输入自定义查询
     print("请选择一个示例查询或输入您自己的查询:\n")
     for i, query in enumerate(SAMPLE_QUERIES, 1):
         print(f"{i}. {query}")
     print("0. 输入自定义查询")
-    
+
     choice = input("\n请输入选项数字(0-6): ")
-    
+
     if choice == "0":
         user_query = input("请输入您的查询: ")
     else:
@@ -659,23 +678,23 @@ if __name__ == "__main__":
         except ValueError:
             print("无效输入，使用默认查询")
             user_query = SAMPLE_QUERIES[0]
-    
+
     # 选择客户
     customer_id = "customer1"  # 默认客户
     customer_choice = input("\n选择客户 (1: 平衡型投资者, 2: 进取型投资者): ")
     if customer_choice == "2":
         customer_id = "customer2"
-    
+
     print(f"\n用户查询: {user_query}")
     print(f"选择客户: {SAMPLE_CUSTOMER_PROFILES[customer_id]['risk_tolerance']} 投资者")
     print("\n正在处理...\n")
-    
+
     try:
         # 运行智能体
         start_time = datetime.now()
         result = run_wealth_advisor(user_query, customer_id)
         end_time = datetime.now()
-        
+
         # 如果有错误，显示错误信息并退出
         if result.get("error"):
             print(f"处理过程中发生错误: {result['error']}")
@@ -683,21 +702,21 @@ if __name__ == "__main__":
             process_time = (end_time - start_time).total_seconds()
             print(f"\n处理用时: {process_time:.2f}秒")
             exit(1)
-        
+
         # 显示处理模式
         process_mode = result.get("processing_mode", "未知")
         if process_mode == "reactive":
             print("【处理模式: 反应式】- 快速响应简单查询")
         else:
             print("【处理模式: 深思熟虑】- 深度分析复杂查询")
-        
+
         # 显示结果
         print("\n=== 响应结果 ===\n")
         print(result.get("final_response", "未生成响应"))
-        
+
         # 显示处理时间
         process_time = (end_time - start_time).total_seconds()
         print(f"\n处理用时: {process_time:.2f}秒")
-        
+
     except Exception as e:
         print(f"\n运行过程中发生意外错误: {str(e)}") 

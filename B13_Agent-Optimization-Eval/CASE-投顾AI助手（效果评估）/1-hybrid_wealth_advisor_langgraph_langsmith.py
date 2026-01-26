@@ -12,7 +12,7 @@
 2. 中层（协调）：评估任务类型和优先级，动态选择处理模式
 3. 顶层（深思熟虑）：进行复杂的投资分析和长期财务规划
 
-LangSmith 集成：
+LangSmith(在线工具) 集成：
 本智能体已集成 LangSmith 用于调试、追踪和监控。要启用 LangSmith：
 
 1. 获取 API 密钥：
@@ -28,14 +28,14 @@ LangSmith 集成：
 可以在 https://smith.langchain.com 查看详细的执行追踪、性能指标和调试信息。
 """
 
-import os
 import json
-import re
+import os
 from datetime import datetime
 from typing import Dict, List, Any, Literal, TypedDict, Optional
 
 # 修复 langchain 1.1.x 版本兼容性问题：在导入 langchain_core 之前设置必要的属性
 import langchain
+
 if not hasattr(langchain, 'verbose'):
     langchain.verbose = False
 if not hasattr(langchain, 'debug'):
@@ -44,7 +44,7 @@ if not hasattr(langchain, 'llm_cache'):
     langchain.llm_cache = None
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_community.llms import Tongyi
+from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_core.runnables import RunnableConfig
 from pydantic import BaseModel, Field
@@ -52,8 +52,11 @@ from langgraph.graph import StateGraph, END
 import warnings
 warnings.filterwarnings("ignore")
 
-# 设置API密钥
-DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
+import logging
+
+# 简单配置：设置根记录器的级别为 DEBUG
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 # ==================== LangSmith 配置 ====================
 # LangSmith 用于 Agent 调试、追踪和监控
@@ -69,8 +72,7 @@ LANGSMITH_PROJECT = os.getenv("LANGCHAIN_PROJECT", "wealth-advisor-hybrid-agent"
 print("LANGSMITH_ENABLED=", LANGSMITH_ENABLED)
 
 # 创建LLM实例
-llm = Tongyi(model_name="qwen-turbo-latest", dashscope_api_key=DASHSCOPE_API_KEY)
-
+llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
 # 定义客户信息数据结构
 class CustomerProfile(BaseModel):
     """客户画像信息"""

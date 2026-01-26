@@ -5,17 +5,10 @@
 测试 OpenEvals CONCISENESS_PROMPT - 简洁性评估示例
 """
 
-import os
-from langchain_community.chat_models import ChatTongyi
-from openevals.prompts import CONCISENESS_PROMPT
 from openevals.llm import create_llm_as_judge
+from openevals.prompts import CONCISENESS_PROMPT
 
-DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
-if not DASHSCOPE_API_KEY:
-    print("错误: 请设置 DASHSCOPE_API_KEY 环境变量")
-    exit(1)
-
-eval_llm = ChatTongyi(model_name="qwen-turbo", dashscope_api_key=DASHSCOPE_API_KEY, temperature=0)
+from app_config import eval_llm
 
 evaluator = create_llm_as_judge(
     prompt=CONCISENESS_PROMPT,

@@ -32,7 +32,7 @@ import dashscope
 from qwen_agent.agents import Assistant
 from qwen_agent.gui import WebUI
 from qwen_agent.tools.base import BaseTool, register_tool
-
+# 手动集成LangFuse（SDK 装饰器模式）- @observe 装饰器 & get_client()
 # ====== LangFuse 导入和初始化 ======
 
 # 尝试导入 LangFuse（可选，用于LLM调用监测）

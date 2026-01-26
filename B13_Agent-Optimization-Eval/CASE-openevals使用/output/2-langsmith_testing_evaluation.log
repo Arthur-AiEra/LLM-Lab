@@ -1,0 +1,276 @@
+B13_Agent-Optimization-Eval/CASE-openevals使用/2-langsmith_testing_evaluation.py
+LANGSMITH_ENABLED= True
+[LangSmith] 客户端已初始化，可以开始测试和评估
+============================================================
+LangSmith 测试与评估工具
+============================================================
+
+步骤 1: 准备测试数据集...
+------------------------------------------------------------
+[LangSmith] 数据集已存在: wealth-advisor-test-dataset
+  现有测试用例数量: 8
+✓ 测试数据集准备完成: wealth-advisor-test-dataset
+
+步骤 2: 运行测试集评估...
+------------------------------------------------------------
+实验名称: wealth-advisor-eval-20260126-132930
+数据集: wealth-advisor-test-dataset
+测试用例数量: 8
+
+开始运行评估，这可能需要几分钟时间，请耐心等待...
+
+[LangSmith] 开始评估...
+  实验名称: wealth-advisor-eval-20260126-132930
+  数据集: wealth-advisor-test-dataset
+  评估器数量: 2
+
+View the evaluation results for experiment: 'wealth-advisor-eval-20260126-132930-43b820b9' at:
+https://smith.langchain.com/o/1e6b280c-90dd-491a-86dc-8905c8082a22/datasets/14af8d97-95b5-4a96-ad9e-d6a37096d7ef/compare?selectedSessions=b1019b64-af7e-45e6-ad5e-2adb13b0f5ac
+
+
+0it [00:00, ?it/s]LangGraph Mermaid流程图：
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+  __start__([<p>__start__</p>]):::first
+  assess(assess)
+  reactive(reactive)
+  collect_data(collect_data)
+  analyze(analyze)
+  recommend(recommend)
+  respond(respond)
+  __end__([<p>__end__</p>]):::last
+  __start__ --> assess;
+  analyze --> recommend;
+  assess -.-> collect_data;
+  assess -.-> reactive;
+  collect_data --> analyze;
+  reactive --> respond;
+  recommend --> respond;
+  respond --> __end__;
+  classDef default fill:#f2f0ff,line-height:1.2
+  classDef first fill-opacity:0
+  classDef last fill:#bfb6fc
+
+[DEBUG] 进入节点: assess_query
+[DEBUG] LLM评估输出: {'query_type': 'informational', 'processing_mode': 'deliberative', 'reasoning': '用户查询内容重复且冗长，未体现紧急性或具体分析需求，推测为信息性查询，需耐心梳理和理解，故采用深度思考的处理模式。'}
+[DEBUG] 分支判断: processing_mode=deliberative, query_type=informational
+[DEBUG] 进入节点: collect_data
+[DEBUG] 进入节点: analyze_data
+[DEBUG] 进入节点: generate_recommendations
+LangGraph Mermaid流程图：
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+  __start__([<p>__start__</p>]):::first
+  assess(assess)
+  reactive(reactive)
+  collect_data(collect_data)
+  analyze(analyze)
+  recommend(recommend)
+  respond(respond)
+  __end__([<p>__end__</p>]):::last
+  __start__ --> assess;
+  analyze --> recommend;
+  assess -.-> collect_data;
+  assess -.-> reactive;
+  collect_data --> analyze;
+  reactive --> respond;
+  recommend --> respond;
+  respond --> __end__;
+  classDef default fill:#f2f0ff,line-height:1.2
+  classDef first fill-opacity:0
+  classDef last fill:#bfb6fc
+
+[DEBUG] 进入节点: assess_query
+1it [00:14, 14.17s/it][DEBUG] LLM评估输出: {'query_type': 'analytical', 'processing_mode': 'deliberative', 'reasoning': '用户请求设计一个10年期的教育金投资计划，涉及长期理财规划和个性化方案设计，需进行深度分析和综合考虑，故属于分析型查询，适合采用深度思考的处理模式。'}
+[DEBUG] 分支判断: processing_mode=deliberative, query_type=analytical
+[DEBUG] 进入节点: collect_data
+[DEBUG] 进入节点: analyze_data
+[DEBUG] 进入节点: generate_recommendations
+LangGraph Mermaid流程图：
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+  __start__([<p>__start__</p>]):::first
+  assess(assess)
+  reactive(reactive)
+  collect_data(collect_data)
+  analyze(analyze)
+  recommend(recommend)
+  respond(respond)
+  __end__([<p>__end__</p>]):::last
+  __start__ --> assess;
+  analyze --> recommend;
+  assess -.-> collect_data;
+  assess -.-> reactive;
+  collect_data --> analyze;
+  reactive --> respond;
+  recommend --> respond;
+  respond --> __end__;
+  classDef default fill:#f2f0ff,line-height:1.2
+  classDef first fill-opacity:0
+  classDef last fill:#bfb6fc
+
+[DEBUG] 进入节点: assess_query
+[DEBUG] LLM评估输出: {'query_type': 'analytical', 'processing_mode': 'deliberative', 'reasoning': '用户请求评估当前投资策略并提供优化建议，涉及退休目标的长期理财规划，需进行深度分析和个性化建议，故属于分析型查询，适合采用深度思考和分析的处理模式。'}
+[DEBUG] 分支判断: processing_mode=deliberative, query_type=analytical
+[DEBUG] 进入节点: collect_data
+[DEBUG] 进入节点: analyze_data
+[DEBUG] 进入节点: generate_recommendations
+LangGraph Mermaid流程图：
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+  __start__([<p>__start__</p>]):::first
+  assess(assess)
+  reactive(reactive)
+  collect_data(collect_data)
+  analyze(analyze)
+  recommend(recommend)
+  respond(respond)
+  __end__([<p>__end__</p>]):::last
+  __start__ --> assess;
+  analyze --> recommend;
+  assess -.-> collect_data;
+  assess -.-> reactive;
+  collect_data --> analyze;
+  reactive --> respond;
+  recommend --> respond;
+  respond --> __end__;
+  classDef default fill:#f2f0ff,line-height:1.2
+  classDef first fill-opacity:0
+  classDef last fill:#bfb6fc
+
+[DEBUG] 进入节点: assess_query
+3it [01:04, 22.26s/it][DEBUG] LLM评估输出: {'query_type': 'analytical', 'processing_mode': 'deliberative', 'reasoning': '用户询问如何根据当前市场情况调整投资组合以应对经济衰退，涉及投资组合优化和风险管理，需进行深度分析和个性化建议，故属于分析型查询，适合采用深度思考的处理模式。'}
+[DEBUG] 分支判断: processing_mode=deliberative, query_type=analytical
+[DEBUG] 进入节点: collect_data
+[DEBUG] 进入节点: analyze_data
+[DEBUG] 进入节点: generate_recommendations
+LangGraph Mermaid流程图：
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+  __start__([<p>__start__</p>]):::first
+  assess(assess)
+  reactive(reactive)
+  collect_data(collect_data)
+  analyze(analyze)
+  recommend(recommend)
+  respond(respond)
+  __end__([<p>__end__</p>]):::last
+  __start__ --> assess;
+  analyze --> recommend;
+  assess -.-> collect_data;
+  assess -.-> reactive;
+  collect_data --> analyze;
+  reactive --> respond;
+  recommend --> respond;
+  respond --> __end__;
+  classDef default fill:#f2f0ff,line-height:1.2
+  classDef first fill-opacity:0
+  classDef last fill:#bfb6fc
+
+[DEBUG] 进入节点: assess_query
+[DEBUG] LLM评估输出: {'query_type': 'informational', 'processing_mode': 'reactive', 'reasoning': '用户询问ETF的定义，属于基础投资工具的介绍，属于信息性查询，且回答相对直接明确，适合快速响应。'}
+[DEBUG] 分支判断: processing_mode=reactive, query_type=informational
+[DEBUG] 进入节点: reactive_processing
+5it [01:44, 21.23s/it]LangGraph Mermaid流程图：
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+  __start__([<p>__start__</p>]):::first
+  assess(assess)
+  reactive(reactive)
+  collect_data(collect_data)
+  analyze(analyze)
+  recommend(recommend)
+  respond(respond)
+  __end__([<p>__end__</p>]):::last
+  __start__ --> assess;
+  analyze --> recommend;
+  assess -.-> collect_data;
+  assess -.-> reactive;
+  collect_data --> analyze;
+  reactive --> respond;
+  recommend --> respond;
+  respond --> __end__;
+  classDef default fill:#f2f0ff,line-height:1.2
+  classDef first fill-opacity:0
+  classDef last fill:#bfb6fc
+
+[DEBUG] 进入节点: assess_query
+[DEBUG] LLM评估输出: {'query_type': 'emergency', 'processing_mode': 'reactive', 'reasoning': '用户询问投资组合中科技股的占比属于账户信息类的直接查询，通常需要快速响应以满足用户即时需求。'}
+[DEBUG] 分支判断: processing_mode=reactive, query_type=emergency
+[DEBUG] 进入节点: reactive_processing
+6it [01:49, 16.67s/it]LangGraph Mermaid流程图：
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+  __start__([<p>__start__</p>]):::first
+  assess(assess)
+  reactive(reactive)
+  collect_data(collect_data)
+  analyze(analyze)
+  recommend(recommend)
+  respond(respond)
+  __end__([<p>__end__</p>]):::last
+  __start__ --> assess;
+  analyze --> recommend;
+  assess -.-> collect_data;
+  assess -.-> reactive;
+  collect_data --> analyze;
+  reactive --> respond;
+  recommend --> respond;
+  respond --> __end__;
+  classDef default fill:#f2f0ff,line-height:1.2
+  classDef first fill-opacity:0
+  classDef last fill:#bfb6fc
+
+[DEBUG] 进入节点: assess_query
+[DEBUG] LLM评估输出: {'query_type': 'emergency', 'processing_mode': 'reactive', 'reasoning': '用户询问当天上证指数的表现，属于市场状况的实时查询，需快速响应以满足用户对即时信息的需求。'}
+[DEBUG] 分支判断: processing_mode=reactive, query_type=emergency
+[DEBUG] 进入节点: reactive_processing
+result= 上证指数 当前点位: 3125.62，涨跌: 6.32，涨跌幅: 0.20%
+8it [01:55, 14.41s/it]
+
+[LangSmith] 评估完成
+
+============================================================
+✓ 评估完成！
+============================================================
+
+实验名称: wealth-advisor-eval-20260126-132930
+数据集: wealth-advisor-test-dataset
+
+查看详细结果:
+  https://smith.langchain.com
+
+在 LangSmith 界面中:
+  1. 进入 'Experiments' 页面
+  2. 查找实验: wealth-advisor-eval-20260126-132930
+  3. 查看详细的评估结果、分数和统计信息
+
+Process finished with exit code 0
