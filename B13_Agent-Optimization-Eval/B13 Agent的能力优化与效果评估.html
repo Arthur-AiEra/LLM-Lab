@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent能力优化与效果评估 - 复习笔记</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                rankSpacing: 40,
+                nodeSpacing: 10,
+                padding: 10
+            },
+            themeVariables: {
+                primaryColor: '#e1f5fe',
+                edgeLabelBackground: '#fff',
+                fontFamily: 'Segoe UI'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0; font-size: 1.5rem; }
+        .mermaid-card {
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 15px;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        h2 {
+            color: var(--primary);
+            font-size: 1.1rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+            margin-top: 0;
+        }
+        h3 {
+            color: var(--accent);
+            font-size: 0.95rem;
+            margin: 10px 0 5px 0;
+        }
+        ul { margin: 5px 0; padding-left: 20px; }
+        li { margin-bottom: 3px; }
+        code {
+            background: #f1f2f6;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            color: #c0392b;
+            font-size: 0.9em;
+        }
+        .qa-section {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e1e4e8;
+        }
+        .qa-item {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #eee;
+        }
+        .qa-q {
+            font-weight: 600;
+            color: #2980b9;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .qa-a {
+            color: #555;
+            font-size: 0.95em;
+        }
+        .tag {
+            display: inline-block;
+            background: #e1f5fe;
+            color: #0277bd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Agent 能力优化与效果评估 · 核心复习笔记</h1>
+            <p style="margin:5px 0 0 0; opacity:0.9; font-size:0.9rem;">混合架构设计 | 自动化评估体系 | 性能调优实战</p>
+        </header>
+
+        <div class="mermaid-card">
+            <div class="mermaid">
+            graph LR
+                root[<b>Agent优化与评估</b>]
+                
+                subgraph Arch [<b>混合架构 Hybrid Arch</b>]
+                    Coord[<b>协调层</b><br>路由/优先级] -->|简单任务| Reactive[<b>反应式层</b><br>快速/规则/API]
+                    Coord -->|复杂任务| Delib[<b>深思熟虑层</b><br>规划/推理/多方案]
+                    State[<b>状态管理</b><br>WealthAdvisorState] -.-> Coord
+                end
+
+                subgraph Eval [<b>评估体系 Evaluation</b>]
+                    Dims[<b>评估维度</b>] --> Correct[正确性]
+                    Dims --> Concise[简洁性]
+                    Dims --> Relevant[相关性]
+                    
+                    Metrics[<b>核心指标</b>] --> Ground[<b>Groundedness</b><br>输出vs上下文<br>防幻觉]
+                    Metrics --> RetRel[<b>Retrieval Relevance</b><br>上下文vs查询<br>查得准]
+                    
+                    Tools[<b>工具链</b>] --> LS[<b>LangSmith</b><br>Trace/监测]
+                    Tools --> LF[<b>LangFuse</b><br>开源/本地部署]
+                    Tools --> OE[<b>OpenEval</b><br>LLM-as-judge]
+                end
+
+                subgraph Opt [<b>优化策略 Optimization</b>]
+                    Tech1[<b>RAG</b><br>补充知识/防幻觉]
+                    Tech2[<b>Fine-tuning</b><br>特定风格/高质量数据]
+                    Tech3[<b>Agent Skills</b><br>Prompt+Function]
+                end
+
+                root --> Arch
+                root --> Eval
+                root --> Opt
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <h2>01. 混合智能体架构 (Hybrid Agent)</h2>
+                <p>结合“本能反应”与“深度思考”，解决单一模式的局限。</p>
+                <h3>核心分层</h3>
+                <ul>
+                    <li><span class="tag">反应式层 (Reactive)</span> <b>毫秒级响应</b>。处理紧急/简单查询（如“上证指数”、“账户余额”）。基于规则或直接API调用。</li>
+                    <li><span class="tag">深思熟虑层 (Deliberative)</span> <b>深度规划</b>。处理复杂分析（如“投资组合调整”）。涉及多步推理、模型构建、方案生成。</li>
+                    <li><span class="tag">协调层 (Coordinator)</span> <b>大脑中枢</b>。评估用户Query的复杂度和优先级，动态路由至对应层级。</li>
+                </ul>
+                <h3>状态管理 (State)</h3>
+                <p>使用 <code>TypedDict</code> 维护全局状态，包括 <code>query_type</code> (emergency/analytical) 和 <code>processing_mode</code>。</p>
+            </div>
+
+            <div class="card">
+                <h2>02. 自动化评估体系</h2>
+                <p>从“凭感觉”到“量化指标”，通过 <b>LLM-as-a-Judge</b> 实现自动化测试。</p>
+                <h3>核心指标 (OpenEval)</h3>
+                <ul>
+                    <li><b>RAG Groundedness (基础性)</b>: 评估 LLM 回答是否忠实于检索到的 Context。
+                        <br><i>目标：防止幻觉。确保“有理有据”。</i>
+                    </li>
+                    <li><b>RAG Retrieval Relevance (检索相关性)</b>: 评估检索到的 Context 是否有助于回答 Query。
+                        <br><i>目标：检验检索引擎（向量库/关键词）的准确度。</i>
+                    </li>
+                </ul>
+                <h3>测试流程</h3>
+                <p><code>Dataset</code> (测试集) → <code>Input</code> (Query) → <code>Output</code> (Agent回答) → <code>Reference</code> (标准答案) → <b>Score</b></p>
+            </div>
+
+            <div class="card">
+                <h2>03. 工程化工具链</h2>
+                <h3>LangSmith vs LangFuse</h3>
+                <ul>
+                    <li><b>LangSmith</b>: LangChain 官方出品，擅长 Trace（全链路追踪）和 Dataset 管理。SaaS 体验好但可能有数据合规顾虑。</li>
+                    <li><b>LangFuse</b>: 开源替代品，支持 <b>本地部署 (Docker)</b>，数据更安全。功能涵盖 Trace、Eval、Prompt Management。</li>
+                </ul>
+                <h3>Qwen-Agent</h3>
+                <p>自带 GUI 的 Agent 框架，支持 Function Calling。可封装为 TUI (Terminal) 或通过 Flask 暴露为 HTTP 接口集成到业务系统。</p>
+            </div>
+
+            <div class="card">
+                <h2>04. 能力优化策略</h2>
+                <h3>RAG vs Fine-tuning</h3>
+                <ul>
+                    <li><b>RAG (检索增强)</b>: 解决“不知道”的问题。适合需要实时信息、私有知识库的场景。</li>
+                    <li><b>Fine-tuning (微调)</b>: 解决“学不会”的问题。当需要特定的说话风格、专业术语或极高的数据质量时使用。</li>
+                </ul>
+                <h3>Agent Skills</h3>
+                <p>Agent = System Prompt + Tools + RAG。通过定义清晰的 <code>Function List</code> (如 <code>get_shanghai_index</code>) 扩展能力。</p>
+            </div>
+        </div>
+
+        <div class="qa-section" style="margin-top: 15px;">
+            <h2>课堂精华 Q&A (实战避坑指南)</h2>
+            <div class="qa-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="qa-column">
+                    <div class="qa-item">
+                        <span class="qa-q">Q: OpenEval 中 Groundedness 和 Retrieval Relevance 到底有什么区别？</span>
+                        <div class="qa-a">
+                            <b>Groundedness</b> 关注“生成阶段”，检查回答是否由检索内容支撑（防瞎编）；
+                            <b>Retrieval Relevance</b> 关注“检索阶段”，检查找回来的资料是否跟问题有关（查得准）。
+                        </div>
+                    </div>
+                    <div class="qa-item">
+                        <span class="qa-q">Q: 生产环境中不想运行 LangSmith/LangFuse 增加开销怎么办？</span>
+                        <div class="qa-a">
+                            可以在<b>开发和测试阶段</b>开启监听进行评估，交付上线时关闭或仅在抽样模式下开启。工具主要用于发现瓶颈和Bad Case。
+                        </div>
+                    </div>
+                </div>
+                <div class="qa-column">
+                    <div class="qa-item">
+                        <span class="qa-q">Q: 分类 (Classification) 和 回归 (Regression) 本质区别？</span>
+                        <div class="qa-a">
+                            <b>分类</b>是预测离散标签（如用户类型：平衡型/激进型）；<b>回归</b>是预测连续数值（如预测黄金价格、股价）。黄金预测应使用时序模型（如SARIMA）或回归模型。
+                        </div>
+                    </div>
+                    <div class="qa-item">
+                        <span class="qa-q">Q: RAG 运行久了，大模型会自己“学习”到知识库里的数据吗？</span>
+                        <div class="qa-a">
+                            <b>不会</b>。除非你拿这些数据去 Fine-tune 模型。RAG 只是临时的“开卷考试”，上下文用完即弃。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

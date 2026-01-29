@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenManus 架构与实战核心复习笔记</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            securityLevel: 'loose', // 提高兼容性
+            theme: 'base',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                rankSpacing: 40,
+                nodeSpacing: 20,
+                padding: 10
+            },
+            themeVariables: {
+                primaryColor: '#e3f2fd',
+                primaryTextColor: '#0d47a1',
+                lineColor: '#1565c0',
+                fontSize: '14px',
+                fontFamily: 'Segoe UI'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary: #1565c0;
+            --secondary: #42a5f5;
+            --bg: #f4f6f8;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --code-bg: #f8f9fa;
+            --border: #e0e0e0;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            line-height: 1.5; 
+            color: var(--text); 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 20px; 
+            font-size: 14px; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+        }
+        .full-width { grid-column: 1 / -1; }
+        
+        /* 标题样式 */
+        header { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            color: white; 
+            padding: 15px 20px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { font-size: 1.4rem; margin: 0; font-weight: 600; }
+        h2 { 
+            font-size: 1.1rem; 
+            margin: 0 0 10px 0; 
+            color: var(--primary); 
+            border-bottom: 2px solid var(--secondary); 
+            padding-bottom: 5px; 
+            display: flex;
+            align-items: center;
+        }
+        
+        /* 卡片样式 */
+        .card { 
+            background: var(--card-bg); 
+            padding: 15px; 
+            border-radius: 8px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+            border: 1px solid var(--border);
+        }
+        
+        /* Mermaid 容器 */
+        .mermaid-box { 
+            overflow-x: auto; 
+            background: #fff; 
+            padding: 15px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border);
+            min-height: 250px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        /* 列表与代码 */
+        ul { margin: 0; padding-left: 18px; }
+        li { margin-bottom: 4px; }
+        code { 
+            background: var(--code-bg); 
+            padding: 2px 5px; 
+            border-radius: 4px; 
+            font-family: 'Consolas', monospace; 
+            color: #d63384; 
+            font-size: 0.9em; 
+            border: 1px solid #dee2e6;
+        }
+        
+        /* 表格样式 */
+        .concept-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 5px; }
+        .concept-table th, .concept-table td { border: 1px solid #e9ecef; padding: 8px; text-align: left; vertical-align: top; }
+        .concept-table th { background: #f1f8ff; color: var(--primary); width: 25%; font-weight: 600; }
+        
+        /* Q&A 样式 */
+        .qa-item { 
+            margin-bottom: 10px; 
+            background: #fffbf0; 
+            padding: 10px; 
+            border-left: 3px solid #ffc107; 
+            border-radius: 0 4px 4px 0;
+        }
+        .qa-q { font-weight: 700; color: #b71c1c; display: block; margin-bottom: 4px; font-size: 0.95rem; }
+        .qa-a { color: #4e342e; font-size: 0.9rem; line-height: 1.4; }
+        
+        /* 标签 */
+        .tag { 
+            display: inline-block; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-size: 0.75rem; 
+            font-weight: bold; 
+            color: white; 
+            margin-right: 5px; 
+            vertical-align: middle;
+        }
+        .tag-core { background: #1976d2; }
+        .tag-tool { background: #00897b; }
+        .tag-risk { background: #e53935; }
+    </style>
+</head>
+<body>
+
+    <header class="full-width">
+        <h1>OpenManus 架构原理与工程实战 · 核心复习笔记</h1>
+        <div style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">
+            基于 OpenManus 源码架构与实战经验整理 | 核心：ReAct循环、Browser Automation、工程化兜底
+        </div>
+    </header>
+
+    <div class="full-width card">
+        <h2>OpenManus 技术全景图</h2>
+        <div class="mermaid-box">
+            <div class="mermaid">
+            graph LR
+                root["OpenManus 系统"]
+                
+                subgraph Arch ["六层架构设计"]
+                    direction LR
+                    L1("用户层: CLI/Web") --> L2("入口: main.py")
+                    L2 --> L3("Agent核心: Manus")
+                    L3 --> L4("工具层: Tools")
+                    L4 --> L5("基础设施: Docker/Redis")
+                    L3 -.->|"Think"| LLM["LLM: Qwen/Claude"]
+                    L3 -.->|"Act"| ToolCall["Function Calling"]
+                end
+
+                subgraph Core ["ReAct 核心循环"]
+                    direction TB
+                    Loop["主循环 Loop"] --> Observe["观察 Observation"]
+                    Observe -->|"获取状态"| BrowserState{"浏览器状态"}
+                    BrowserState -->|"DOM Tree"| Indexing["元素扁平化索引"]
+                    Indexing -->|"构建 Prompt"| NextStep["Format Next Step"]
+                    NextStep -->|"LLM 决策"| Action["行动 Action"]
+                    Action -->|"Json 指令"| PW["Playwright 执行"]
+                    PW -->|"Result/Error"| Memory["记忆 Memory"]
+                    Memory --> Loop
+                end
+
+                subgraph Adv ["工程化高级策略"]
+                    direction TB
+                    RAG["Prompt RAG"] -->|"注入 Context"| Shortcuts["URL直达/业务捷径"]
+                    GUI["GUI-Plus"] -->|"Vision Model"| Coord["视觉坐标点击 (x,y)"]
+                    Safe["安全沙箱"] -->|"Daytona"| Remote["远程容器隔离 + VNC"]
+                end
+
+                root --> Arch
+                root --> Core
+                root --> Adv
+            </div>
+        </div>
+    </div>
+
+    <div class="container full-width">
+        <div>
+            <div class="card" style="margin-bottom: 15px;">
+                <h2><span class="tag tag-core">CORE</span> 核心架构解析</h2>
+                <table class="concept-table">
+                    <tr>
+                        <th>Agent 继承链</th>
+                        <td>
+                            <code>BaseAgent</code> (基础状态/Memory管理) <br>
+                            ↓<br>
+                            <code>ReActAgent</code> (实现 Think-Act-Observe 循环) <br>
+                            ↓<br>
+                            <code>ToolCallAgent</code> (处理工具调用与解析) <br>
+                            ↓<br>
+                            <code>Manus</code> (集成特定业务逻辑的最终形态)
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>思考 (Think)</th>
+                        <td>
+                            核心函数：<code>format_next_step_prompt()</code>。<br>
+                            1. <strong>状态获取</strong>：读取当前 URL、Title、DOM。<br>
+                            2. [cite_start]<strong>元素扁平化</strong>：将复杂的 DOM 树转化为 LLM 易读的 <code>[index]&lt;type&gt;text&lt;/type&gt;</code> 列表，大幅节省 Vision Token 并提高定位准确率 [cite: 1]。
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>记忆 (Memory)</th>
+                        <td>
+                            [cite_start]维护一个 <code>List[Message]</code>。每一步操作的“思考内容”、“工具执行结果”（包含截图 Base64）、“报错信息”都会追加到上下文，形成短期记忆 [cite: 1]。
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2><span class="tag tag-tool">TOOL</span> 浏览器自动化难点</h2>
+                <ul>
+                    <li><strong>工具基座</strong>: 基于 <code>browser-use</code> 库（对 Playwright 的高级封装）。</li>
+                    <li><strong>核心痛点</strong>: 
+                        <ul>
+                            <li><strong>动态组件失效</strong>: 如携程的日历弹窗，DOM 结构极深或为 ShadowDOM，导致 <code>clickable_elements</code> 无法提取到日期数字，Agent 陷入“打开-关闭”死循环。</li>
+                            <li><strong>反爬与登录</strong>: 很多 OTAs 网站（如去哪儿）有强风控，需要登录才能查看价格。</li>
+                        </ul>
+                    </li>
+                    <li><strong>解决方案</strong>:
+                        <ul>
+                            [cite_start]<li><strong>GUI-Plus (视觉兜底)</strong>: 当 DOM 解析失败时，截图发给多模态大模型 (Qwen-VL)，返回物理 <code>(x,y)</code> 坐标进行盲点 [cite: 1]。</li>
+                            <li><strong>URL Hack (RAG)</strong>: 绕过 UI 交互，直接构造带参 URL（如 <code>depdate=2026-01-30</code>）跳转。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div>
+            <div class="card" style="margin-bottom: 15px;">
+                <h2><span class="tag tag-risk">ENG</span> 基础设施与安全</h2>
+                <ul>
+                    <li><strong>OpenManus vs Manus</strong>:
+                        <ul>
+                            <li>Manus: 闭源，体验好但不可控。</li>
+                            [cite_start]<li>OpenManus: MetaGPT 团队开源复刻，架构无堡垒，纯开放，旨在零成本复现能力 [cite: 1]。</li>
+                        </ul>
+                    </li>
+                    <li><strong>安全沙箱 (Daytona)</strong>:
+                        <ul>
+                            <li><strong>风险</strong>: Agent 可能生成 <code>rm -rf</code> 等恶意代码。</li>
+                            <li><strong>实现</strong>: 使用 <code>SandboxManus</code>，在 Daytona 管理的远程 Docker 容器中运行代码。</li>
+                            [cite_start]<li><strong>监控</strong>: 通过 VNC 协议将容器内的浏览器画面实时传输给用户 [cite: 1]。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card" style="border-top: 3px solid #ffca28;">
+                <h2>课堂精华 Q&A (实战避坑)</h2>
+                
+                <div class="qa-item">
+                    <span class="qa-q">Q: 本地运行 (Local) vs 沙箱运行 (Sandbox) 有什么区别？</span>
+                    <div class="qa-a">
+                        • <strong>本地</strong> (<code>python main.py</code>): 直接调用本机的 Chrome 和 Playwright。优点是调试方便，能看到浏览器动作；缺点是有环境污染风险，且需本机安装 Chrome。<br>
+                        • <strong>沙箱</strong> (<code>python sandbox_main.py</code>): 调用 Daytona 远程容器。优点是环境隔离，安全，适合服务器部署；缺点是配置稍繁琐，需 VNC 查看界面。
+                    </div>
+                </div>
+
+                <div class="qa-item">
+                    <span class="qa-q">Q: Agent 经常陷入死循环（如反复点同一个按钮）怎么办？</span>
+                    <div class="qa-a">
+                        这是 ReAct 架构的常见缺陷。OpenManus 设置了 <code>max_steps</code> (默认 30) 作为硬限制。工程上建议在 System Prompt 中加入<strong>"反思机制"</strong>：如果连续两次操作结果相同，强制尝试其他路径或报错。
+                    </div>
+                </div>
+
+                <div class="qa-item">
+                    <span class="qa-q">Q: 如何处理需要登录的网站（如订票系统）？</span>
+                    <div class="qa-a">
+                        1. <strong>AskHuman 工具</strong>: Agent 遇到登录墙时，暂停并弹窗请求用户人工扫码/输入，完成后 Agent 继续接管。<br>
+                        2. <strong>Cookie 注入</strong>: 预先获取 Cookie 并注入到 BrowserContext 中。
+                    </div>
+                </div>
+
+                <div class="qa-item">
+                    <span class="qa-q">Q: RAG (知识库) 在 OpenManus 中是如何落地的？是向量库吗？</span>
+                    <div class="qa-a">
+                        [cite_start]<strong>不是向量库，而是 Prompt Context 注入</strong>。在 <code>knowledge/</code> 目录下放置 <code>.txt</code> 文件（如 <code>travel_tools.txt</code>），里面记录特定任务的"捷径"（如 URL 参数模板、特定元素的 XPath）。Agent 启动时会读取这些文件并放入 System Prompt，作为"外挂经验" [cite: 1]。
+                    </div>
+                </div>
+
+                <div class="qa-item">
+                    <span class="qa-q">Q: 为什么有时候提取不到页面信息（如航班列表）？</span>
+                    <div class="qa-a">
+                        LLM 视觉 Token 限制或 DOM 结构过深。
+                        <br><strong>优化策略</strong>: 修改 System Prompt，告诉 Agent "如果交互元素列表 (Accessibility Tree) 中已包含所需信息，直接整理返回，不要额外调用 <code>extract_content</code> 工具"，节省 Token 并提高速度。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,152 @@
+B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/es_insurance_search_final2.py
+[SUCCESS] 成功连接到 Elasticsearch
+[SUCCESS] 成功创建索引 insurance_documents
+[INFO] 处理文件: 平安商业综合责任保险（亚马逊）.pdf
+[WARN] 跳过空文档: 平安商业综合责任保险（亚马逊）.pdf
+[INFO] 处理文件: 3-平安企业团体综合意外险.txt
+[SUCCESS] 已索引文件: 3-平安企业团体综合意外险.txt
+[INFO] 处理文件: 6-财产一切险.txt
+[SUCCESS] 已索引文件: 6-财产一切险.txt
+[INFO] 处理文件: 平安境内紧急医疗救援服务条款.pdf
+[SUCCESS] 已索引文件: 平安境内紧急医疗救援服务条款.pdf
+[INFO] 处理文件: 平安附加疾病身故保险条款.pdf
+[WARN] 跳过空文档: 平安附加疾病身故保险条款.pdf
+[INFO] 处理文件: 平安产险交通工具意外伤害保险（互联网版）条款.pdf
+[SUCCESS] 已索引文件: 平安产险交通工具意外伤害保险（互联网版）条款.pdf
+[INFO] 处理文件: 2-雇主责任险.txt
+[SUCCESS] 已索引文件: 2-雇主责任险.txt
+[INFO] 处理文件: 平安企业团体综合意外险(互联网版)适用条款.pdf
+[SUCCESS] 已索引文件: 平安企业团体综合意外险(互联网版)适用条款.pdf
+[INFO] 处理文件: 平安产险交通出行意外伤害保险（互联网版）产品说明.pdf
+[SUCCESS] 已索引文件: 平安产险交通出行意外伤害保险（互联网版）产品说明.pdf
+[INFO] 处理文件: 1-平安商业综合责任保险（亚马逊）.txt
+[SUCCESS] 已索引文件: 1-平安商业综合责任保险（亚马逊）.txt
+[INFO] 处理文件: 7-平安装修保.txt
+[SUCCESS] 已索引文件: 7-平安装修保.txt
+[INFO] 处理文件: 5-施工保.txt
+[SUCCESS] 已索引文件: 5-施工保.txt
+[INFO] 处理文件: 4-雇主安心保.txt
+[SUCCESS] 已索引文件: 4-雇主安心保.txt
+[SUCCESS] 总共处理了 13 个文件，成功索引 11 个文档
+
+[INFO] 正在搜索: 工伤保险和雇主险有什么区别？
+
+搜索查询: 工伤保险和雇主险有什么区别？
+找到 11 个结果:
+
+============================================================
+
+结果 1:
+[TITLE] 标题: 2-雇主责任险.txt
+[PATH] 路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/docs/2-雇主责任险.txt
+[SCORE] 相关性分数: 9.387467
+[MATCH] 匹配内容: Q2 <em>雇</em><em>主</em>责任<em>险</em>的<em>保</em>障范围<em>和</em>其他亮点
+1. <em>保</em>障
+只要<em>有</em>用<em>工</em>需求的单位，都可以购买<em>雇</em><em>主</em>责任<em>险</em>。
+2. <em>保</em>障范围：
+死亡赔偿金
+<em>伤</em>残赔偿金
+医疗费用
+误<em>工</e...
+------------------------------------------------------------
+
+结果 2:
+[TITLE] 标题: 4-雇主安心保.txt
+[PATH] 路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/docs/4-雇主安心保.txt
+[SCORE] 相关性分数: 8.524224
+[MATCH] 匹配内容: 【<em>雇</em><em>主</em>安心<em>保</em>】
+Q1 <em>什</em><em>么</em>是<em>雇</em><em>主</em>安心<em>保</em>？
+<em>工</em><em>伤</em><em>保</em><em>险</em>也能很简单
+一个小老板的心声……
+*	<em>工</em><em>伤</em><em>保</em><em>险</em>待遇纠纷数占社会...
+------------------------------------------------------------
+
+结果 3:
+[TITLE] 标题: 5-施工保.txt
+[PATH] 路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/docs/5-施工保.txt
+[SCORE] 相关性分数: 4.7288747
+[MATCH] 匹配内容: 【施<em>工</em><em>保</em>】
+Q1：为<em>什</em><em>么</em>要施<em>工</em><em>保</em>
+1.	施<em>工</em>过程中的意外风<em>险</em>：
+施<em>工</em>过程中随时可能遇到意外风<em>险</em>，<em>工</em>程损失不可控。
+通过购买施<em>工</em><em>保</em><em>险</em>，可以在发生意外时...
+------------------------------------------------------------
+
+结果 4:
+[TITLE] 标题: 6-财产一切险.txt
+[PATH] 路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/docs/6-财产一切险.txt
+[SCORE] 相关性分数: 4.6646605
+[MATCH] 匹配内容: 【财产一切<em>险</em>】
+Q1：<em>什</em><em>么</em>是财产一切<em>险</em>：
+场景示例：
+被<em>保</em><em>险</em>企业生产过程中发生火灾，导致存货、设备及建筑损坏；
+暴雨造成积水导致被<em>保</em><em>险</em>人资产被泡水损坏；
+洪水导致被<em>保</em><em>险</em>人资产被水淹
+<em>保</em>障客户类型：对<e...
+------------------------------------------------------------
+
+结果 5:
+[TITLE] 标题: 平安产险交通工具意外伤害保险（互联网版）条款.pdf
+[PATH] 路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/docs/平安产险交通工具意外伤害保险（互联网版）条款.pdf
+[SCORE] 相关性分数: 4.055307
+[MATCH] 匹配内容: 中国平安财产<em>保</em><em>险</em>股份<em>有</em>限公司
+平安产<em>险</em>交通<em>工</em>具意外<em>伤</em>害<em>保</em><em>险</em>（互联网版）条款
+注册号：C00001732312021120910133
+
+总则
+第一条 本<em>保</em><em>险</em>合同由<em>保</em><em>险</em>条款、投...
+------------------------------------------------------------
+
+结果 6:
+[TITLE] 标题: 平安境内紧急医疗救援服务条款.pdf
+[PATH] 路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/docs/平安境内紧急医疗救援服务条款.pdf
+[SCORE] 相关性分数: 3.713964
+[MATCH] 匹配内容: 中国平安财产<em>保</em><em>险</em>股份<em>有</em>限公司
+平安境内紧急医疗救援服务条款
+
+总则
+第一条  本救援服务条款须附加于意外<em>伤</em>害<em>保</em><em>险</em>合同（以下简称"<em>主</em><em>保</em><em>险</em>合同"）。...若<em>主</em><em>保</em><em>险</em>合同与本服务条款互...
+------------------------------------------------------------
+
+结果 7:
+[TITLE] 标题: 3-平安企业团体综合意外险.txt
+[PATH] 路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/docs/3-平安企业团体综合意外险.txt
+[SCORE] 相关性分数: 3.462612
+[MATCH] 匹配内容: *	意外<em>伤</em>害医疗：
+o	在<em>保</em><em>险</em>期间内，被<em>保</em><em>险</em>人遭受意外<em>伤</em>害并在符合<em>保</em><em>险</em>合同约定条件的医院进行门诊或住院治疗的，本公司将对被<em>保</em><em>险</em>人从事故发生之日起180天内实际支出的，在当地社会医疗<em>保</em><em>险</em>...
+------------------------------------------------------------
+
+结果 8:
+[TITLE] 标题: 平安企业团体综合意外险(互联网版)适用条款.pdf
+[PATH] 路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/docs/平安企业团体综合意外险(互联网版)适用条款.pdf
+[SCORE] 相关性分数: 3.356581
+[MATCH] 匹配内容: 第七条 <em>保</em><em>险</em>期间内，被<em>保</em><em>险</em>人因遭受意外<em>伤</em>害事故导致身故、<em>伤</em>残或医疗费用支出的，
+<em>保</em><em>险</em>人依照下列约定给付<em>保</em><em>险</em>金，具体承担的责任<em>和</em>对应的<em>保</em><em>险</em>金以<em>保</em><em...
+------------------------------------------------------------
+
+结果 9:
+[TITLE] 标题: 平安产险交通出行意外伤害保险（互联网版）产品说明.pdf
+[PATH] 路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/docs/平安产险交通出行意外伤害保险（互联网版）产品说明.pdf
+[SCORE] 相关性分数: 3.1985784
+[MATCH] 匹配内容: 平安产<em>险</em>交通出行意外<em>伤</em>害<em>保</em><em>险</em>（互联网版）产品说明
+一、条款名称
+平安产<em>险</em>交通出行意外<em>伤</em>害<em>保</em><em>险</em>（互联网版）
+二、<em>保</em>障范围
+第一条 本<em>保</em><em>险</em>合同可承<em>保</em>以下意外<em>伤</em>害事故类型的...
+------------------------------------------------------------
+
+结果 10:
+[TITLE] 标题: 1-平安商业综合责任保险（亚马逊）.txt
+[PATH] 路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B15_Agent-Memory-RAG/【完成参考】CASE-AI搜索问答/docs/1-平安商业综合责任保险（亚马逊）.txt
+[SCORE] 相关性分数: 3.1412275
+[MATCH] 匹配内容: 【平安商业综合责任<em>保</em><em>险</em>（亚马逊）】
+
+Q1：为<em>什</em><em>么</em>一定要投<em>保</em>？
+1....风<em>险</em>隐患：
+北美的法律<em>有</em>集体诉讼、高额诉讼、惩罚性赔偿、消费者导向等特点，产品缺陷可能引发巨额赔偿。
+
+Q2：哪些卖家需要投<em>保</em>？...<em>保</em>障范围全
+涵盖法律费用、产品...
+------------------------------------------------------------
+
+Process finished with exit code 0

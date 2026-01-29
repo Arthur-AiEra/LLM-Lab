@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent 数据决策与预测核心复习笔记</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                rankSpacing: 30, /* 紧凑排版 */
+                nodeSpacing: 10,
+                padding: 10
+            },
+            themeVariables: {
+                primaryColor: '#e1f5fe',
+                primaryTextColor: '#01579b',
+                lineColor: '#0277bd',
+                fontFamily: 'Segoe UI'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary-color: #0277bd;
+            --secondary-color: #0288d1;
+            --bg-color: #f4f7f6;
+            --text-color: #263238;
+            --card-bg: #ffffff;
+            --code-bg: #f1f8e9;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0; font-size: 1.8em; }
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 8px;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+        h3 { color: #006064; margin-top: 20px; font-size: 1.1em; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--secondary-color);
+        }
+        .mermaid-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th { background-color: #e1f5fe; color: var(--primary-color); }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            color: #c62828;
+            font-size: 0.9em;
+        }
+        .qa-box {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffca28;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .qa-q { font-weight: bold; color: #e65100; display: block; margin-bottom: 4px; }
+        .qa-a { color: #3e2723; font-size: 0.95em; }
+        .citation {
+            font-size: 0.75em;
+            color: #90a4ae;
+            vertical-align: super;
+            margin-left: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Agent 数据决策与预测 · 核心复习笔记</h1>
+        <p>核心涵盖：特征工程 / 决策树模型 / XGBoost & CatBoost / 工程化落地</p>
+    </header>
+
+    <div class="mermaid-container">
+        <h3 style="text-align:center; margin-top:0;">Agent数据决策全景图</h3>
+        <div class="mermaid">
+        graph LR
+            root[<b>Agent数据决策</b>]
+            
+            subgraph Arch [<b>核心流程</b>]
+                Data[<b>数据层</b>] --> EDA[<b>EDA探索</b>]
+                EDA --> Feature[<b>特征工程</b>]
+                Feature --> Model[<b>模型层</b>]
+                Model --> Eval[<b>评估层 MAE</b>]
+            end
+
+            subgraph Features [<b>特征工程策略</b>]
+                F_Time[<b>时间特征</b>] --"拆解"--> YearMonth[年/月/日]
+                F_Time --"Diff"--> DaysDiff[BaseDate差值]
+                F_Cat[<b>类别特征</b>] --"Encoding"--> LabelEnc[LabelEncoder]
+                F_Interact[<b>特征交互</b>] --"业务逻辑"--> PowerRate[功率/排量比]
+                F_Missing[<b>缺失值</b>] --"填充"--> Median[中位数填充]
+            end
+
+            subgraph Models [<b>算法与模型</b>]
+                M_Tree[<b>决策树</b>] --"集成"--> M_Forest[随机森林]
+                M_Forest --"Boosting"--> M_XGB[XGBoost]
+                M_XGB --"类别优化"--> M_Cat[CatBoost]
+                M_Light[LightGBM]
+            end
+
+            subgraph Agent [<b>Agent工程化</b>]
+                A_Code[<b>Code Agent</b>] --"工具"--> Pandas[Pandas/Matplotlib]
+                A_Skill[<b>Skills</b>] --"封装"--> DynPrompt[动态Prompt+Func]
+                A_Mem[<b>记忆管理</b>] --"RAG"--> VecDB[向量检索/BM25]
+            end
+
+            root --> Arch
+            root --> Features
+            root --> Models
+            root --> Agent
+        </div>
+    </div>
+
+    <h2>一、Agent 数据决策核心流程</h2>
+    
+    <div class="card">
+        <h3>1. 特征工程 (Feature Engineering)</h3>
+        <p>特征工程决定了模型的上限，算法只是逼近这个上限。</p>
+        <ul>
+            <li><strong>时间特征处理：</strong>
+                <ul>
+                    [cite_start]<li><strong>拆解法：</strong> 将 <code>regDate</code> (如 20000501) 拆解为 Year, Month, Day 独立特征 [cite: 1676]。</li>
+                    [cite_start]<li><strong>差值法 (Diff)：</strong> 设定 Base Date (如 2000-01-01)，计算 <code>days_diff = current_date - base_date</code>，反映时间的连续性 [cite: 1602]。</li>
+                    [cite_start]<li><strong>车龄计算：</strong> <code>creatDate - regDate</code>，反映车辆的实际使用时长 [cite: 1674]。</li>
+                </ul>
+            </li>
+            [cite_start]<li><strong>缺失值处理：</strong> 创建 <code>_missing</code> 标记列，并使用中位数 (Median) 填充数值型特征 [cite: 1691-1692]。</li>
+            [cite_start]<li><strong>特征交互：</strong> 结合业务逻辑创造新特征，例如 <strong>功率排量比</strong> [cite: 1696] [cite_start]或 <strong>品牌价格统计</strong> (brand_price_mean, brand_price_std) [cite: 1438-1440]。</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>2. 模型选择与演进</h3>
+        <table>
+            <tr>
+                <th>模型</th>
+                <th>特点</th>
+                <th>适用场景</th>
+            </tr>
+            <tr>
+                <td><strong>Decision Tree (决策树)</strong></td>
+                [cite_start]<td>符号学派代表，可解释性强（如 C4.5, CART）[cite: 1346]。</td>
+                <td>基准测试，规则提取。</td>
+            </tr>
+            <tr>
+                <td><strong>XGBoost</strong></td>
+                [cite_start]<td>工业界常用的 Baseline，性能强劲，支持 GPU 加速 [cite: 1424, 1431]。</td>
+                <td>结构化数据竞赛，通用预测。</td>
+            </tr>
+            <tr>
+                <td><strong>CatBoost</strong></td>
+                [cite_start]<td><strong>针对类别特征 (Categorical Features) 优化</strong>，无需预先 One-Hot 编码，自动处理类别特征 [cite: 1634, 1662]。</td>
+                <td>类别特征多（如品牌、车型）的场景，调参相对简单。</td>
+            </tr>
+            <tr>
+                <td><strong>LightGBM</strong></td>
+                [cite_start]<td>速度快，内存占用低，适合大规模数据 [cite: 1617]。</td>
+                <td>海量数据快速迭代。</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>3. 评估指标：MAE (Mean Absolute Error)</h3>
+        <ul>
+            [cite_start]<li><strong>定义：</strong> 预测值与真实值之差的绝对值的平均数。MAE 是 L1 Loss [cite: 1001]。</li>
+            [cite_start]<li><strong>公式：</strong> $$MAE=\frac{\sum_{i=1}^{n}|y_{i}-\hat{y}_{i}|}{n}$$ [cite: 998]。</li>
+            [cite_start]<li><strong>实战标准：</strong> 在二手车价格预测中，MAE < 600 被认为是一个较好的成绩 [cite: 976]。</li>
+        </ul>
+    </div>
+
+    <h2>二、Agent 工程化实战 (Code Agent)</h2>
+
+    <div class="card">
+        <h3>1. Skills 与 Function Call</h3>
+        <ul>
+            [cite_start]<li><strong>Skills 定义：</strong> Skills = 动态 Prompt 加载器 + 程序调用器 + 动态知识库 [cite: 974]。</li>
+            <li><strong>Function Call：</strong> 侧重于单纯的“执行”动作。</li>
+            [cite_start]<li><strong>Code Agent 模式：</strong> 利用 LLM 编写 Python 代码 (Pandas/Matplotlib) 进行 EDA (探索性数据分析)，而不是手动分析 [cite: 975]。</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>2. 记忆与上下文管理</h3>
+        <ul>
+            [cite_start]<li><strong>LLM 特性：</strong> 像“金鱼”一样不带长记忆，需要外部程序管理 Context [cite: 974]。</li>
+            [cite_start]<li><strong>记忆压缩：</strong> 随着对话轮数增加，Context 会无限膨胀。解决方案是引入 <strong>RAG (检索增强生成)</strong>，通过向量检索或 BM25 关键词检索，只提取相关记忆 [cite: 974]。</li>
+        </ul>
+    </div>
+
+    <h2>三、课堂精华 Q&A (避坑指南)</h2>
+    
+    <div class="qa-box">
+        <span class="qa-q">Q: 为什么 XGBoost 验证集 MAE 很低 (546)，提交结果也很接近 (548)，但模型效果很难再提升？</span>
+        <div class="qa-a">
+            [cite_start]这说明模型没有过拟合，是一个健壮的模型。要进一步提升（降低 MAE），重点不在调参，而在于<strong>特征工程</strong>。例如引入“日期差值 (Diff)”特征，或增加“品牌价格统计”特征 [cite: 1596, 1602]。
+        </div>
+    </div>
+
+    <div class="qa-box">
+        <span class="qa-q">Q: RAG (GraphRAG) 适合用来做二手车价格预测吗？</span>
+        <div class="qa-a">
+            [cite_start]<strong>不适合。</strong> RAG 主要解决文本内容相似度问题（如文档问答），而价格预测是回归问题 (Regression)，依赖数值规律和统计特征，而不是语义检索 [cite: 974]。
+        </div>
+    </div>
+
+    <div class="qa-box">
+        <span class="qa-q">Q: 为什么 LLM (如 Claude/Qwen) 写的代码有时会“失忆”或报错？</span>
+        <div class="qa-a">
+            [cite_start]LLM 本身不带记忆，每次交互都需要将 System Message 和历史 Context 重新传递。如果上下文过长被截断，LLM 就会“失忆”。必须通过程序（如 <code>Agent = LLM + Memory</code>）来显式管理 [cite: 974]。
+        </div>
+    </div>
+
+    <div class="qa-box">
+        <span class="qa-q">Q: 训练时 `price_log` 特征是不是标签泄露 (Data Leakage)？</span>
+        <div class="qa-a">
+            [cite_start]如果在<strong>输入特征</strong>中直接包含了 `price` 的对数形式，那就是泄露，因为这等于直接告诉了模型答案。但在处理<strong>目标变量 (Label)</strong> 时，对 `price` 取 log (使其更符合正态分布) 进行训练，预测后再 exp 回来，这是标准的处理技巧，不是泄露 [cite: 975]。
+        </div>
+    </div>
+
+    <div class="qa-box">
+        <span class="qa-q">Q: 分类 (Classification) 和 回归 (Regression) 的本质区别？</span>
+        <div class="qa-a">
+            <ul>
+                <li><strong>分类：</strong> 预测离散标签（如：男/女，好/坏）。目标是决策边界。</li>
+                [cite_start]<li><strong>回归：</strong> 预测连续数值（如：房价、二手车价）。目标是最小化误差 [cite: 1395-1396]。</li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

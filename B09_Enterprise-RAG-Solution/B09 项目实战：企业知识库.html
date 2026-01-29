@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目实战：企业级知识库 RAG 系统复习笔记</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #cbd5e1;
+            --text-main: #0f172a;
+            --code-bg: #1e293b;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            font-size: 15px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        /* Header */
+        header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--primary); padding-bottom: 10px; }
+        h1 { margin: 0; font-size: 1.8rem; color: #1e3a8a; }
+        .meta { color: #64748b; font-size: 0.9rem; margin-top: 5px; }
+
+        /* Mermaid Diagram */
+        .mermaid-wrapper {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Content Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 15px; }
+        
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .full-width { grid-column: 1 / -1; }
+        
+        h2 { 
+            font-size: 1.2rem; 
+            color: var(--primary); 
+            border-left: 4px solid var(--primary); 
+            padding-left: 8px; 
+            margin: 0 0 12px 0; 
+            display: flex;
+            align-items: center;
+        }
+        h3 { font-size: 1rem; margin: 10px 0 5px 0; color: #334155; border-bottom: 1px dashed #e2e8f0; padding-bottom: 3px;}
+        
+        ul { margin: 0; padding-left: 20px; }
+        li { margin-bottom: 4px; }
+        
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            margin: 5px 0;
+        }
+        code { font-family: 'Consolas', monospace; color: #e11d48; background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 0.9em; }
+        pre code { color: inherit; background: transparent; padding: 0; }
+
+        /* Key Highlights */
+        .highlight { background-color: #fef9c3; padding: 0 4px; border-radius: 2px; }
+        .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-right: 5px; text-transform: uppercase;}
+        .tag-core { background: #dbeafe; color: #1e40af; }
+        .tag-opt { background: #dcfce7; color: #166534; }
+
+        /* Q&A Section */
+        .qa-box { background: #f8fafc; border-left: 3px solid #64748b; padding: 8px 12px; margin-bottom: 8px; }
+        .q { font-weight: bold; color: #b91c1c; display: block; margin-bottom: 2px; }
+        .a { color: #334155; font-size: 0.95rem; }
+
+        footer { text-align: center; margin-top: 30px; color: #94a3b8; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>企业级知识库 RAG 系统实战笔记</h1>
+        <div class="meta">基于 RAG-Challenge 冠军方案 | 核心：解析、路由、重排、结构化生成</div>
+    </header>
+
+    <div class="mermaid-wrapper">
+        <div class="mermaid">
+            %%{init: {
+                'theme': 'base', 
+                'themeVariables': { 
+                    'fontSize': '16px', 
+                    'fontFamily': 'arial', 
+                    'primaryColor': '#e0f2fe', 
+                    'primaryTextColor': '#000000',
+                    'edgeLabelBackground':'#ffffff',
+                    'textColor': '#000000',
+                    'lineColor': '#000000',
+                    'mainBkg': '#ffffff',
+                    'nodeBorder': '#000000'
+                }, 
+                'flowchart': {
+                    'nodeSpacing': 20, 
+                    'rankSpacing': 40, 
+                    'curve': 'basis'
+                }
+            }}%%
+            graph LR
+                Root[<b>企业 RAG 系统</b>]
+                
+                %% 数据处理
+                Ingestion(<b>1. 数据摄入 Ingestion</b>)
+                Parse[解析 Parsing] --> Docling[Docling / Mineru]
+                Docling --> Table[表格处理: 转HTML]
+                Table --> Chunk[分块: 300 Token]
+                Chunk --> VectorDB[向量库: Faiss<br>按公司分库]
+                Chunk -.-> Meta[元数据: 父页面ID]
+
+                %% 检索流程
+                Retrieval(<b>2. 检索 Retrieval</b>)
+                Query[用户提问] --> Router1[<b>DB 路由</b><br>提取公司名->选库]
+                Router1 --> VecSearch[向量搜索 Top 30]
+                VecSearch --> ParentRet[<b>父页面检索</b><br>块->完整页]
+                ParentRet --> LLMRerank[<b>LLM 重排序</b><br>0-1 评分]
+                LLMRerank --> Context[Top 10 上下文]
+
+                %% 生成流程
+                Generation(<b>3. 生成 Generation</b>)
+                Context --> Router2[<b>Prompt 路由</b><br>按问题类型]
+                Router2 --> Prompts[Prompt Templates<br>Num/Bool/Name/String]
+                Prompts --> CoT[<b>思维链 CoT</b><br>分步推理]
+                CoT --> StructOut[<b>结构化输出</b><br>Pydantic/JSON]
+                StructOut --> Final[最终答案]
+
+                Root --> Ingestion
+                Root --> Retrieval
+                Root --> Generation
+
+                classDef default fill:#fff,stroke:#000,stroke-width:1px,color:#000;
+                classDef group fill:#f1f5f9,stroke:#334155,stroke-width:2px,color:#000;
+                class Ingestion,Retrieval,Generation group;
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2><span class="tag tag-core">Ingestion</span>解析与分块 (Parsing & Chunking)</h2>
+            <h3>核心挑战</h3>
+            <p>PDF转文本需保留表格结构、多栏布局及公式。冠军方案使用了 <code>Docling</code>，备选方案推荐国产 <code>MinerU</code>。</p>
+            <h3>表格处理优化</h3>
+            <ul>
+                <li><b>误区：</b>“表格序列化”（Row-wise Serialization）并未提升效果。</li>
+                <li><b>最佳实践：</b>转换为 <b>HTML 格式</b>。LLM 对 HTML 的理解远胜于 Markdown 表格，且能处理合并单元格。</li>
+            </ul>
+            <h3>分块策略 (Chunking)</h3>
+            <ul>
+                <li><b>粒度：</b>将每页分割成约 <b>300 tokens</b> (约15句话) 的小块，保持语义连贯性。</li>
+                <li><b>元数据 (Metadata)：</b>每个 Chunk 必须记录其所属的 <code>page_id</code>，用于后续的“父页面检索”。</li>
+                <li><b>存储：</b>按公司建立独立的 Faiss 索引库（1个公司=1个库），避免数据干扰，通过 Metadata 筛选。</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2><span class="tag tag-core">Retrieval</span>多级检索与路由 (Routing & Retrieval)</h2>
+            <h3>1. 数据库路由 (DB Routing)</h3>
+            <p>最简单却最有效。从问题中提取“公司名称”，仅在对应的向量库中搜索。将搜索范围缩小 100 倍。</p>
+            <h3>2. 父页面检索 (Parent Page Retrieval)</h3>
+            <p>检索时匹配小 Chunk（指针），但送给 LLM 的是该 Chunk 所属的<b>完整页面</b>。利用上下文信息提升回答准确率。</p>
+            <h3>3. LLM 重排序 (LLM Reranking)</h3>
+            <p>不使用 Cross-Encoder，直接用 LLM (如 Qwen) 对 <code>(Query, Page)</code> 对进行评分。</p>
+            <pre><code>评分标准：0-1分（0=完全无关, 1=完全匹配）
+输出格式：JSON {reasoning: "...", relevance_score: 0.8}
+策略：Top 30 Chunks -> Top 10 Pages (经LLM重排)</code></pre>
+        </div>
+
+        <div class="card">
+            <h2><span class="tag tag-core">Generation</span>生成与结构化 (Prompt Engineering)</h2>
+            <h3>1. Prompt 路由 (Prompt Routing)</h3>
+            <p>根据问题类型选择特定模板，降低 LLM 认知负荷：</p>
+            <ul>
+                <li><b>Number Prompt:</b> 专注数值提取、单位换算。</li>
+                <li><b>Boolean Prompt:</b> 专注事实核查 (True/False)。</li>
+                <li><b>Name/List Prompt:</b> 提取实体或列表。</li>
+                <li><b>String Prompt:</b> 开放式文本总结 (新增)。</li>
+            </ul>
+            <h3>2. 思维链 + 结构化输出 (CoT + SO)</h3>
+            <p>强制 LLM 输出 JSON，分离推理过程与最终答案，减少幻觉。</p>
+            <pre><code class="language-json">{
+  "step_by_step_analysis": "1. 找到年报第X页... 2. 对比数据...",
+  "reasoning_summary": "年报明确指出...",
+  "relevant_pages": [12, 15],
+  "final_answer": "578亿元"
+}</code></pre>
+        </div>
+
+        <div class="card">
+            <h2><span class="tag tag-opt">Code</span>代码实现架构 (Architecture)</h2>
+            <h3>核心文件结构</h3>
+            <ul>
+                <li><code>prompts.py</code>: 集中管理所有 Prompt (System指令, Pydantic Schema, Few-shot示例)。</li>
+                <li><code>pipeline.py</code>: 串联全流程（解析->序列化->分块->向量化）。</li>
+                <li><code>text_splitter.py</code>: 实现 Markdown 分块，支持元数据注入。</li>
+                <li><code>api_requests.py</code>: 处理 LLM 请求，包含 Schema 路由逻辑。</li>
+            </ul>
+            <h3>Tech Stack</h3>
+            <ul>
+                <li><b>LLM:</b> Qwen-Turbo / Qwen-Plus (支持 128k 上下文)。</li>
+                <li><b>Parsing:</b> Docling / MinerU (PDF to Markdown/JSON)。</li>
+                <li><b>UI:</b> Streamlit (快速搭建问答界面)。</li>
+                <li><b>Protocol:</b> Pydantic (定义输出 Schema)。</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2><span class="tag tag-opt">Logic</span>复杂逻辑处理</h2>
+            <h3>1. 复合查询 (Multi-query)</h3>
+            <p><b>场景：</b>“苹果和微软谁的营收高？”</p>
+            <p><b>策略：</b>拆解 -> 并行查询 -> 综合判断。</p>
+            <ol>
+                <li>拆解为：“苹果营收是多少？” & “微软营收是多少？”</li>
+                <li>分别路由到不同 DB 查询。</li>
+                <li>汇总结果给 LLM 生成最终比较答案。</li>
+            </ol>
+            <h3>2. 指令细化 (Refinement)</h3>
+            <p>处理“软标准”。例如用户问“CEO是谁”，Prompt 需定义是否包含“总裁”、“董事总经理”等同义职位。需要大量 Corner Case 测试。</p>
+        </div>
+
+        <div class="card full-width" style="background-color: #f0f9ff; border-color: #bae6fd;">
+            <h2>💡 课堂精华 Q&A (实战避坑指南)</h2>
+            <div class="grid">
+                <div class="qa-box">
+                    <span class="q">Q: 为什么不用表格序列化(Serialization)？</span>
+                    <span class="a">实测发现序列化反而降低效果。LLM 对 <b>HTML</b> 结构的理解能力更强，能处理合并单元格等复杂情况。</span>
+                </div>
+                <div class="qa-box">
+                    <span class="q">Q: Metadata (元数据) 需要向量化吗？</span>
+                    <span class="a"><b>不需要</b>。Metadata（如年份、页码、公司名）作为<b>过滤器</b>标签使用，仅对 Content 进行 Embedding。</span>
+                </div>
+                <div class="qa-box">
+                    <span class="q">Q: 什么是父页面检索？为什么这么做？</span>
+                    <span class="a">父级是包含 Chunk 的完整 Page。Chunk 只是索引（指针），回答问题时提供完整页面上下文，能解决跨段落信息丢失问题。</span>
+                </div>
+                <div class="qa-box">
+                    <span class="q">Q: 如何处理成本与精度的平衡？</span>
+                    <span class="a">如果对精确性要求不高，可以<b>去掉 LLM Reranking</b>步骤，直接使用向量检索的 Top N，以节省 Token 开销。</span>
+                </div>
+                <div class="qa-box">
+                    <span class="q">Q: 100个公司建立100个库还是1个大库？</span>
+                    <span class="a">推荐<b>100个小库</b>（IndexFlatIP）。结合 DB Routing，查询时只调取对应公司的库，速度快且无干扰。</span>
+                </div>
+                <div class="qa-box">
+                    <span class="q">Q: 结构化输出中的 Schema 是什么？</span>
+                    <span class="a">是 Pydantic 定义的模板（范式）。强制 LLM 返回 JSON 格式（如 <code>step_by_step_analysis</code>, <code>final_answer</code>），便于程序解析。</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Generated based on Course B09: Enterprise Knowledge Base RAG | Tech Stack: Qwen + Docling + Faiss + Streamlit</p>
+    </footer>
+</div>
+
+<script>
+    mermaid.initialize({ startOnLoad: true });
+</script>
+</body>
+</html>

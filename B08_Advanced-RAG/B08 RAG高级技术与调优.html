@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG 高级技术与调优 | 深度复习笔记</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            securityLevel: 'loose',
+            flowchart: {
+                curve: 'basis',
+                padding: 5,
+                nodeSpacing: 5,  // 极度紧凑
+                rankSpacing: 20, // 极度紧凑
+                htmlLabels: true
+            },
+            themeVariables: {
+                primaryColor: '#e3f2fd',
+                primaryTextColor: '#000000', // 强制黑色字体
+                primaryBorderColor: '#1565c0',
+                lineColor: '#546e7a',
+                secondaryColor: '#f3e5f5',
+                tertiaryColor: '#ffffff',
+                fontFamily: 'sans-serif',
+                fontSize: '14px'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary: #1565c0;
+            --secondary: #00838f;
+            --bg: #f5f7fa;
+            --text: #263238;
+            --sidebar-w: 260px;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; line-height: 1.6; }
+        
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-w); background: #fff; height: 100vh; position: fixed; padding: 20px; border-right: 1px solid #e0e0e0; overflow-y: auto; box-sizing: border-box; }
+        .sidebar h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 8px; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li { margin-bottom: 8px; }
+        .sidebar a { text-decoration: none; color: #546e7a; font-weight: 500; display: block; padding: 8px; border-radius: 4px; transition: 0.2s; font-size: 0.95rem; }
+        .sidebar a:hover { background: #e3f2fd; color: var(--primary); }
+        
+        /* Main Content */
+        .main { margin-left: var(--sidebar-w); padding: 40px; max-width: 1100px; width: 100%; box-sizing: border-box; }
+        
+        h1 { font-size: 2.2rem; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #cfd8dc; padding-bottom: 20px; }
+        .meta { font-size: 0.9rem; color: #78909c; margin-bottom: 30px; }
+        
+        h2 { font-size: 1.6rem; color: #263238; margin-top: 40px; border-left: 5px solid var(--secondary); padding-left: 15px; }
+        h3 { font-size: 1.3rem; color: #455a64; margin-top: 25px; font-weight: 600; }
+        
+        /* Visualization */
+        .viz-box { background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #cfd8dc; margin: 20px 0; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        /* Cards & Tables */
+        .concept-card { background: #fff; padding: 20px; border-radius: 6px; border-top: 3px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th { background: #eceff1; padding: 12px; text-align: left; color: var(--primary); border-bottom: 2px solid #b0bec5; font-weight: 600; }
+        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: top; font-size: 0.95rem; }
+        
+        /* FAQ Style */
+        .faq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 15px; margin-top: 20px; }
+        .faq-item { background: #fff; padding: 15px 20px; border-radius: 6px; border-left: 4px solid var(--secondary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .faq-q { font-weight: bold; color: #006064; display: block; margin-bottom: 8px; font-size: 1rem; }
+        .faq-a { color: #37474f; font-size: 0.95rem; }
+        
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; color: white; margin-right: 5px; }
+        .tag-adv { background: #ef6c00; }
+        .tag-core { background: #1565c0; }
+        
+        code { background: #eceff1; padding: 2px 6px; border-radius: 4px; color: #c62828; font-family: Consolas, monospace; font-size: 0.9em; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <h2>🚀 技术导航</h2>
+    <ul>
+        <li><a href="#overview">1. 全景技术架构</a></li>
+        <li><a href="#kb">2. 知识库工程基础</a></li>
+        <li><a href="#recall">3. 高级召回 (Recall)</a></li>
+        <li><a href="#graphrag">4. GraphRAG 进阶</a></li>
+        <li><a href="#faq">5. 工程实战 FAQ</a></li>
+    </ul>
+</nav>
+
+<div class="main">
+    <h1>RAG 高级技术与调优复习笔记</h1>
+    <div class="meta">基于课程高级调优 PDF 与实战工程记录提炼 | 聚焦 Hybrid Search, Rerank 与 GraphRAG</div>
+
+    <h2 id="overview">1. 全景技术架构图 (Compact View)</h2>
+    <div class="viz-box">
+        <div class="mermaid">
+        graph LR
+            root(<b>RAG高级调优</b>):::root
+            
+            %% 知识库
+            root --> KB(<b>知识库工程</b>)
+            KB --> S2B[Small-to-Big<br>摘要索引]
+            KB --> QA[QA对生成]
+            KB --> Ver[版本管理]
+
+            %% 高级召回
+            root --> Recall(<b>高级召回</b>)
+            Recall --> Rewrite[查询改写<br>MultiQuery]
+            Recall --> Hybrid[混合检索<br>BM25+Vector]
+            Recall --> Rerank[精细排序<br>Cross-Encoder]
+
+            %% GraphRAG
+            root --> Graph(<b>GraphRAG</b>)
+            Graph --> Index[图谱构建<br>实体/社区]
+            Graph --> Global[Global Search<br>全局概要]
+            Graph --> Local[Local Search<br>局部细节]
+
+            %% 工程实战
+            root --> Eng(<b>工程实战</b>)
+            Eng --> Tools[工具: Dify/RagFlow]
+            Eng --> Cost[成本: Token消耗]
+            Eng --> Deploy[部署: Qwen-VL]
+
+            classDef root fill:#bbdefb,stroke:#1565c0,stroke-width:2px,color:#000;
+            classDef default fill:#fff,stroke:#333,stroke-width:1px,color:#000;
+            linkStyle default interpolate basis
+        </div>
+    </div>
+
+    <h2 id="kb">2. 坚实地基：知识库工程</h2>
+    <div class="concept-card">
+        <h3>Small-to-Big (从小到大) 索引策略</h3>
+        <p><strong>原理：</strong> 索引时使用“摘要”或“小切片”进行 Embedding，检索时返回其对应的“完整文档”或“大父文档”。</p>
+        <p><strong>优势：</strong> 小切片语义更聚焦，检索命中率高；返回大文档提供了完整的 LLM 上下文，避免断章取义。这在实战中常被称为“父子索引”。</p>
+    </div>
+    <ul>
+        <li><strong>问题生成</strong>：利用 LLM 基于文档生成 QA 对，用于扩充检索入口，提升匹配概率。</li>
+        <li><strong>健康度检查</strong>：定期检测知识库中是否存在重复、失效或低质量的切片。</li>
+    </ul>
+
+    <h2 id="recall">3. 精准雷达：高级召回技术</h2>
+    
+    <h3>3.1 查询优化 (Query Optimization)</h3>
+    <ul>
+        <li><strong>MultiQuery (多重查询)</strong>：将用户的复杂问题重写为 3-5 个不同角度的子问题，并行检索，取并集。</li>
+        <li><strong>Query Rewrite (改写)</strong>：解决指代不清（如“它多少钱”）或语义缺失的问题。</li>
+    </ul>
+
+    <h3>3.2 混合检索 (Hybrid Search)</h3>
+    <p>结合 <strong>BM25 (关键词匹配)</strong> 和 <strong>Vector (语义匹配)</strong> 的优势。</p>
+    <ul>
+        <li><strong>BM25</strong>：擅长精确匹配专有名词、型号、ID。</li>
+        <li><strong>Vector</strong>：擅长捕捉语义、同义词、模糊意图。</li>
+        <li><strong>融合</strong>：通常使用 RRF (Reciprocal Rank Fusion) 算法合并两者的排序结果。</li>
+    </ul>
+
+    <h3>3.3 精细排序 (Rerank)</h3>
+    <p>RAG 系统的“第二道防线”。在 Embedding 粗排检索出 Top-K (如 50) 后，使用 <strong>Cross-Encoder</strong> 模型进行精细打分，输出 Top-N (如 5)。</p>
+
+    <h2 id="graphrag">4. 全局视野：GraphRAG</h2>
+    <p>解决传统 RAG 无法回答“全局性/概要性”问题（如“数据集的主题是什么？”）的痛点。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th width="20%">模式</th>
+                <th width="40%">Global Search (全局模式)</th>
+                <th width="40%">Local Search (局部模式)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>适用场景</strong></td>
+                <td><span class="tag tag-adv">高层语义</span> 回答概要性问题。<br>例：“全书讲述了什么故事？”</td>
+                <td><span class="tag tag-core">具体事实</span> 回答特定实体关系。<br>例：“曹操和刘备是什么关系？”</td>
+            </tr>
+            <tr>
+                <td><strong>核心机制</strong></td>
+                <td><strong>Map-Reduce</strong>：遍历社区摘要，汇总生成答案。</td>
+                <td><strong>知识图谱遍历</strong>：基于实体节点的邻接关系检索。</td>
+            </tr>
+            <tr>
+                <td><strong>构建过程</strong></td>
+                <td>实体抽取 -> 关系提取 -> 社区检测 (Leiden) -> 生成社区摘要。</td>
+                <td>同左，侧重于索引实体间的边。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 id="faq">5. 工程实战 FAQ (技术避坑)</h2>
+    <div class="faq-grid">
+        <div class="faq-item">
+            <span class="faq-q">Q: Rerank 的具体业务流程是怎样的？</span>
+            <span class="faq-a">
+                <strong>流程：</strong> Embedding 检索出 Top-K (例如 30 条)，然后将这 30 条输入 Rerank 模型进行重打分，最终取 Top-N (例如 5 条) 给 LLM。<br>
+                <strong>注意：</strong> 虽然 LLM 也能做 Rerank，但成本高（约 0.5元/次），推荐使用专门的 Rerank 小模型（如 BGE-Reranker）。
+            </span>
+        </div>
+
+        <div class="faq-item">
+            <span class="faq-q">Q: GraphRAG 这么强，为什么不全部替换传统 RAG？</span>
+            <span class="faq-a">
+                <strong>成本极高！</strong> GraphRAG 在构建索引（提取实体关系）和 Global Search（Map-Reduce）时会消耗海量 Token。实战建议：简单问题用传统 RAG，复杂推理/全局总结用 GraphRAG，组合使用。
+            </span>
+        </div>
+
+        <div class="faq-item">
+            <span class="faq-q">Q: 多模态 RAG (如图片处理) 需要什么模型？</span>
+            <span class="faq-a">
+                可以使用 <strong>Qwen-VL</strong> (Visual Language) 系列。例如 <code>Qwen3-VL-2B-Instruct</code>，本地部署大约需要 6G 显存。
+            </span>
+        </div>
+
+        <div class="faq-item">
+            <span class="faq-q">Q: 有哪些好用的开源 RAG 前后端项目？</span>
+            <span class="faq-a">
+                推荐：<strong>RagFlow</strong> (深度文档解析), <strong>Dify</strong> (工作流编排), <strong>FastGPT</strong> (易用性), <strong>Qwen-Agent</strong> (阿里生态)。
+            </span>
+        </div>
+        
+        <div class="faq-item">
+            <span class="faq-q">Q: 硬件问题：BGE Embedding 模型可以用 CPU 跑吗？</span>
+            <span class="faq-a">
+                可以，但速度会慢。Embedding 和 Rerank 模型通常较小，CPU 也能勉强支撑，但在生产高并发环境下强烈建议使用 GPU。
+            </span>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

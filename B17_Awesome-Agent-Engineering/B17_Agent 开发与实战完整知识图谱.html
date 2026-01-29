@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent 开发与实战完整知识体系 (2026版)</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e1f5fe',
+                edgeLabelBackground: '#ffffff',
+                tertiaryColor: '#fff',
+                fontFamily: 'Segoe UI, sans-serif'
+            },
+            flowchart: {
+                curve: 'basis',
+                nodeSpacing: 10,
+                rankSpacing: 30,
+                padding: 10
+            }
+        });
+    </script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 1400px; margin: 0 auto; padding: 20px; background-color: #f4f6f9; }
+        h1 { text-align: center; color: #2c3e50; padding-bottom: 20px; border-bottom: 2px solid #3498db; }
+        h2 { color: #2980b9; margin-top: 40px; border-left: 5px solid #3498db; padding-left: 15px; background: white; padding: 10px; border-radius: 0 5px 5px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .container { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .mermaid { overflow-x: auto; background: white; padding: 10px; border-radius: 8px; display: flex; justify-content: center; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.95em; }
+        th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; color: #2c3e50; font-weight: 600; }
+        tr:nth-child(even) { background-color: #fcfcfc; }
+        tr:hover { background-color: #f1f8ff; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; font-weight: bold; }
+        .tag-core { background-color: #e3f2fd; color: #1565c0; }
+        .tag-new { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        blockquote { background: #fff3e0; border-left: 4px solid #ff9800; margin: 10px 0; padding: 10px 20px; font-style: italic; color: #5d4037; }
+        .qa-box { background: #fafafa; border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 6px; }
+        .qa-q { font-weight: bold; color: #d35400; margin-bottom: 5px; }
+        .qa-a { color: #444; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Agent 开发与实战完整知识图谱</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 5px;">
+            <span class="tag tag-core">蓝色节点</span> 源自基础理论 PDF (架构设计) &nbsp;&nbsp;
+            <span class="tag tag-new">绿色节点</span> 源自最新笔记 (实战经验/Q&A)
+        </p>
+
+        <!-- Mermaid 思维导图 -->
+        <div class="mermaid">
+            graph LR
+                %% 紧凑布局配置
+                %%{init: {'theme': 'base', 'flowchart': {'nodeSpacing': 10, 'rankSpacing': 30}}}%%
+                
+                %% 样式定义
+                classDef root fill:#2c3e50,color:white,stroke-width:2px,font-size:16px;
+                classDef l1 fill:#3498db,color:white,stroke:none,font-size:14px;
+                classDef l2 fill:#e1f5fe,color:#01579b,stroke:#0277bd,font-size:13px;
+                classDef l3 fill:#ffffff,color:#333,stroke:#ccc,stroke-dasharray: 5 5,font-size:12px;
+                classDef l3_new fill:#e8f5e9,color:#1b5e20,stroke:#2e7d32,stroke-width:1px,font-size:12px;
+
+                Root((Agent 知识体系)):::root
+
+                %% 分支1: 核心概念
+                Root --> Core(一、核心概念与架构):::l1
+                Core --> MCP[MCP 协议]:::l2
+                MCP --- MCP1(通用标准/USB模式):::l3
+                MCP --- MCP2(解耦 Client/Server):::l3
+                Core --> Arch[架构设计]:::l2
+                Arch --- Arch1(反应式 vs 深思熟虑):::l3
+                Arch --- Arch2(单Agent vs 多Agent):::l3
+                Core --> Frame[主流框架]:::l2
+                Frame --- F1(LangChain/LangGraph - 通用):::l3_new
+                Frame --- F2(Qwen-Agent - 快速原型/多文件):::l3_new
+                Frame --- F3(AutoGen - 多智能体协作):::l3_new
+
+                %% 分支2: RAG 技术
+                Root --> RAG(二、RAG 技术深潜):::l1
+                RAG --> Retri[检索策略]:::l2
+                Retri --- Ret1(混合检索: ES + 向量):::l3_new
+                Retri --- Ret2(GraphRAG: 社区摘要):::l3
+                Retri --- Ret3(Small-to-Big / 摘要索引):::l3_new
+                RAG --> Eval[效果评估]:::l2
+                Eval --- E1(Hit Rate 召回率 - 及格线):::l3
+                Eval --- E2(MRR 平均倒数排名 - 优秀线):::l3
+                Eval --- E3(测试集: 50+真实问题):::l3_new
+                RAG --> Opt[优化手段]:::l2
+                Opt --- O1(Query改写):::l3_new
+                Opt --- O2(Rerank 重排序):::l3
+                Opt --- O3(分治总结 Map-Reduce):::l3_new
+
+                %% 分支3: 浏览器 Agent
+                Root --> Browser(三、浏览器 Agent):::l1
+                Browser --> Tool[工具链]:::l2
+                Tool --- T1(Playwright - 无头/自动等待):::l3
+                Tool --- T2(Browser-use 库):::l3_new
+                Tool --- T3(Chromedp / Selenium):::l3_new
+                Browser --> Chall[难点攻克]:::l2
+                Chall --- C1(登录态/Cookies):::l3_new
+                Chall --- C2(DOM失败 -> GUI-Plus视觉):::l3
+                Chall --- C3(死循环 -> 相似度检测):::l3
+                Browser --> Safe[安全运行]:::l2
+                Safe --- S1(沙箱 Sandbox/Daytona):::l3_new
+                Safe --- S2(Docker 容器化):::l3
+
+                %% 分支4: 工程化
+                Root --> Eng(四、工程化与运维):::l1
+                Eng --> Monitor[监控与日志]:::l2
+                Monitor --- M1(LangSmith / LangFuse):::l3_new
+                Monitor --- M2(Logger 系统日志):::l3_new
+                Eng --> Deploy[部署]:::l2
+                Deploy --- D1(直接运行 vs 打包):::l3_new
+                Deploy --- D2(持久化 - MySQL):::l3_new
+                Eng --> Cost[成本优化]:::l2
+                Cost --- Cost1(模型分级 - Flash/Max):::l3
+                Cost --- Cost2(Prompt 压缩/表格化):::l3
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>深度知识解析 (结合 Q&A 笔记)</h2>
+
+        <!-- RAG 部分 -->
+        <h3>1. RAG 关键疑难解答</h3>
+        <table>
+            <tr>
+                <th width="25%">问题点</th>
+                <th width="75%">解决方案与专家建议</th>
+            </tr>
+            <tr>
+                <td><strong>混合检索 (Hybrid Search)</strong></td>
+                <td>
+                    <span class="tag tag-new">笔记重点</span> 指同时使用 <strong>BM25 (关键词匹配)</strong> 和 <strong>向量检索 (语义匹配)</strong>。<br>
+                    工具推荐：<strong>ElasticSearch (ES)</strong> 支持混合检索，而 Faiss 仅支持向量检索。
+                </td>
+            </tr>
+            <tr>
+                <td><strong>MRR 指标优化</strong></td>
+                <td>
+                    MRR (Mean Reciprocal Rank) 衡量正确答案的排名。<br>
+                    <strong>提升方法：</strong> 调整 BM25/Vector 的权重 score，使用 Rerank 模型，优化切片策略 (Small-to-Big)。
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Lost in the Middle</strong></td>
+                <td>
+                    <strong>原因：</strong> Self-attention 机制导致模型对长文本中间部分关注度下降。<br>
+                    <strong>对策：</strong> 重排序 (Rerank) 将高相关片段放首尾；或者使用 Map-Reduce 分治总结。
+                </td>
+            </tr>
+            <tr>
+                <td><strong>精准找数 (如财务表)</strong></td>
+                <td>
+                    不要直接 RAG。推荐 <strong>Text2SQL</strong> 或让 Agent 写 Python 代码 (Pandas) 来处理 Excel/数据库，保证 100% 准确率。
+                </td>
+            </tr>
+        </table>
+
+        <!-- OpenManus/Agent 部分 -->
+        <h3>2. OpenManus 与 浏览器 Agent 实战</h3>
+        <div class="qa-box">
+            <div class="qa-q">Q: 碰到登录窗口怎么办？(OpenManus)</div>
+            <div class="qa-a">
+                <ul>
+                    <li>大部分信息采集可以不登录。</li>
+                    <li>如果必须登录，涉及到 Cookies 处理。真实项目中通常使用 Playwright 携带 Cookies 或在无头模式下模拟登录。</li>
+                </ul>
+            </div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: 为什么代码阅读困难？(Browser_use)</div>
+            <div class="qa-a">
+                <span class="tag tag-new">技巧</span> 1. 先梳理项目结构；2. 定位核心库 (如 <code>browser_use</code>)；3. 让 AI 生成该库的完整工作流示例；4. 增加日志输出 (Logger)。
+            </div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: 死循环如何解决？</div>
+            <div class="qa-a">
+                检测 <strong>Message 相似度</strong> 或 Action 历史。如果连续多次执行相似操作且无产出，强制打断并请求人工介入 (Human-in-the-loop)。
+            </div>
+        </div>
+
+        <!-- 工具链部分 -->
+        <h3>3. 必备工具链清单</h3>
+        <ul>
+            <li><strong>开发框架：</strong> LangChain / LangGraph (通用/状态管理), Qwen-Agent (多文件处理/快速原型)。</li>
+            <li><strong>监控与日志：</strong> <span class="tag tag-new">重点</span> <strong>LangFuse</strong> (推荐，Manus 适用), LangSmith, Logger。</li>
+            <li><strong>向量/数据库：</strong> ES (混合检索), Milvus/Pinecone/Faiss (向量), MySQL (LangGraph 状态持久化)。</li>
+            <li><strong>执行环境：</strong> Docker / Daytona (沙箱，防止 rm -rf 等恶意代码)。</li>
+        </ul>
+
+        <!-- 项目标准部分 (替代原面试部分) -->
+        <h3>4. 实战项目高阶标准 (Best Practices)</h3>
+        <blockquote>
+            "优秀的 Agent 系统需要具备可观测性、稳定性和明确的效果评估体系。"
+        </blockquote>
+        <ul>
+            <li><strong>SOP 流程化：</strong> 任何自动化任务（如生成海报、研报）应先人工跑通流程 (SOP)，再进行 Agent 编排。</li>
+            <li><strong>项目完整度要素：</strong> 
+                <ol>
+                    <li>真实的 Use Case (用户旅程图)。</li>
+                    <li>Demo 演示与异常处理机制。</li>
+                    <li><strong>量化评估：</strong> 必须构建测试集（如 50+ 真实问题），监控 Hit Rate / MRR 等指标。</li>
+                </ol>
+            </li>
+            <li><strong>稳定性治理：</strong> 具备幻觉检测 (Grounding Check)、死循环熔断机制、Context 长度自适应截断或摘要能力。</li>
+        </ul>
+    </div>
+
+</body>
+</html>

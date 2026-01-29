@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG 多模态数据处理 · 核心复习笔记</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                rankSpacing: 30, 
+                nodeSpacing: 10,
+                padding: 10
+            },
+            themeVariables: {
+                primaryColor: '#e3f2fd',
+                primaryTextColor: '#000000',
+                lineColor: '#546e7a',
+                fontFamily: 'Segoe UI'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary: #1565c0;
+            --secondary: #42a5f5;
+            --bg: #f4f6f8;
+            --text: #263238;
+            --card-bg: #ffffff;
+            --accent: #ef6c00;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr; /* 左主要，右Q&A */
+            gap: 15px;
+        }
+        .full-width { grid-column: 1 / -1; }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), #0d47a1);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0; font-size: 1.6rem; font-weight: 600; }
+        h2 { 
+            color: var(--primary); 
+            border-bottom: 2px solid #e0e0e0; 
+            padding-bottom: 5px; 
+            margin-top: 20px; 
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 1.2rem;
+            background: var(--accent);
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #eceff1;
+            margin-bottom: 15px;
+        }
+        
+        /* Mermaid Container */
+        .mermaid-box {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #e0e0e0;
+        }
+        
+        /* Compact Lists */
+        ul { margin: 5px 0; padding-left: 20px; }
+        li { margin-bottom: 4px; }
+        
+        /* Keywords */
+        .kw {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        /* Comparison Table */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th, td { border: 1px solid #e0e0e0; padding: 6px 10px; text-align: left; }
+        th { background-color: #f5f5f5; color: var(--primary); }
+        
+        /* Q&A Section */
+        .qa-item {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #cfd8dc;
+        }
+        .qa-item:last-child { border-bottom: none; }
+        .q { font-weight: 700; color: #d84315; display: block; margin-bottom: 4px; }
+        .a { color: #455a64; font-size: 0.95em; }
+
+        /* Code/Model snippet */
+        code {
+            font-family: Consolas, monospace;
+            background: #f5f5f5;
+            padding: 2px 4px;
+            color: #c62828;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<header class="full-width">
+    <h1>RAG 多模态数据处理 · 核心复习笔记</h1>
+    <div style="font-size: 0.9em; opacity: 0.9; margin-top: 5px;">
+        核心：PDF复杂解析 | VLM视觉大模型 | ColPali 视觉检索 | Late Interaction
+    </div>
+</header>
+
+<div class="full-width card">
+    <div class="mermaid-box">
+        <div class="mermaid">
+        graph LR
+            Root[<b>多模态 RAG</b>]
+            
+            subgraph Problem [<b>数据难点</b>]
+                P1(PDF 解析) --> P1a(多栏/图表)
+                P2(语义丢失) --> P2a(图片与上下文分离)
+            end
+
+            subgraph Method1 [<b>传统路径: Hard Parsing</b>]
+                M1(OCR/提取) --> Tool1[Unstructured/Marker]
+                Tool1 --> Lay[版面分析]
+                Lay --> Chunk[文本切片 + 图片描述]
+            end
+
+            subgraph Method2 [<b>前沿路径: Visual RAG</b>]
+                M2(ColPali) --> E2E[端到端视觉嵌入]
+                E2E --> Patch[Image Patches]
+                Patch --> Late[<b>Late Interaction</b>]
+                Late --> MaxSim[MaxSim打分]
+            end
+
+            Root --> Problem
+            Root --> Method1
+            Root --> Method2
+            
+            style Root fill:#1565c0,color:#fff
+            style Method2 fill:#e3f2fd,stroke:#1565c0
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    
+    <div class="card">
+        <h2>01. PDF 解析：RAG 的“埋骨地”</h2>
+        <p>PDF 是非结构化数据的核心，但也是最难处理的格式。传统 Text-based RAG 遇到以下情况会失效：</p>
+        <ul>
+            <li><b>复杂排版</b>：双栏、跨页表格、页眉页脚干扰。</li>
+            <li><b>视觉信息</b>：趋势图、流程图、带有语义的截图。</li>
+            <li><b>表格崩坏</b>：PDF 转 Markdown 时，复杂嵌套表格往往变得不可读。</li>
+        </ul>
+        <div style="background:#fff3e0; padding:8px; border-radius:4px; font-size:0.9em; margin-top:5px;">
+            <span style="color:#ef6c00; font-weight:bold;">⚠️ 结论：</span> 单纯的 OCR 或 Python 库（如 pypdf）会丢失大量“空间语义”。
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>02. 两条主流技术路线</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th width="20%">维度</th>
+                    <th width="40%">路线 A：Pipeline RAG (硬解析)</th>
+                    <th width="40%">路线 B：Visual RAG (ColPali)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>原理</b></td>
+                    <td>OCR/版面分析 -> 提取文本 -> 图片转Caption -> 存入向量库</td>
+                    <td><b>Screenshot -> Vision Encoder -> Multi-Vector -> 视觉检索</b></td>
+                </tr>
+                <tr>
+                    <td><b>工具</b></td>
+                    <td>Unstructured, Marker, Surya, VLM (GPT-4o)</td>
+                    <td><b>ColPali</b> (ColBERT + PaliGemma)</td>
+                </tr>
+                <tr>
+                    <td><b>优点</b></td>
+                    <td>Token少，对纯文本友好，技术栈成熟</td>
+                    <td><b>所见即所得</b>，完美保留图表、表格、排版语义</td>
+                </tr>
+                <tr>
+                    <td><b>缺点</b></td>
+                    <td>信息损耗大，流程复杂，Caption 往往丢失细节</td>
+                    <td><b>索引体积大</b>（多向量），检索延迟略高</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>03. ColPali：视觉检索的革命</h2>
+        <p>ColPali 不再将 PDF 视为文本流，而是视为<b>图片流</b>。</p>
+        <ul>
+            <li><b>Vision Encoder</b>：使用 Google 的 <span class="kw">SigLIP</span> 或 <span class="kw">PaliGemma</span> 将页面截图编码为 Patch Embeddings。</li>
+            <li><b>Late Interaction (ColBERT)</b>：
+                <ul>
+                    <li>不将整个页面压缩为一个向量（Bi-Encoder），而是保留所有 Patch 的独立向量。</li>
+                    <li><b>MaxSim 算法</b>：Query 的每个 Token 向量与页面的所有 Patch 向量计算相似度，取最大值后求和。</li>
+                </ul>
+            </li>
+            <li><b>优势</b>：精准定位到页面中的具体“角落”（如左下角的图表），无需人工切片（Chunking）。</li>
+        </ul>
+    </div>
+
+</div>
+
+<div class="side-content">
+    <div class="card" style="border-top: 3px solid #ef6c00;">
+        <h2>💡 课堂精华 Q&A</h2>
+        
+        <div class="qa-item">
+            <span class="q">Q1: 为什么 ColPali 比传统的 OCR+Embedding 效果好？</span>
+            <div class="a">
+                OCR 只是把字识别出来，丢掉了<b>“位置关系”</b>和<b>“视觉样式”</b>（如加粗、颜色、表格线）。ColPali 是基于视觉的，它能像人眼一样理解“这个标题下面跟着这个图表”，保留了完整的上下文语义。
+            </div>
+        </div>
+
+        <div class="qa-item">
+            <span class="q">Q2: ColPali 的索引体积会不会很大？</span>
+            <div class="a">
+                <b>会。</b> 因为它使用了 <span class="kw">Multi-Vector</span>（多向量）存储。一张页面可能会生成 1024 个 Patch 向量，比传统的一个页面一个向量大得多。需要权衡存储成本和检索精度。
+            </div>
+        </div>
+
+        <div class="qa-item">
+            <span class="q">Q3: 实际工程中如何落地多模态 RAG？</span>
+            <div class="a">
+                推荐<b>混合检索</b>：
+                1. 粗排：使用关键词（BM25）或轻量级文本向量快速召回 Top-50 页面。
+                2. 精排：使用 ColPali 对这 50 个页面的截图进行视觉重排序 (Rerank)。
+                这样既保证了速度，又利用了视觉语义。
+            </div>
+        </div>
+
+        <div class="qa-item">
+            <span class="q">Q4: PDF 中的跨页表格怎么处理？</span>
+            <div class="a">
+                这是硬解析的噩梦。但在 Visual RAG 中，可以通过<b>多页拼接</b>（Concatenate Images）或者依靠模型的上下文窗口，将连续的两页截图同时喂给模型，让 VLM 自动关联上下两部分的表格。
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card">
+        <h2>🛠️ 关键工具栈</h2>
+        <ul>
+            <li><code>pdf2image</code>: PDF 转图片</li>
+            <li><code>Byaldi</code>: ColPali 的轻量级封装库</li>
+            <li><code>Qwen-VL / GPT-4o</code>: 用于解释图片的 VLM</li>
+            <li><code>Unstructured</code>: 传统 ETL 清洗工具</li>
+        </ul>
+    </div>
+</div>
+
+</div>
+
+</body>
+</html>

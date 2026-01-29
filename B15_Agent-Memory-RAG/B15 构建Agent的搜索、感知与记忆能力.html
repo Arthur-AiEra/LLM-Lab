@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>构建 Agent 的搜索、感知与记忆能力 | 复习笔记</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            securityLevel: 'loose',
+            flowchart: {
+                curve: 'basis',
+                padding: 5,
+                nodeSpacing: 10,
+                rankSpacing: 20,
+                htmlLabels: true
+            },
+            themeVariables: {
+                primaryColor: '#e3f2fd',
+                primaryTextColor: '#000000',
+                primaryBorderColor: '#90caf9',
+                lineColor: '#546e7a',
+                secondaryColor: '#f3e5f5',
+                tertiaryColor: '#ffffff',
+                fontFamily: 'sans-serif'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary: #1976d2;
+            --accent: #ff9800;
+            --bg: #f5f7fa;
+            --text: #263238;
+            --card-bg: #ffffff;
+            --sidebar-width: 250px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            line-height: 1.6;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--card-bg);
+            position: fixed;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            overflow-y: auto;
+            border-right: 1px solid #eceff1;
+        }
+        .sidebar h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px;}
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li { margin-bottom: 10px; }
+        .sidebar a { text-decoration: none; color: #546e7a; font-size: 0.95rem; display: block; padding: 8px; border-radius: 4px; transition: 0.2s; }
+        .sidebar a:hover { background-color: #e3f2fd; color: var(--primary); font-weight: 600; }
+
+        /* Main Content */
+        .main {
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 { font-size: 2.2rem; color: var(--primary); margin-bottom: 10px; }
+        .meta { color: #78909c; font-size: 0.9rem; margin-bottom: 30px; }
+        
+        h2 { 
+            font-size: 1.6rem; 
+            color: #37474f; 
+            margin-top: 40px; 
+            padding-bottom: 10px; 
+            border-bottom: 1px solid #cfd8dc;
+            display: flex;
+            align-items: center;
+        }
+        h2::before { content: ''; width: 6px; height: 24px; background-color: var(--accent); margin-right: 12px; border-radius: 2px; }
+
+        h3 { font-size: 1.3rem; color: #455a64; margin-top: 25px; font-weight: 600; }
+
+        /* Viz Box */
+        .viz-box {
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+            overflow-x: auto;
+        }
+
+        /* Q&A Cards */
+        .qa-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
+        .qa-card {
+            background-color: #fff;
+            border-left: 4px solid #4caf50;
+            padding: 15px 20px;
+            border-radius: 0 6px 6px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .qa-q { font-weight: bold; color: #2e7d32; display: block; margin-bottom: 8px; }
+        .qa-a { color: #37474f; font-size: 0.95rem; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th { background-color: #eceff1; color: #37474f; padding: 12px; text-align: left; font-weight: bold; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+
+        /* Code */
+        code { background: #eceff1; padding: 2px 5px; border-radius: 4px; color: #d84315; font-family: Consolas, monospace; }
+
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-right: 5px; color: white; }
+        .tag-v { background-color: #7e57c2; }
+        .tag-tool { background-color: #0288d1; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <h2>📚 笔记导航</h2>
+    <ul>
+        <li><a href="#mindmap">1. 全景思维导图</a></li>
+        <li><a href="#evolution">2. Agent 记忆演进</a></li>
+        <li><a href="#versions">3. 开发迭代 (V1-V5)</a></li>
+        <li><a href="#tech">4. 核心技术 (ES)</a></li>
+        <li><a href="#qa">5. 课堂精华 Q&A</a></li>
+    </ul>
+</nav>
+
+<main class="main">
+    <h1>构建 Agent 的搜索、感知与记忆能力</h1>
+    <div class="meta">基于 PDF 课件与 TXT 课堂实录整理 | 核心：从金鱼记忆到博学大脑</div>
+
+    <h2 id="mindmap">1. 全景思维导图 (Compact View)</h2>
+    <div class="viz-box">
+        <div class="mermaid">
+        graph LR
+            root(<b>Agent能力构建</b>):::root
+            
+            %% 分支1: 演进
+            root --> Evolution(<b>记忆演进</b>)
+            Evolution --> Native[原生Agent: 金鱼记忆<br>List/内存/临时]
+            Evolution --> Advance[博学大脑: 持久化<br>ES/磁盘/长期]
+
+            %% 分支2: 版本迭代
+            root --> Dev(<b>开发迭代 V1-V5</b>)
+            Dev --> V1[V1: 多文件解析]
+            Dev --> V2[V2: 海量索引 ES]
+            Dev --> V3[V3: 向量检索 Vector]
+            Dev --> V4[V4: 外部源 MCP]
+            Dev --> V5[V5: 界面美化 Gradio]
+
+            %% 分支3: 核心技术
+            root --> Tech(<b>核心技术</b>)
+            Tech --> ES[Elasticsearch]
+            ES --> Hybrid[混合检索: BM25+Vector]
+            ES --> Meta[元数据: Page/Source]
+            Tech --> Tool[工具链]
+            Tool --> QA[Qwen-Agent]
+            Tool --> Visual[Gradio/Wucai]
+
+            %% 分支4: 课堂重点
+            root --> Class(<b>课堂实战</b>)
+            Class --> Opt[优化: Input Token控制]
+            Class --> Compare[选型: ES vs Milvus]
+            Class --> Debug[调试: 特征工程/清洗]
+
+            classDef root fill:#bbdefb,stroke:#1565c0,stroke-width:2px,color:#000;
+            classDef default fill:#fff,stroke:#333,stroke-width:1px,color:#000;
+            linkStyle default interpolate basis
+        </div>
+    </div>
+
+    <h2 id="evolution">2. Agent 记忆演进：从金鱼到大脑</h2>
+    
+    <h3>2.1 原生 Agent (短期工作记忆)</h3>
+    <ul>
+        <li><strong>机制：</strong> 将对话或上传的文件直接放在内存列表 (List) 中。</li>
+        <li><strong>痛点：</strong> 
+            <ul>
+                <li><strong>临时性：</strong> 生命周期仅限单次请求，典型的“金鱼记忆”。</li>
+                <li><strong>低效性：</strong> 每次需重新解析，无法处理海量文档（如上亿数据）。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>2.2 进阶 Agent (长期语义记忆)</h3>
+    <ul>
+        <li><strong>引入持久化：</strong> 使用文件系统缓存 (doc_parser) 或 数据库。</li>
+        <li><strong>解决方案：</strong> 引入 <strong>Elasticsearch (ES)</strong>。</li>
+        <li><strong>优势：</strong> 毫秒级检索海量数据，支持 <code>BM25</code> (关键词) 和 <code>Vector</code> (语义) 的<strong>混合检索</strong>。</li>
+    </ul>
+
+    <h2 id="versions">3. 开发迭代路径 (V1 - V5)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th width="15%">版本</th>
+                <th width="30%">核心功能</th>
+                <th>技术实现点</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="tag tag-v">Version 1</span></td>
+                <td>多文件快速检索</td>
+                <td>实现基础的文件上传与解析，针对少量文件进行内存级检索。</td>
+            </tr>
+            <tr>
+                <td><span class="tag tag-v">Version 2</span></td>
+                <td>海量文件索引 (ES)</td>
+                <td>引入 Elasticsearch，将解析后的数据存入 ES，实现关键词检索。</td>
+            </tr>
+            <tr>
+                <td><span class="tag tag-v">Version 3</span></td>
+                <td>向量检索功能</td>
+                <td>在 ES 中增加向量字段，实现 <strong>Hybrid Search</strong> (关键词+向量)，提升召回准确率。</td>
+            </tr>
+            <tr>
+                <td><span class="tag tag-v">Version 4</span></td>
+                <td>外部数据源 (MCP)</td>
+                <td>集成 AI 搜索 MCP (Model Context Protocol)，连接外部实时信息。</td>
+            </tr>
+            <tr>
+                <td><span class="tag tag-v">Version 5</span></td>
+                <td>界面美化</td>
+                <td>使用 Gradio 优化 UI，增加侧边栏、知识库管理、历史记录，实现 Stream 流式输出。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 id="tech">4. 核心技术：Elasticsearch (ES)</h2>
+    <p>在 Agent 构建中，ES 不仅仅是搜索引擎，更是 Agent 的<strong>长期记忆体</strong>。</p>
+    <ul>
+        <li><strong>混合检索 (Hybrid Search)：</strong> 结合了 <code>Keyword Search</code> (精确匹配) 和 <code>Vector Search</code> (语义模糊匹配)。</li>
+        <li><strong>元数据管理：</strong> 可以将页码 (Page)、来源 (Source) 等作为 Metadata 存储，检索时一同返回，方便定位原文。</li>
+        <li><strong>全能选手：</strong> 相比于纯向量数据库，ES 同时具备强大的全文检索能力。</li>
+    </ul>
+
+    <h2 id="qa">5. 课堂精华 Q&A (实战避坑)</h2>
+    <div class="qa-grid">
+        <div class="qa-card">
+            <span class="qa-q">Q: ES 比较臃肿，是不是 Milvus 更好？</span>
+            <span class="qa-a">
+                <strong>陈博士：</strong> ES 是个全能选手，它同时支持 1) 关键词检索 2) 向量检索。Milvus 是专用的向量数据库。在需要混合检索和复杂元数据过滤的场景下，ES 依然非常强大。
+            </span>
+        </div>
+
+        <div class="qa-card">
+            <span class="qa-q">Q: 如何让 Agent 的回答更快一些？</span>
+            <span class="qa-a">
+                <strong>优化策略：</strong>
+                <ol>
+                    <li>利用 ES 现成的索引，避免重复解析。</li>
+                    <li><strong>控制上下文长度：</strong> RAG 返回给 LLM 的 Context 不要太长，Input Token 越长，Response 时间越长。</li>
+                </ol>
+            </span>
+        </div>
+
+        <div class="qa-card">
+            <span class="qa-q">Q: 比赛中的特征工程问题（MAE结果偏高）？</span>
+            <span class="qa-a">
+                <strong>建议：</strong>
+                <ul>
+                    <li>先询问 Cursor/LLM 针对该场景（如二手车预测）有哪些高价值特征。</li>
+                    <li>特征数量 120 个左右效果较好。</li>
+                    <li>尝试模型融合、5折交叉验证。</li>
+                    <li>清洗掉异常数据（如价格为负数）。</li>
+                </ul>
+            </span>
+        </div>
+
+        <div class="qa-card">
+            <span class="qa-q">Q: ES 检索结果能包含页码吗？</span>
+            <span class="qa-a">
+                <strong>实现：</strong> 可以将 Page (页码) 作为元数据 (Metadata) 存入 ES，检索时直接读取该字段即可。
+            </span>
+        </div>
+
+        <div class="qa-card">
+            <span class="qa-q">Q: Qwen-Agent 适合做复杂流程编排吗？</span>
+            <span class="qa-a">
+                <strong>对比：</strong> Qwen-Agent 更适合自主决定使用什么工具（Function Calling）；如果需要编排固定的长链路工作流，<strong>LangGraph</strong> 会更适合。
+            </span>
+        </div>
+    </div>
+
+</main>
+
+</body>
+</html>

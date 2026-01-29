@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent 自主规划与工具开发技术笔记</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            securityLevel: 'loose',
+            flowchart: {
+                curve: 'basis',
+                padding: 8,
+                nodeSpacing: 10,
+                rankSpacing: 15,
+                htmlLabels: true
+            },
+            themeVariables: {
+                primaryColor: '#e3f2fd',
+                primaryTextColor: '#0277bd',
+                primaryBorderColor: '#0288d1',
+                lineColor: '#546e7a',
+                secondaryColor: '#f3e5f5',
+                tertiaryColor: '#ffffff'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary: #0277bd;
+            --accent: #f57c00;
+            --bg: #f7f9fc;
+            --text: #37474f;
+            --sidebar-w: 260px;
+            --card-bg: #ffffff;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; line-height: 1.6; }
+        
+        /* Layout */
+        .sidebar { width: var(--sidebar-w); background: #fff; height: 100vh; position: fixed; padding: 20px; border-right: 1px solid #e0e0e0; overflow-y: auto; box-sizing: border-box; }
+        .sidebar h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 8px; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li { margin-bottom: 8px; }
+        .sidebar a { text-decoration: none; color: #546e7a; font-weight: 500; display: block; padding: 8px; border-radius: 4px; transition: 0.2s; font-size: 0.95rem; }
+        .sidebar a:hover { background: #e1f5fe; color: var(--primary); }
+        
+        .main { margin-left: var(--sidebar-w); padding: 40px; max-width: 1100px; width: 100%; box-sizing: border-box; }
+        
+        /* Content */
+        h1 { font-size: 2.2rem; color: var(--primary); margin-bottom: 10px; }
+        h2 { font-size: 1.6rem; color: #263238; margin-top: 40px; border-left: 5px solid var(--accent); padding-left: 15px; }
+        h3 { font-size: 1.3rem; color: #455a64; margin-top: 25px; font-weight: 600; }
+        p { margin-bottom: 15px; text-align: justify; }
+        
+        /* Components */
+        .viz-box { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #cfd8dc; margin: 20px 0; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        .concept-card { background: #fff; padding: 20px; border-radius: 8px; border-top: 3px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #fff; }
+        th { background: #eceff1; padding: 12px; text-align: left; color: var(--primary); border-bottom: 2px solid #b0bec5; }
+        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+        
+        /* FAQ Section */
+        .faq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 15px; margin-top: 20px; }
+        .faq-item { background: #fff; padding: 15px 20px; border-radius: 6px; border-left: 4px solid var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .faq-q { font-weight: bold; color: #d84315; display: block; margin-bottom: 8px; font-size: 1rem; }
+        .faq-a { color: #37474f; font-size: 0.95rem; }
+        
+        code { background: #eceff1; padding: 2px 6px; border-radius: 4px; color: #c62828; font-family: Consolas, monospace; font-size: 0.9em; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; color: white; margin-right: 5px; background: #78909c; }
+        .tag-core { background: #0277bd; }
+        
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <h2>🚀 技术导航</h2>
+    <ul>
+        <li><a href="#overview">1. 全景技术架构图</a></li>
+        <li><a href="#core">2. Agent 核心定义</a></li>
+        <li><a href="#planning">3. 三大规划架构模式</a></li>
+        <li><a href="#langgraph">4. LangGraph 开发实战</a></li>
+        <li><a href="#engineering">5. 工程实战要点</a></li>
+        <li><a href="#faq">6. 工程实战 FAQ</a></li>
+    </ul>
+</nav>
+
+<div class="main">
+    <h1>Agent 自主规划与工具开发笔记</h1>
+    <p style="color: #607d8b; font-size: 0.95rem;">基于课程核心讲义与实战工程记录提炼 | 核心范式：感知 -> 规划 -> 行动</p>
+
+    <h2 id="overview">1. 全景技术架构图 (Compact Map)</h2>
+    <div class="viz-box">
+        <div class="mermaid">
+        graph LR
+            root(<b>Agent体系</b>):::root
+            
+            %% 核心能力
+            root --> Core(<b>核心能力</b>)
+            Core --> Plan[规划 Planning]
+            Core --> Mem[记忆 Memory]
+            Core --> Tool[工具 Tools]
+            Core --> Act[行动 Action]
+
+            %% 架构模式
+            root --> Arch(<b>规划架构</b>)
+            Arch --> Reactive[反应式<br>Reactive]
+            Arch --> Delib[深思熟虑<br>Deliberative]
+            Arch --> Hybrid[混合式<br>Hybrid]
+
+            %% 开发框架
+            root --> Framework(<b>LangGraph</b>)
+            Framework --> State[State定义]
+            Framework --> Node[Node逻辑]
+            Framework --> Edge[Edge路由]
+            Framework --> Compile[Compile编译]
+
+            %% 工程实战
+            root --> Eng(<b>工程实战</b>)
+            Eng --> MCP[MCP协议/RAG]
+            Eng --> Multi[多Agent协作]
+            Eng --> Time[时间感知]
+            Eng --> Gran[工具粒度控制]
+
+            classDef root fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000;
+            classDef default fill:#fff,stroke:#333,stroke-width:1px;
+            linkStyle default interpolate basis
+        </div>
+    </div>
+
+    <h2 id="core">2. Agent 核心定义</h2>
+    <div class="concept-card">
+        <p><strong>Agent = LLM + Planning + Memory + Tools</strong></p>
+        <p>通过 LLM 作为大脑，具备自主理解、规划、执行复杂任务的能力。核心区别于传统自动化脚本的是其<strong>自主性 (Autonomy)</strong>。</p>
+        <ul>
+            <li><strong>🧠 规划 (Planning)</strong>：将复杂目标分解为子任务 (Subgoal decomposition)，进行反思 (Reflection) 和自我修正。</li>
+            <li><strong>💾 记忆 (Memory)</strong>：短期记忆 (Context) 用于上下文学习；长期记忆 (Vector DB) 用于知识检索。</li>
+            <li><strong>🛠️ 工具使用 (Tool use)</strong>：调用外部 API (Calendar, Calculator, Search) 获取信息或执行操作。</li>
+        </ul>
+    </div>
+
+    <h2 id="planning">3. 三大规划架构模式</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th width="15%">模式</th>
+                <th width="20%">类比</th>
+                <th width="30%">核心逻辑</th>
+                <th>适用场景</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="tag tag-core">反应式</span><br>Reactive</td>
+                <td><strong>系统 1 (快思考)</strong><br>直觉、条件反射</td>
+                <td><code>Query -> Router -> Tool -> Answer</code><br>直接响应，无复杂推理，路径固定。</td>
+                <td>常见问答、已知流程的查询（如：查股价、查天气）。</td>
+            </tr>
+            <tr>
+                <td><span class="tag tag-core">深思熟虑</span><br>Deliberative</td>
+                <td><strong>系统 2 (慢思考)</strong><br>逻辑推理、规划</td>
+                <td><code>Plan -> Execute -> Reflect -> Refine</code><br>先生成计划，分步执行，自我反思修正。</td>
+                <td>复杂任务、长文本写作、深度研究报告生成。</td>
+            </tr>
+            <tr>
+                <td><span class="tag tag-core">混合式</span><br>Hybrid</td>
+                <td><strong>大小脑协同</strong><br>经理 + 员工</td>
+                <td>通过<strong>协调层 (Orchestrator)</strong> 评估任务复杂度，简单任务走反应式，复杂任务走深思熟虑模式。</td>
+                <td>企业级应用（如投顾AI助手：简单咨询秒回，深度研报异步生成）。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 id="langgraph">4. LangGraph 开发实战</h2>
+    <p>LangGraph 是基于图论（Graph Theory）的 Agent 编排框架，特别适合构建<strong>有循环（Cyclic）</strong>和<strong>状态持久化</strong>的复杂应用。</p>
+    
+    <div class="concept-card">
+        <h3>🚀 开发四步曲</h3>
+        <ol>
+            <li><strong>定义状态 (State)</strong>：使用 <code>TypedDict</code> 定义工作流中共享的数据结构（如 <code>messages</code>, <code>current_plan</code>）。</li>
+            <li><strong>创建图 (StateGraph)</strong>：实例化图对象，传入状态类型。</li>
+            <li><strong>定义节点 (Nodes) & 边 (Edges)</strong>：
+                <ul>
+                    <li><code>add_node()</code>：添加处理函数（LLM调用、工具执行）。</li>
+                    <li><code>add_edge()</code> / <code>add_conditional_edges()</code>：定义流转逻辑（确定性跳转 vs 条件跳转）。</li>
+                    <li><code>set_entry_point()</code>：指定起始节点。</li>
+                </ul>
+            </li>
+            <li><strong>编译与执行 (Compile & Invoke)</strong>：<code>workflow.compile()</code> 生成可执行应用，<code>invoke()</code> 传入初始状态。</li>
+        </ol>
+    </div>
+
+    <h2 id="engineering">5. 工程实战要点</h2>
+    <ul>
+        <li><strong>时间感知问题</strong>：LLM 本身是静态的（预训练数据截止于过去）。若需处理“今年”、“现在”等时间相关任务，必须在 <strong>System Prompt</strong> 中注入当前时间，或提供 Time Tool。</li>
+        <li><strong>工具粒度控制</strong>：单个 Agent 挂载的工具不宜过多（建议 &lt; 15 个）。若接口过多，应采用<strong>多 Agent 架构</strong>或按系统接口聚类拆分。</li>
+        <li><strong>Tool Calls 解析</strong>：<code>tool_calls</code> 是 LLM 响应中的关键字段，指示 Agent 需要调用的函数名及参数。LangGraph 需解析此字段并执行相应 Node。</li>
+    </ul>
+
+    <h2 id="faq">6. 工程实战 FAQ</h2>
+    <div class="faq-grid">
+        <div class="faq-item">
+            <span class="faq-q">Q: MCP (Model Context Protocol) 与 RAG 有什么区别？</span>
+            <span class="faq-a">
+                <strong>MCP</strong> 是一种标准协议，用于连接 AI 模型与数据源/工具。它更像是一个管道标准。<br>
+                <strong>RAG</strong> (检索增强生成) 是一种具体的应用模式，用于检索知识库。<br>
+                <strong>关系</strong>：你可以构建一个 MCP Server 来提供 RAG 服务，MCP 是接口层，RAG 是功能层。不是知识类的检索（如API调用）更适合直接叫 MCP Tool。
+            </span>
+        </div>
+
+        <div class="faq-item">
+            <span class="faq-q">Q: LangGraph 与 Qwen-Agent 怎么选？</span>
+            <span class="faq-a">
+                <strong>LangGraph</strong>：适合编排<strong>固定、长链路、有状态</strong>的工作流（Workflow），你可以精确控制每一步的跳转逻辑。<br>
+                <strong>Qwen-Agent</strong>：更侧重于<strong>自主规划</strong>（Autonomous），适合让 LLM 自己决定使用什么工具，但在长链路控制上不如 LangGraph 精细。
+            </span>
+        </div>
+
+        <div class="faq-item">
+            <span class="faq-q">Q: Function Call 和 Agent 是绑定的吗？</span>
+            <span class="faq-a">
+                不一定。Function Call 是 LLM 的一项基础能力（输出结构化 JSON 以调用函数）。Agent 是利用这种能力构建的上层系统。你可以仅使用 LLM + Function Call 做简单的任务执行，而不构建完整的 Agent 循环。
+            </span>
+        </div>
+
+        <div class="faq-item">
+            <span class="faq-q">Q: 如何处理不需要大模型的情况？</span>
+            <span class="faq-a">
+                对于<strong>确定性高、逻辑清晰</strong>的任务（如固定的数据库查询），直接写代码调用接口即可，无需引入 LLM。LLM 主要用于解决<strong>模糊、非结构化、泛化</strong>的问题。不要为了用 AI 而用 AI。
+            </span>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

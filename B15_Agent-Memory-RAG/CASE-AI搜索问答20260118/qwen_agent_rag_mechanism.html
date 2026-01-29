@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen-Agent RAG 实现机制分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .mermaid-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        pre {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        code {
+            background-color: #eaeaea;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Qwen-Agent RAG 实现机制分析</h1>
+        
+        <div class="section">
+            <h2>概述</h2>
+            <p>Qwen-Agent 的 RAG（检索增强生成）功能通过文档解析、分块、存储和检索四个核心环节实现，能够在处理用户查询时动态从相关文档中提取信息，增强模型的回答质量。</p>
+        </div>
+        
+        <div class="section">
+            <h2>RAG 实现组件</h2>
+            
+            <div class="mermaid-container">
+                <div class="mermaid">
+graph TD
+    A[用户查询] --> B[retrieval.py - RAG入口]
+    B --> C[doc_parser.py - 文档解析]
+    C --> D[文档分块处理]
+    D --> E[storage.py - 存储缓存]
+    E --> F[search_tools - 检索引擎]
+    F --> G[文档匹配与排序]
+    G --> H[检索结果返回]
+    H --> I[LLM 生成答案]
+    
+    J[文档输入] --> C
+    C --> K[分块存储到workspace/tools]
+    K --> F
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>核心代码位置</h2>
+            <ul>
+                <li><strong>主入口:</strong> <code>qwen_agent/tools/retrieval.py</code> - RAG 主工具类，协调文档解析和检索</li>
+                <li><strong>文档解析:</strong> <code>qwen_agent/tools/doc_parser.py</code> - 文档加载、分块与预处理</li>
+                <li><strong>存储机制:</strong> <code>qwen_agent/tools/storage.py</code> - 基于文件系统的键值存储</li>
+                <li><strong>检索引擎:</strong> <code>qwen_agent/tools/search_tools/base_search.py</code> - 检索算法基类</li>
+                <li><strong>混合搜索:</strong> <code>qwen_agent/tools/search_tools/hybrid_search.py</code> - 多种检索方法组合</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>文档处理机制</h2>
+            
+            <div class="mermaid-container">
+                <div class="mermaid">
+flowchart LR
+    subgraph "文档解析与分块"
+        A[原始文档] --> B[SimpleDocParser 提取内容]
+        B --> C[按页面组织内容]
+        C --> D{总Token数判断}
+        D -->|≤ max_ref_token| E[单块处理]
+        D -->|> max_ref_token| F[split_doc_to_chunk 分块]
+        E --> G[单块存储]
+        F --> H[多块处理]
+        H --> I[每块添加元数据<br/>- source<br/>- title<br/>- chunk_id]
+        I --> G
+    end
+                </div>
+            </div>
+            
+            <h3>文档分块策略</h3>
+            <ol>
+                <li><strong>Token 数量控制:</strong> 如果文档总 Token 数小于设定阈值(<code>max_ref_token</code>)，则整个文档作为一个块处理</li>
+                <li><strong>分页处理:</strong> 基于文档页码进行内容组织</li>
+                <li><strong>固定大小分块:</strong> 当文档较大时，按 <code>parser_page_size</code> 进行分块</li>
+                <li><strong>句子级分割:</strong> 对于过长段落，按句子边界进行分割</li>
+                <li><strong>重叠处理:</strong> 块之间保留部分内容重叠，确保上下文连续性</li>
+            </ol>
+        </div>
+        
+        <div class="section">
+            <h2>存储机制</h2>
+            
+            <div class="mermaid-container">
+                <pre class="mermaid-code">
+graph LR
+    A[分块处理后的文档] --> B[生成哈希键<br/>hash_sha256(url) + 参数]
+    B --> C[Storage 存储到 workspace/tools]
+    C --> D[JSON 格式保存]
+    D --> E[Record 结构<br/>{url, raw[], title}]
+    E --> F[Chunk 结构<br/>{content, metadata{}, token}]
+    
+    G[查询时] --> H[缓存命中检测]
+    H -->|命中| I[直接返回缓存]
+    H -->|未命中| J[重新处理文档]
+                </pre>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+            <svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+                <!-- 定义样式 -->
+                <style>
+                    .node { fill: #e1f5fe; stroke: #0277bd; stroke-width: 2px; rx: 10; ry: 10; }
+                    .text { font-family: Arial, sans-serif; font-size: 14px; fill: #000; text-anchor: middle; }
+                    .arrow { stroke: #333; stroke-width: 2; marker-end: url(#arrowhead); }
+                    .edge-text { font-family: Arial, sans-serif; font-size: 12px; fill: #555; }
+                </style>
+                
+                <!-- 箭头标记 -->
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                    refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+                    </marker>
+                </defs>
+                
+                <!-- 节点 -->
+                <rect class="node" x="20" y="20" width="140" height="60"></rect>
+                <text class="text" x="90" y="45">分块处理后的文档</text>
+                
+                <rect class="node" x="200" y="50" width="140" height="60"></rect>
+                <text class="text" x="270" y="75">生成哈希键</text>
+                <text class="text" x="270" y="95">hash_sha256(url) + 参数</text>
+                
+                <rect class="node" x="400" y="20" width="140" height="60"></rect>
+                <text class="text" x="470" y="45">Storage 存储到</text>
+                <text class="text" x="470" y="65">workspace/tools</text>
+                
+                <rect class="node" x="600" y="20" width="140" height="60"></rect>
+                <text class="text" x="670" y="45">JSON 格式保存</text>
+                
+                <rect class="node" x="400" y="120" width="140" height="60"></rect>
+                <text class="text" x="470" y="145">Record 结构</text>
+                <text class="text" x="470" y="165">{url, raw[], title}</text>
+                
+                <rect class="node" x="600" y="120" width="140" height="60"></rect>
+                <text class="text" x="670" y="145">Chunk 结构</text>
+                <text class="text" x="670" y="165">{content, metadata{}, token}</text>
+                
+                <rect class="node" x="20" y="220" width="140" height="60"></rect>
+                <text class="text" x="90" y="245">查询时</text>
+                
+                <rect class="node" x="200" y="250" width="140" height="60"></rect>
+                <text class="text" x="270" y="275">缓存命中检测</text>
+                
+                <rect class="node" x="400" y="220" width="140" height="60"></rect>
+                <text class="text" x="470" y="245">直接返回缓存</text>
+                
+                <rect class="node" x="400" y="300" width="140" height="60"></rect>
+                <text class="text" x="470" y="325">重新处理文档</text>
+                
+                <!-- 连接线 -->
+                <line class="arrow" x1="160" y1="50" x2="200" y2="80"></line>
+                <line class="arrow" x1="340" y1="80" x2="400" y2="50"></line>
+                <line class="arrow" x1="540" y1="50" x2="600" y2="50"></line>
+                
+                <line class="arrow" x1="470" y1="80" x2="470" y2="120"></line>
+                <line class="arrow" x1="670" y1="80" x2="670" y2="120"></line>
+                
+                <line class="arrow" x1="160" y1="250" x2="200" y2="280"></line>
+                <line class="arrow" x1="340" y1="280" x2="400" y2="250"></line>
+                <line class="arrow" x1="340" y1="280" x2="400" y2="330"></line>
+                
+                <!-- 标签 -->
+                <text class="edge-text" x="310" y="265">命中</text>
+                <text class="edge-text" x="310" y="310">未命中</text>
+            </svg>
+            </div>
+            
+            <p>存储机制采用基于文件系统的键值存储，存储路径为 <code>workspace/tools/doc_parser/</code>，使用文档 URL 和参数生成的哈希值作为键，实现了文档处理结果的持久化缓存。</p>
+        </div>
+        
+        <div class="section">
+            <h2>检索机制</h2>
+            
+            <div class="mermaid-container">
+                <div class="mermaid">
+graph TD
+    A[用户查询] --> B[Query 预处理]
+    B --> C[多搜索引擎并行检索]
+    C --> D[BM25 传统检索]
+    C --> E[语义相似度检索]
+    D --> F[结果排序与评分]
+    E --> F
+    F --> G[HybridSearch 混合得分]
+    G --> H[Top-K 选择]
+    H --> I[Token 限制裁剪]
+    I --> J[返回检索结果]
+    
+    K[文档块] --> D
+    K --> E
+                </div>
+            </div>
+            
+            <h3>检索算法</h3>
+            <ol>
+                <li><strong>BaseSearch:</strong> 抽象基类，定义了检索接口和基础处理流程</li>
+                <li><strong>HybridSearch:</strong> 混合搜索，结合多种检索方法的结果</li>
+                <li><strong>评分机制:</strong> 根据位置加权（1/(rank+1+60)）整合不同搜索结果</li>
+                <li><strong>Token 控制:</strong> 按照 <code>max_ref_token</code> 参数限制返回的上下文长度</li>
+            </ol>
+        </div>
+        
+        <div class="section">
+            <h2>RAG 工作流程</h2>
+            
+            <div class="mermaid-container">
+                <div class="mermaid">
+sequenceDiagram
+    participant U as 用户
+    participant A as Assistant Agent
+    participant R as Retrieval Tool
+    participant DP as DocParser
+    participant S as Storage
+    participant SE as Search Engine
+    
+    U->>A: 发送查询 "介绍下雇主责任险"
+    A->>R: 调用 retrieval 工具
+    R->>DP: 解析文档
+    DP->>S: 检查缓存
+    S-->>DP: 缓存未命中/返回缓存
+    DP->>DP: 文档分割成块
+    DP->>S: 存储分块结果
+    R->>SE: 搜索相关块
+    SE->>SE: 计算相似度
+    SE->>R: 返回 Top-K 结果
+    R->>A: 返回检索内容
+    A->>U: 生成最终回答
+                </div>
+            </div>
+            
+            <h3>详细步骤</h3>
+            <ol>
+                <li><strong>初始化:</strong> Assistant Agent 接收用户查询和文件列表</li>
+                <li><strong>文档解析:</strong> 调用 DocParser 对文件进行解析和分块</li>
+                <li><strong>缓存检查:</strong> 检查 workspace/tools 下是否有已处理的缓存</li>
+                <li><strong>文档分块:</strong> 如无缓存，使用 <code>split_doc_to_chunk</code> 方法按 Token 数量分割文档</li>
+                <li><strong>存储缓存:</strong> 将分块结果以 JSON 格式存储到本地</li>
+                <li><strong>检索查询:</strong> 使用搜索算法匹配查询与文档块</li>
+                <li><strong>结果排序:</strong> 根据相关性评分对检索结果排序</li>
+                <li><strong>上下文构造:</strong> 拼接 Top-K 个最相关块作为上下文</li>
+                <li><strong>回答生成:</strong> 将上下文传给 LLM 生成最终回答</li>
+            </ol>
+        </div>
+        
+        <div class="section">
+            <h2>核心技术细节</h2>
+            
+            <h3>文档解析与分块</h3>
+            <pre>
+def split_doc_to_chunk(self, doc: List[dict], path: str, title: str = '', 
+                       parser_page_size: int = DEFAULT_PARSER_PAGE_SIZE) -> List[Chunk]:
+    # 实现文档按 Token 数量的智能分割
+    res = []  # 存储最终的块
+    chunk = []  # 当前处理的块
+    available_token = parser_page_size  # 块可用 Token 数量
+    # ... 分割逻辑 ...
+            </pre>
+            
+            <h3>存储键生成</h3>
+            <pre>
+cached_name_chunking = f'{hash_sha256(url)}_{str(parser_page_size)}'
+# 基于文档URL和分块参数生成唯一键
+            </pre>
+            
+            <h3>检索评分融合</h3>
+            <pre>
+for chunk_and_score in chunk_and_score_list:
+    for i in range(len(chunk_and_score)):
+        doc_id = chunk_and_score[i][0]
+        chunk_id = chunk_and_score[i][1]
+        score = chunk_and_score[i][2]
+        # 按位置加权融合不同搜索结果
+        chunk_score_map[doc_id][chunk_id] += 1 / (i + 1 + 60)
+            </pre>
+        </div>
+        
+        <div class="section">
+            <h2>性能优化特点</h2>
+            <ul>
+                <li><strong>缓存机制:</strong> 分块结果持久化存储，避免重复处理相同文档</li>
+                <li><strong>Token 控制:</strong> 严格控制上下文长度，平衡信息完整性和计算效率</li>
+                <li><strong>混合检索:</strong> 结合多种搜索算法提高检索准确性</li>
+                <li><strong>渐进处理:</strong> 支持增量式文档处理和检索</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                curve: 'basis',
+            },
+            securityLevel: 'loose',
+        });
+    </script>
+</body>
+</html>

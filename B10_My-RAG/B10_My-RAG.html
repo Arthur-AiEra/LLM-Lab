@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG 架构设计与性能优化 | 技术复习笔记</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            securityLevel: 'loose',
+            flowchart: {
+                curve: 'basis',
+                padding: 8,
+                nodeSpacing: 10,
+                rankSpacing: 15,
+                htmlLabels: true
+            },
+            themeVariables: {
+                primaryColor: '#e3f2fd',
+                primaryTextColor: '#0277bd',
+                primaryBorderColor: '#0288d1',
+                lineColor: '#546e7a',
+                secondaryColor: '#f3e5f5',
+                tertiaryColor: '#ffffff',
+                fontFamily: 'sans-serif'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary: #0277bd;
+            --secondary: #0097a7;
+            --bg: #f7f9fc;
+            --text: #37474f;
+            --sidebar-w: 260px;
+            --code-bg: #263238;
+            --code-text: #eceff1;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; line-height: 1.6; }
+        
+        /* Layout */
+        .sidebar { width: var(--sidebar-w); background: #fff; height: 100vh; position: fixed; padding: 20px; border-right: 1px solid #e0e0e0; overflow-y: auto; box-sizing: border-box; }
+        .sidebar h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 8px; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li { margin-bottom: 8px; }
+        .sidebar a { text-decoration: none; color: #546e7a; font-weight: 500; display: block; padding: 8px; border-radius: 4px; transition: 0.2s; font-size: 0.95rem; }
+        .sidebar a:hover { background: #e1f5fe; color: var(--primary); }
+        
+        .main { margin-left: var(--sidebar-w); padding: 40px; max-width: 1100px; width: 100%; box-sizing: border-box; }
+        
+        /* Content */
+        h1 { font-size: 2.2rem; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #cfd8dc; padding-bottom: 20px; }
+        h2 { font-size: 1.6rem; color: #263238; margin-top: 40px; border-left: 5px solid var(--secondary); padding-left: 15px; }
+        h3 { font-size: 1.3rem; color: #455a64; margin-top: 25px; font-weight: 600; }
+        p { margin-bottom: 15px; text-align: justify; }
+        
+        /* Components */
+        .viz-box { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #cfd8dc; margin: 20px 0; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th { background: #eceff1; padding: 12px; text-align: left; color: var(--primary); border-bottom: 2px solid #b0bec5; font-weight: 600; }
+        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: top; font-size: 0.95rem; }
+        tr:hover { background: #f9f9f9; }
+
+        /* Comparison Matrix */
+        .matrix-cell { padding: 15px; border: 1px solid #e0e0e0; background: #fff; border-radius: 6px; margin-bottom: 10px; }
+        .matrix-title { font-weight: bold; color: var(--secondary); margin-bottom: 5px; display: block; }
+        
+        /* FAQ Grid */
+        .faq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 15px; margin-top: 20px; }
+        .faq-item { background: #fff; padding: 15px 20px; border-radius: 6px; border-left: 4px solid var(--secondary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .faq-q { font-weight: bold; color: #006064; display: block; margin-bottom: 8px; font-size: 1rem; }
+        .faq-a { color: #37474f; font-size: 0.95rem; }
+        
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; color: white; margin-right: 5px; }
+        .tag-rag { background: #0288d1; }
+        .tag-ft { background: #7b1fa2; }
+        
+        code { background: #eceff1; padding: 2px 6px; border-radius: 4px; color: #c62828; font-family: Consolas, monospace; font-size: 0.9em; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <h2>🛠️ 技术导航</h2>
+    <ul>
+        <li><a href="#overview">1. 全景架构图</a></li>
+        <li><a href="#selection">2. 核心选型：RAG vs FT</a></li>
+        <li><a href="#pipeline">3. 关键技术栈详解</a></li>
+        <li><a href="#optimization">4. 性能与生成优化</a></li>
+        <li><a href="#advanced">5. 进阶：GraphRAG</a></li>
+        <li><a href="#faq">6. 工程实战 FAQ</a></li>
+    </ul>
+</nav>
+
+<div class="main">
+    <h1>RAG 架构设计与性能优化笔记</h1>
+    <p style="color: #607d8b; font-size: 0.95rem;">基于 RAG 面试辅导课件与实战工程记录提炼 | 聚焦架构选型、系统优化与工程落地</p>
+
+    <h2 id="overview">1. 全景技术架构图 (Compact View)</h2>
+    <div class="viz-box">
+        <div class="mermaid">
+        graph LR
+            root(<b>RAG体系</b>):::root
+            
+            %% 核心流程
+            root --> Pipeline(<b>核心流程</b>)
+            Pipeline --> Chunk[分块 Chunking]
+            Pipeline --> Embed[向量化 Embedding]
+            Pipeline --> Store[存储 Vector DB]
+            Pipeline --> Retrieve[检索 Retrieval]
+            Pipeline --> Rerank[重排 Rerank]
+            Pipeline --> Gen[生成 Generation]
+
+            %% 优化策略
+            root --> Opt(<b>优化策略</b>)
+            Opt --> Hybrid[混合检索]
+            Opt --> Sliding[滑动窗口]
+            Opt --> Cache[检索缓存]
+            Opt --> Conflict[矛盾消解]
+
+            %% 进阶技术
+            root --> Adv(<b>进阶技术</b>)
+            Adv --> Graph[GraphRAG]
+            Adv --> LongCtx[长上下文模型]
+
+            %% 工程设施
+            root --> Eng(<b>工程设施</b>)
+            Eng --> ES[Elasticsearch]
+            Eng --> FAISS[FAISS]
+            Eng --> Local[本地模型 Qwen]
+
+            classDef root fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000;
+            classDef default fill:#fff,stroke:#333,stroke-width:1px;
+            linkStyle default interpolate basis
+        </div>
+    </div>
+
+    <h2 id="selection">2. 核心选型方法论</h2>
+    
+    <h3>RAG vs Fine-tuning (微调) 决策矩阵</h3>
+    <p>三种模式（Prompt, RAG, Fine-tuning）并非互斥，常需组合使用。</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th width="20%">决策维度</th>
+                <th width="40%"><span class="tag tag-rag">RAG (检索增强)</span></th>
+                <th width="40%"><span class="tag tag-ft">Fine-tuning (微调)</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>知识更新频率</strong></td>
+                <td><strong>高频更新</strong> (如新闻、FAQ)<br>只需更新向量库，无需重训。</td>
+                <td><strong>低频/固化</strong> (如医疗术语)<br>数据固化在参数中，更新成本高。</td>
+            </tr>
+            <tr>
+                <td><strong>数据私密性</strong></td>
+                <td><strong>高</strong> (外部挂载)<br>数据在本地知识库，不进入模型权重。</td>
+                <td><strong>中/低</strong><br>数据可能被模型“记忆”并通过 Prompt 泄漏。</td>
+            </tr>
+            <tr>
+                <td><strong>可解释性</strong></td>
+                <td><strong>强</strong> (引用溯源)<br>可明确指出答案来自哪篇文档。</td>
+                <td><strong>弱</strong> (黑盒)<br>难以追踪知识来源，易产生幻觉。</td>
+            </tr>
+            <tr>
+                <td><strong>特定格式/风格</strong></td>
+                <td>弱<br>依赖 In-context Learning，受限于 Prompt。</td>
+                <td><strong>强</strong><br>擅长学习特定的指令格式、语言风格。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 id="pipeline">3. 关键技术栈详解</h2>
+
+    <h3>3.1 分块与索引策略</h3>
+    <ul>
+        <li><strong>分块 (Chunking)</strong>：直接影响检索粒度。推荐策略：<strong>滑动窗口 (Sliding Window)</strong>，保留上下文重叠部分，避免语义切断。</li>
+        <li><strong>分层索引</strong>：针对超长文档，采用“父子索引”策略。先检索摘要 (Parent)，再定位到具体详细段落 (Child)。</li>
+    </ul>
+
+    <h3>3.2 检索增强</h3>
+    <ul>
+        <li><strong>混合检索 (Hybrid Search)</strong>：结合 <strong>BM25 (关键词匹配)</strong> 与 <strong>Vector (语义匹配)</strong>。BM25 擅长专有名词精确匹配，Vector 擅长语义理解。</li>
+        <li><strong>重排序 (Rerank)</strong>：在检索回来的 Top-K (如 50 个) 结果基础上，使用高精度的 Cross-Encoder 模型进行精排，筛选出 Top-N (如 5 个) 给 LLM。</li>
+    </ul>
+
+    <h2 id="optimization">4. 性能与生成优化</h2>
+
+    <div class="matrix-cell">
+        <span class="matrix-title">🚀 延迟 (Latency) 优化</span>
+        <ul>
+            <li><strong>向量检索</strong>：使用 ANN (HNSW, IVF) 索引，牺牲微小精度换取速度（毫秒级）。</li>
+            <li><strong>Embedding</strong>：使用本地轻量化模型，或异步预计算向量。</li>
+            <li><strong>Cache</strong>：对高频 Query 的检索结果进行缓存（Redis）。</li>
+        </ul>
+    </div>
+
+    <div class="matrix-cell">
+        <span class="matrix-title">⚔️ 知识冲突处理</span>
+        <ul>
+            <li><strong>时间戳</strong>：优先使用 metadata 中时间戳最新的文档。</li>
+            <li><strong>权威度</strong>：为文档打标（如“官方文档” vs “社区帖子”），加权排序。</li>
+            <li><strong>LLM 仲裁</strong>：检索多来源，Prompt 要求 LLM 显式指出冲突点。</li>
+        </ul>
+    </div>
+
+    <h2 id="advanced">5. 进阶：GraphRAG</h2>
+    <p>当传统 RAG 面对“跨文档推理”或“全局性问题”失效时（如“分析全书人物关系”），需引入 GraphRAG。</p>
+    <ul>
+        <li><strong>核心逻辑</strong>：利用 LLM 提取实体 (Entities) 和关系 (Relationships)，构建知识图谱。</li>
+        <li><strong>检索方式</strong>：基于图的遍历与社区发现 (Community Detection)，而非单纯的向量相似度。</li>
+        <li><strong>适用场景</strong>：复杂推理、多跳问答、全集摘要。</li>
+    </ul>
+
+    <h2 id="faq">6. 工程实战 FAQ</h2>
+    <div class="faq-grid">
+        <div class="faq-item">
+            <span class="faq-q">Q: ES (Elasticsearch) 与 FAISS 的关系与区别？</span>
+            <span class="faq-a">
+                <strong>FAISS</strong> 是 Meta 开源的向量计算库 (Library)，专注于向量距离的高速计算，本身不具备完整的数据库功能（如持久化、分布式）。<br>
+                <strong>ES</strong> 是完整的搜索引擎数据库 (Database)，内置了向量检索能力。如果 Metadata 非常大且需要复杂过滤，推荐使用 ES 替代单纯的 FAISS + 文件存储。
+            </span>
+        </div>
+
+        <div class="faq-item">
+            <span class="faq-q">Q: 向量距离 (Distance) 与 相似度 (Similarity) 有何区别？</span>
+            <span class="faq-a">
+                两者成反比关系。距离越小，相似度越高。<br>
+                <strong>L2 (欧氏距离)</strong>：值越小越相似。<br>
+                <strong>Cosine (余弦相似度)</strong>：值越接近 1 越相似。工程中需注意模型输出的度量标准，避免排序逻辑搞反。
+            </span>
+        </div>
+
+        <div class="faq-item">
+            <span class="faq-q">Q: 深度学习 vs 机器学习 vs AI 大模型（面试/概念澄清）</span>
+            <span class="faq-a">
+                <strong>机器学习</strong>：统计学方法，参数量通常较小。<br>
+                <strong>深度学习</strong>：基于神经网络，多层架构 (LSTM/CNN)。<br>
+                <strong>大模型 (LLM)</strong>：基于 Transformer 架构，参数量达到亿级 (Billion)，具备“涌现”能力，模拟人类理解。
+            </span>
+        </div>
+
+        <div class="faq-item">
+            <span class="faq-q">Q: 本地部署大模型（如 Qwen）的参数量建议？</span>
+            <span class="faq-a">
+                在 AutoDL 或本地显卡上，<strong>Qwen2.5-32B</strong> 是目前性价比极高的选择，在生成质量和资源消耗之间取得了平衡。7B 适合极低资源，72B 需要多卡。
+            </span>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

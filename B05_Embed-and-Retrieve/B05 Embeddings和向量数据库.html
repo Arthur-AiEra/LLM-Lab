@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embeddings & 向量数据库 | 全景复习笔记</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            securityLevel: 'loose',
+            flowchart: { 
+                curve: 'basis', 
+                padding: 5,         
+                nodeSpacing: 10,    
+                rankSpacing: 20,
+                htmlLabels: true
+            },
+            themeVariables: {
+                primaryColor: '#e3f2fd',
+                primaryTextColor: '#000000', 
+                primaryBorderColor: '#90caf9',
+                lineColor: '#546e7a',
+                secondaryColor: '#f3e5f5',
+                tertiaryColor: '#ffffff',
+                fontFamily: 'arial'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary: #2962ff;
+            --accent: #ff6d00;
+            --bg: #f7f9fc;
+            --text: #263238;
+            --card-bg: #ffffff;
+            --sidebar-width: 260px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            line-height: 1.6;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--card-bg);
+            position: fixed;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            overflow-y: auto;
+            border-right: 1px solid #eceff1;
+            z-index: 100;
+        }
+        .sidebar h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px;}
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li { margin-bottom: 8px; }
+        .sidebar a { text-decoration: none; color: #546e7a; font-size: 0.95rem; display: block; padding: 8px 10px; border-radius: 6px; transition: 0.2s; }
+        .sidebar a:hover { background-color: #e3f2fd; color: var(--primary); font-weight: 600; }
+
+        /* Main Content */
+        .main {
+            margin-left: var(--sidebar-width);
+            padding: 40px 50px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 { font-size: 2.2rem; color: var(--primary); margin-bottom: 10px; letter-spacing: -0.5px; }
+        .meta { color: #78909c; font-size: 0.9rem; margin-bottom: 40px; }
+        
+        h2 { 
+            font-size: 1.6rem; 
+            color: #37474f; 
+            margin-top: 50px; 
+            padding-bottom: 10px; 
+            border-bottom: 1px solid #cfd8dc;
+            display: flex;
+            align-items: center;
+        }
+        h2::before { content: ''; width: 6px; height: 26px; background-color: var(--accent); margin-right: 12px; border-radius: 2px; }
+
+        h3 { font-size: 1.3rem; color: #455a64; margin-top: 30px; font-weight: 600; }
+
+        /* Components */
+        .viz-box {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+            overflow-x: auto;
+        }
+        .viz-title { font-size: 0.8rem; color: #90a4ae; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; display: block; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; }
+        th { background-color: #eceff1; color: #37474f; font-weight: bold; padding: 12px; text-align: left; border-bottom: 2px solid #cfd8dc; }
+        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+
+        /* Q&A Cards */
+        .qa-card {
+            background-color: #fff8e1; /* Light Orange/Yellow */
+            border-left: 4px solid #ff8f00;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .qa-q { font-weight: bold; color: #bf360c; display: block; margin-bottom: 6px; }
+        .qa-a { color: #3e2723; }
+
+        /* Code */
+        pre { background: #263238; color: #eceff1; padding: 15px; border-radius: 6px; overflow-x: auto; font-family: 'Consolas', monospace; font-size: 0.9em; }
+        code { color: #80cbc4; }
+
+        /* Citations */
+        .cite { font-size: 0.75rem; color: #b0bec5; vertical-align: super; margin-left: 3px; text-decoration: none; cursor: pointer; }
+        .cite:hover { color: #2962ff; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <h2>📚 知识导航</h2>
+    <ul>
+        <li><a href="#mindmap">1. 全景思维导图</a></li>
+        <li><a href="#evolution">2. 从 N-Gram 到 Embedding</a></li>
+        <li><a href="#word2vec">3. Word2Vec 核心解析</a></li>
+        <li><a href="#model">4. 模型选型：MTEB与套娃</a></li>
+        <li><a href="#vectordb">5. 向量数据库对比</a></li>
+        <li><a href="#rag">6. RAG 实战与元数据</a></li>
+        <li><a href="#qa">7. 课堂精华 Q&A 汇总</a></li>
+    </ul>
+</nav>
+
+<main class="main">
+    <h1>Embeddings 与向量数据库复习笔记</h1>
+    <div class="meta">基于课程资料 PDF、TXT 课堂实录整理 | 核心思想：万物皆可向量化</div>
+
+    <h2 id="mindmap">1. 全景思维导图 (Compact Tree Map)</h2>
+    <div class="viz-box">
+        <span class="viz-title">Embedding 技术体系全貌</span>
+        <div class="mermaid">
+        graph LR
+            root(<b>Embedding技术</b>):::root
+            
+            %% 分支1: 理论
+            root --> Theory(<b>理论演进</b>)
+            Theory --> NGram[N-Gram: 稀疏矩阵痛点]
+            Theory --> Dense[Embedding: 稠密向量]
+            
+            %% 分支2: 算法
+            root --> Algo(<b>Word2Vec</b>)
+            Algo --> Mode[CBOW vs Skip-Gram]
+            Algo --> Dim[维度: 人工设定]
+            Algo --> Math[语义计算: King-Man+Woman]
+
+            %% 分支3: 模型
+            root --> Model(<b>模型选型</b>)
+            Model --> MTEB[MTEB榜单]
+            Model --> Matry[俄罗斯套娃: 弹性维度]
+            Model --> Lang[单/多语言支持]
+
+            %% 分支4: 数据库
+            root --> VDB(<b>向量数据库</b>)
+            VDB --> FAISS[FAISS: 内存/Local]
+            VDB --> Milvus[Milvus: 企业/Dynamic]
+            VDB --> Pine[Pinecone: SaaS]
+            VDB --> ES[ES: 混合检索]
+
+            %% 分支5: 实战
+            root --> RAG(<b>RAG实战</b>)
+            RAG --> Pipeline[ETL -> Vector -> Search]
+            RAG --> Meta[关键: 向量+元数据分离]
+
+            %% 样式
+            classDef default fill:#fff,stroke:#333,stroke-width:1px,color:#000;
+            classDef root fill:#bbdefb,stroke:#1565c0,stroke-width:2px,color:#000,font-weight:bold;
+            linkStyle default interpolate basis
+        </div>
+    </div>
+
+    <h2 id="evolution">2. 理论演进：从稀疏 (Sparse) 到稠密 (Dense)</h2>
+
+    <h3>2.1 N-Gram 与特征爆炸</h3>
+    <p>早期的 NLP 使用 One-Hot 或 N-Gram 提取特征，试图通过统计相邻词的共现来捕捉语义。但这种方式会导致矩阵极度稀疏。</p>
+
+    <div class="qa-card">
+        <span class="qa-q">💡 课堂重难点：西雅图酒店数据集案例</span>
+        <span class="qa-a">
+            在课堂上，老师展示了一个 <strong>152 * 3347</strong> 的矩阵。
+            <ul>
+                <li><strong>152</strong>：代表酒店数量。</li>
+                <li><strong>3347</strong>：代表提取出的 N-Gram 特征总数（2元语法）。</li>
+            </ul>
+            <strong>痛点：</strong> 这是一个典型的<strong>稀疏矩阵</strong>。因为每家酒店的描述不可能包含所有 3347 个特征，导致矩阵中绝大多数位置都是 <strong>0</strong>。这不仅浪费存储空间，而且计算相似度（如两个几乎没有重叠词的酒店）变得非常困难。
+        </span>
+    </div>
+
+    <h3>2.2 Embedding 的革命</h3>
+    <p>Embedding 的核心作用是将高维、离散、稀疏的向量压缩为<strong>低维、连续、稠密</strong>的向量。它将语义相似的词映射到几何空间中相近的位置。</p>
+
+    <h2 id="word2vec">3. Word2Vec 核心解析</h2>
+    <p>Word2Vec 通过神经网络学习词向量，主要有两种训练模式：</p>
+
+    <div class="viz-box">
+        <div class="mermaid">
+        graph LR
+            subgraph CBOW [CBOW: 完形填空]
+                direction TB
+                C[Context: 上下文] -->|预测| T[Target: 中心词]
+            end
+            
+            subgraph SG [Skip-Gram: 举一反三]
+                direction TB
+                T2[Target: 中心词] -->|预测| C2[Context: 上下文]
+            end
+            style CBOW fill:#e8f5e9,stroke:#2e7d32
+            style SG fill:#fff3e0,stroke:#ef6c00
+        </div>
+    </div>
+
+    <h3>3.1 关键概念</h3>
+    <ul>
+        <li><strong>数学直觉：</strong> 向量支持代数运算，经典案例：<code>King - Man + Woman ≈ Queen</code>。</li>
+        <li><strong>参数设置：</strong> <code>vector_size</code> (通常 100~300), <code>window</code> (上下文窗口), <code>min_count</code> (最小词频)。</li>
+    </ul>
+
+    <h2 id="model">4. 模型选型：MTEB 与 俄罗斯套娃</h2>
+
+    <h3>4.1 MTEB 榜单</h3>
+    <p>MTEB (Massive Text Embedding Benchmark) 是目前最权威的评测榜单。选型时不能只看总分，要根据业务场景（如 Retrieval 检索、Clustering 聚类）查看子榜单。</p>
+
+    <h3>4.2 🪆 俄罗斯套娃 (Matryoshka Embeddings)</h3>
+    <p>这是 Jina-embeddings-v4 等新模型的核心特性，解决了“维度与精度”的矛盾。</p>
+    <ul>
+        <li><strong>原理：</strong> 模型训练出的高维向量（如 2048 维），其<strong>前序维度</strong>（前 128, 256 维）本身就是高质量的独立向量。</li>
+        <li><strong>优势：一次训练，弹性部署。</strong>
+            <ul>
+                <li><strong>手机端/实时场景：</strong> 截取前 128 维，速度快。</li>
+                <li><strong>服务器/高精场景：</strong> 使用 2048 维，精度高。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2 id="vectordb">5. 向量数据库对比</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>数据库</th>
+                <th>类型</th>
+                <th>核心优势</th>
+                <th>适用场景</th>
+                <th>劣势</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>FAISS</strong></td>
+                <td>Library (库)</td>
+                <td><strong>速度极快</strong>，Meta开源，内存计算</td>
+                <td>静态数据，算法验证，中小规模</td>
+                <td><strong>不存元数据</strong>，不支持动态增删改</td>
+            </tr>
+            <tr>
+                <td><strong>Milvus</strong></td>
+                <td>Database</td>
+                <td>功能全面，支持动态更新，分布式</td>
+                <td>企业级海量数据 (10亿级)</td>
+                <td>架构复杂，运维成本较高</td>
+            </tr>
+            <tr>
+                <td><strong>Pinecone</strong></td>
+                <td>SaaS</td>
+                <td>Serverless，全托管，API简单</td>
+                <td>快速上线，不想运维</td>
+                <td>商业闭源，数据必须上云</td>
+            </tr>
+            <tr>
+                <td><strong>Elasticsearch</strong></td>
+                <td>Engine</td>
+                <td><strong>混合搜索</strong> (关键词 + 向量)</td>
+                <td>已有 ES 架构，需结合全文检索</td>
+                <td>纯向量性能弱于专用库</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 id="rag">6. RAG 实战与元数据管理</h2>
+    <p>在 RAG (检索增强生成) 系统中，Embedding 用于筛选与 Query 最相关的 Chunk。</p>
+
+    <div class="viz-box">
+        <span class="viz-title">RAG 数据流转时序图</span>
+        <div class="mermaid">
+        sequenceDiagram
+            participant Py as Python Script
+            participant API as Embedding Model
+            participant FAISS as FAISS Index
+            participant Redis as Metadata Store
+
+            Note over Py, Redis: 1. 数据入库 (Indexing)
+            Py->>API: 文本 Chunk
+            API-->>Py: 向量 Vector
+            Py->>FAISS: 存入 [Vector, Custom_ID]
+            Note right of FAISS: FAISS只存向量和ID!
+            Py->>Redis: 存入 {ID: "原始文本", Source: "file.pdf"}
+
+            Note over Py, Redis: 2. 检索 (Retrieval)
+            Py->>API: Query 向量化
+            Py->>FAISS: index.search(Query_Vec)
+            FAISS-->>Py: 返回 TopK IDs
+            Py->>Redis: 根据 IDs 查回原始文本
+        </div>
+    </div>
+
+    <div class="qa-card">
+        <span class="qa-q">🛠️ 工程实战经验：FAISS + 元数据分离</span>
+        <span class="qa-a">
+            <strong>问题：</strong> FAISS 专注于向量计算，不存储文本。默认索引是自增整数，难以与业务数据对应。<br>
+            <strong>解决方案：</strong> 使用 <code>faiss.IndexIDMap</code>。
+            <ol>
+                <li>使用 <code>IndexIDMap</code> 包装基础索引，允许传入自定义 ID（如文章 ID）。</li>
+                <li>将向量和 ID 存入 FAISS。</li>
+                <li>将 ID 和原始文本（Payload）存入 Redis 或 MySQL。</li>
+                <li>检索时，FAISS 返回 ID，再回 Redis 查文本。</li>
+            </ol>
+        </span>
+    </div>
+
+    <h2 id="qa">7. 课堂精华 Q&A 汇总</h2>
+    <p>以下内容整理自课堂实录（TXT文件），涵盖了高频疑问和实战细节。</p>
+
+    <div class="qa-card">
+        <span class="qa-q">Q1: 50维、100维这些数字是怎么确定的？里面的数值是什么？</span>
+        <span class="qa-a">
+            <strong>A:</strong> 维度大小（Size）是<strong>人工设定的超参数</strong>。里面的数值（如 0.973...）是模型通过机器学习在大量语料中<strong>训练出来的权重</strong>。我们无法直观理解每个维度的具体物理含义（它不是简单的“颜色”或“大小”），而是数学空间上的特征表达。
+        </span>
+    </div>
+
+    <div class="qa-card">
+        <span class="qa-q">Q2: 什么时候要调整 Embedding Size？</span>
+        <span class="qa-a">
+            <strong>A:</strong> 如果语言的理解难度大（如专业领域），Embedding Size 应该大一些（如 1024）；如果追求计算速度或存储受限，则设置小一些。维度越高，精度越高，但计算成本也越大。
+        </span>
+    </div>
+
+    <div class="qa-card">
+        <span class="qa-q">Q3: 中英文混合的场景，怎么选 Embedding 模型？</span>
+        <span class="qa-a">
+            <strong>A:</strong> 应该选择<strong>多语言模型 (Multilingual)</strong>，例如 <code>Qwen3-embedding</code> 或 <code>bge-m3</code>。如果是特定的中文业务（如文言文），可能需要单独微调或训练。
+        </span>
+    </div>
+
+    <div class="qa-card">
+        <span class="qa-q">Q4: 为什么稀疏矩阵（如152*3347）会有很多0？</span>
+        <span class="qa-a">
+            <strong>A:</strong> 因为 3347 代表所有文档中提取出的特征总和（如所有出现的2元词组）。对于某一个具体的酒店描述，它只包含这 3347 个特征中的极少一部分，因此矩阵中绝大多数位置都是 0。
+        </span>
+    </div>
+
+    <div class="qa-card">
+        <span class="qa-q">Q5: 本地怎么安装 FAISS？</span>
+        <span class="qa-a">
+            <strong>A:</strong> <code>pip install faiss-cpu</code> (如果无GPU) 或 <code>pip install faiss-gpu</code>。
+        </span>
+    </div>
+
+</main>
+
+</body>
+</html>

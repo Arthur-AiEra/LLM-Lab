@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+  # 1. Elasticsearch 服务
+  elasticsearch:
+    image: elasticsearch:9.2.4
+    container_name: elasticsearch
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      # --- 关键配置开始 ---
+      # 关闭安全验证（不需要 https，不需要密码），解决你 Python 脚本的报错
+      - xpack.security.enabled=false
+      # 限制内存使用（防止把电脑卡死）
+      - ES_JAVA_OPTS=-Xms1024m -Xmx1024m
+      # 允许跨域（CORS），这样轻量级 UI 插件才能连接
+      - http.cors.enabled=true
+      - http.cors.allow-origin="*"
+      - http.cors.allow-headers=X-Requested-With,Content-Type,Content-Length,Authorization
+      # --- 关键配置结束 ---
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/private/var/ifc/app_data/elasticsearch/data
+    networks:
+      - es-net
+
+  # 2. Kibana (官方 UI，功能最全，启动稍慢)
+  kibana:
+    image: kibana:9.2.4
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - I18N_LOCALE=zh-CN  # 开启中文界面
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - es-net
+
+  # 3. Elasticvue (轻量级 UI，启动秒开，查看数据非常方便)
+  elasticvue:
+    image: cars10/elasticvue:1.12.0
+    container_name: elasticvue
+    ports:
+      - "8080:8080"
+    networks:
+      - es-net
+
+volumes:
+  es_data:
+    driver: local
+
+networks:
+  es-net:
+    driver: bridge

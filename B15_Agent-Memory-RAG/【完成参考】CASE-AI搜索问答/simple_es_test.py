@@ -14,14 +14,15 @@ warnings.filterwarnings("ignore")
 ES_HOST = "https://localhost"
 ES_PORT = 9200
 ES_USER = "elastic"
-ES_PASSWORD = "euqPcOlHrmW18rtaS-3P"  # 您的 ES 密码
+# ES_PASSWORD = "euqPcOlHrmW18rtaS-3P"  # 您的 ES 密码
+ES_PASSWORD = ""  # 您的 ES 密码
 INDEX_NAME = "minimal_test_index"     # 使用一个全新的、干净的索引
 FILE_TO_TEST = "docs/2-雇主责任险.txt"
 QUERY = "雇主责任险"
 
 # 设置日志
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     stream=sys.stdout  # 强制日志输出到控制台
 )
@@ -31,7 +32,7 @@ logging.basicConfig(
 logging.info("--- 步骤 1: 正在连接到 Elasticsearch ---")
 try:
     es_client = Elasticsearch(
-        hosts=[{'host': 'localhost', 'port': ES_PORT, 'scheme': 'https'}],
+        hosts=[{'host': 'localhost', 'port': ES_PORT, 'scheme': 'http'}],
         basic_auth=(ES_USER, ES_PASSWORD),
         verify_certs=False,  # 仅用于本地测试
         request_timeout=30

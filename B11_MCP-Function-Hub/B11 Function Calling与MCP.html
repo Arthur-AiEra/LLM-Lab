@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI核心技术复习：Function Calling 与 MCP</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #cbd5e1;
+            --text-main: #000000; /* 纯黑字体 */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px; /* 稍微加宽以适应大字体 */
+            margin: 0 auto;
+        }
+
+        /* 标题区 */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+        h1 { margin: 0; color: #000000; font-size: 2.0rem; font-weight: 800; }
+        .subtitle { color: #333333; font-size: 1.0rem; margin-top: 8px; font-weight: 500; }
+
+        /* 卡片通用样式 */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            border-left: 5px solid var(--primary);
+            padding-left: 12px;
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-weight: 700;
+        }
+
+        h3 {
+            font-size: 1.15rem;
+            color: #000000;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 5px;
+        }
+
+        /* Mermaid 容器 */
+        .mermaid-wrapper {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1rem; /* 表格字体加大 */
+        }
+        th, td {
+            border: 1px solid #94a3b8;
+            padding: 12px;
+            text-align: left;
+            color: #000000;
+        }
+        th { background: #e2e8f0; color: #000000; width: 20%; font-weight: 700; }
+        
+        /* 代码块 */
+        pre {
+            background: #1e293b;
+            color: #ffffff; /* 代码保持高亮对比 */
+            padding: 18px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid #000;
+        }
+        code { font-family: Consolas, monospace; }
+
+        /* Q&A 列表 */
+        .qa-list { display: grid; gap: 20px; }
+        .qa-item {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #64748b;
+        }
+        .q-tag { font-weight: 900; color: #b91c1c; margin-right: 8px; font-size: 1.1rem; }
+        .q-text { font-weight: 700; color: #000000; font-size: 1.05rem; }
+        .a-text { display: block; margin-top: 8px; color: #000000; font-size: 1rem; line-height: 1.7; }
+
+        /* 标签 */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-right: 5px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .b-blue { background: #dbeafe; color: #000000; }
+        .b-green { background: #dcfce7; color: #000000; }
+
+        footer { text-align: center; font-size: 0.9rem; color: #333333; margin-top: 40px; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Function Calling 与 MCP 复习笔记</h1>
+        <div class="subtitle">全景思维导图 | 核心代码模板 | 课堂 Q&A 精选</div>
+    </header>
+
+    <div class="mermaid-wrapper">
+        <div class="mermaid">
+            %%{init: {
+                'theme': 'base', 
+                'themeVariables': { 
+                    'fontSize': '16px', 
+                    'fontFamily': 'arial', 
+                    'primaryColor': '#e0f2fe', 
+                    'primaryTextColor': '#000000',
+                    'edgeLabelBackground':'#ffffff',
+                    'textColor': '#000000',
+                    'lineColor': '#000000',
+                    'mainBkg': '#ffffff',
+                    'nodeBorder': '#000000'
+                }, 
+                'flowchart': {
+                    'nodeSpacing': 40, 
+                    'rankSpacing': 60, 
+                    'curve': 'basis'
+                }
+            }}%%
+            graph LR
+                %% 核心节点
+                ROOT["<b>Function Calling<br>& MCP</b>"]
+
+                %% Function Calling 分支
+                FC["<b>Function Calling</b><br>（动作执行）"]
+                FC_DEF["<b>定义</b><br>LLM → 结构化参数 → 执行函数"]
+                FC_CASE["<b>案例：门票助手</b>"]
+                FC_FLOW["LLM解析意图 → <br>生成SQL参数"]
+                FC_TOOL["工具: exc_sql"]
+                FC_VIS["进阶: 查询+绘图一体化"]
+
+                %% MCP 分支
+                MCP["<b>MCP 协议</b><br>（连接标准）"]
+                MCP_ARCH["<b>核心架构</b>"]
+                HOST["Host (宿主)<br>Claude/Cursor"]
+                CLIENT["Client (连接器)"]
+                SERVER["Server (能力方)"]
+                RES["Resources<br>Tools<br>Prompts"]
+                
+                %% 生态与实战
+                ECO["<b>生态实战</b>"]
+                QWEN["Qwen-Agent 框架"]
+                SDK["FastMCP (Python)"]
+                DEBUG["调试: MCP Inspector"]
+
+                %% 关系连线
+                ROOT --> FC
+                ROOT --> MCP
+                ROOT --> ECO
+
+                FC --> FC_DEF
+                FC --> FC_CASE
+                FC_CASE --> FC_FLOW --> FC_TOOL --> FC_VIS
+
+                MCP --> MCP_ARCH
+                MCP_ARCH --> HOST
+                MCP_ARCH --> CLIENT
+                MCP_ARCH --> SERVER
+                SERVER --> RES
+
+                ECO --> QWEN
+                ECO --> SDK
+                ECO --> DEBUG
+
+                %% 样式定义：强制黑色边框和字体
+                classDef root fill:#2563eb,color:#ffffff,stroke:#000000,stroke-width:2px;
+                classDef branch fill:#eff6ff,color:#000000,stroke:#000000,stroke-width:1px;
+                classDef leaf fill:#ffffff,color:#000000,stroke:#000000,stroke-width:1px,stroke-dasharray: 5 5;
+                
+                class ROOT root;
+                class FC,MCP,ECO branch;
+                class FC_DEF,FC_CASE,FC_FLOW,FC_TOOL,FC_VIS,MCP_ARCH,HOST,CLIENT,SERVER,RES,QWEN,SDK,DEBUG leaf;
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>1. 核心概念辨析</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>维度</th>
+                    <th><span class="badge b-blue">Function Calling</span></th>
+                    <th><span class="badge b-green">MCP (Model Context Protocol)</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>定位</b></td>
+                    <td>模型厂商的<b>私有接口</b>（底层能力）</td>
+                    <td>通用的<b>开放协议</b>（类似 USB-C 接口）</td>
+                </tr>
+                <tr>
+                    <td><b>开发模式</b></td>
+                    <td>需为每个模型单独适配（OpenAI/Qwen 格式不同）</td>
+                    <td><b>一次开发，处处运行</b>（兼容 Claude/Cursor 等）</td>
+                </tr>
+                <tr>
+                    <td><b>适用场景</b></td>
+                    <td>简单、低延迟、单次任务（如查天气）</td>
+                    <td>复杂上下文、跨数据源连接（如连接 Github/数据库）</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>2. 实战代码模板</h2>
+        
+        <h3>2.1 Qwen-Agent：注册 Function Calling 工具</h3>
+        <p>核心逻辑：定义工具类 -> 注册 -> Agent 初始化时加载。</p>
+        <pre><code class="language-python">from qwen_agent.tools.base import BaseTool, register_tool
+
+@register_tool('exc_sql')
+class ExcSQLTool(BaseTool):
+    description = '执行SQL查询并返回结果'
+    parameters = [{
+        'name': 'sql_input',
+        'type': 'string',
+        'description': '生成的SQL语句',
+        'required': True
+    }]
+
+    def call(self, params: str, **kwargs) -> str:
+        # 1. 解析参数
+        sql = json.loads(params)['sql_input']
+        # 2. 执行查询 (伪代码)
+        df = pd.read_sql(sql, engine)
+        # 3. 返回 Markdown 表格
+        return df.to_markdown()</code></pre>
+
+        <h3>2.2 FastMCP：快速构建 MCP Server</h3>
+        <p>核心逻辑：使用装饰器将普通 Python 函数转为 MCP 工具。</p>
+        <pre><code class="language-python">from mcp.server.fastmcp import FastMCP
+
+# 初始化 Server
+mcp = FastMCP("桌面文件助手")
+
+@mcp.tool()
+def count_files(directory: str = "~/Desktop") -> str:
+    """统计指定目录下的文件数量"""
+    # 业务逻辑...
+    return f"目录 {directory} 下共有 5 个文件"
+
+if __name__ == "__main__":
+    mcp.run() # 启动服务</code></pre>
+    </div>
+
+    <div class="card">
+        <h2>3. 课堂精华 Q&A (避坑指南)</h2>
+        <div class="qa-list">
+            <div class="qa-item">
+                <span class="q-tag">Q:</span>
+                <span class="q-text">Function Calling 和 MCP 可以混用吗？</span>
+                <span class="a-text"><b>可以！</b> 比如销售场景：先用 Function Calling（内部函数）查询客户日程，再调用 MCP（外部高德地图服务）规划路线。两者互补。</span>
+            </div>
+            
+            <div class="qa-item">
+                <span class="q-tag">Q:</span>
+                <span class="q-text">Tools 和 RAG 的调用顺序是怎样的？</span>
+                <span class="a-text">通常是 <b>先 RAG，再 Tools</b>。先通过 RAG 检索历史案例或知识库作为上下文（Few-shot），帮助模型更准确地生成工具调用参数。</span>
+            </div>
+
+            <div class="qa-item">
+                <span class="q-tag">Q:</span>
+                <span class="q-text">大模型生成的 SQL 会有幻觉吗？如何处理？</span>
+                <span class="a-text"><b>会有。</b> 解决方案：1. System Prompt 中提供详尽的表结构（Schema）；2. 提供 Few-shot 示例；3. 限制查询行数防止慢查询。</span>
+            </div>
+
+            <div class="qa-item">
+                <span class="q-tag">Q:</span>
+                <span class="q-text">如何调试 MCP 代码？</span>
+                <span class="a-text">使用 <b>MCP Inspector</b>。运行命令 <code>mcp dev your_script.py</code>，它会启动一个本地网页 (localhost:5173) 进行可视化调试。</span>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Function Calling 与 MCP 课程复习笔记 | 生成时间：2026-01-29
+    </footer>
+</div>
+
+<script>
+    mermaid.initialize({ startOnLoad: true });
+</script>
+
+</body>
+</html>
