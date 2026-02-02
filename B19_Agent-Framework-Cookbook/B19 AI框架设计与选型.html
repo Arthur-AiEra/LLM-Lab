@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 框架设计与选型 - 深度技术笔记</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a2a3a;
+            --secondary-color: #2c3e50;
+            --accent-color: #2980b9;
+            --bg-color: #f0f2f5;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+            --code-bg: #f8f9fa;
+        }
+        body {
+            font-family: "Inter", -apple-system, system-ui, sans-serif;
+            line-height: 1.35;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 8px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-radius: 6px;
+        }
+        h1 { font-size: 20px; text-align: center; color: var(--primary-color); margin: 5px 0 10px 0; border-bottom: 2px solid var(--accent-color); padding-bottom: 5px; }
+        h2 { font-size: 16px; color: #fff; background: var(--secondary-color); padding: 4px 8px; border-radius: 3px; margin: 12px 0 6px 0; }
+        h3 { font-size: 14px; color: var(--accent-color); margin: 8px 0 4px 0; border-left: 3px solid var(--accent-color); padding-left: 6px; }
+        
+        .mermaid-container {
+            background: #fff;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 6px 0;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 5px;
+            text-align: left;
+        }
+        th { background-color: #edf2f7; font-weight: bold; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .card {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 4px;
+            background: #fff;
+        }
+        .compact-list {
+            margin: 4px 0;
+            padding-left: 16px;
+            font-size: 12px;
+        }
+        .compact-list li { margin-bottom: 2px; }
+        code {
+            font-family: "Fira Code", monospace;
+            background: var(--code-bg);
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-size: 11px;
+            color: #c0392b;
+        }
+        .framework-tag {
+            display: inline-block;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 4px;
+            text-transform: uppercase;
+        }
+        .lc { background: #e3f2fd; color: #1976d2; }
+        .li { background: #f1f8e9; color: #558b2f; }
+        .qa { background: #fff3e0; color: #ef6c00; }
+        .ag { background: #f3e5f5; color: #7b1fa2; }
+
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Agent 框架架构与选型全景复习笔记</h1>
+        
+        <div class="mermaid-container">
+            <div class="mermaid">
+            %%{init: {'theme': 'neutral', 'themeVariables': { 'fontSize': '11px', 'textColor': '#000', 'lineColor': '#333'}}}%%
+            graph LR
+                Root[<b>AI Agent 核心架构</b>]
+                
+                %% 大脑层
+                Root --> Brain[<b>大脑: LLM 适配层</b>]
+                Brain --> B1[适配器模式: 抹平 API 差异]
+                B1 --> B1a[LangChain: ChatModel 类]
+                B1 --> B1b[Qwen: llm_cfg 配置式]
+                Brain --> B2[Prompt 工程化管理]
+                B2 --> B2a[人设/任务解耦]
+                B2 --> B2b[System Message 动态注入]
+                
+                %% 双手层
+                Root --> Hands[<b>双手: 工具注册与调度</b>]
+                Hands --> H1[注册机制: Function Calling]
+                H1 --> H1a[LangChain: @tool 自动解析]
+                H1 --> H1b[Qwen: @register_tool 强约束]
+                H1 --> H1c[LlamaIndex: FunctionTool 封装]
+                Hands --> H2[执行逻辑: JSON Schema 转换]
+                H2 --> H2a[LLM 理解参数类型与描述]
+                
+                %% 记忆层
+                Root --> Memory[<b>记忆: Context 管理</b>]
+                Memory --> M1[短期记忆: 对话上下文]
+                M1 --> M1a[滑动窗口: 防止 Token 溢出]
+                M1 --> M1b[Session ID: 多用户隔离]
+                Memory --> M2[长期记忆: RAG 模式]
+                M2 --> M2a[Embedding: 语义向量化]
+                M2 --> M2b[Vector DB: 相似度检索]
+                
+                %% 中枢层
+                Root --> Core[<b>中枢: 控制流编排</b>]
+                Core --> C1[Pipeline: 线性管道 LCEL]
+                Core --> C2[Loop: ReAct 循环迭代]
+                Core --> C3[Multi-Agent: 多人协作模式]
+                C3 --> C3a[AutoGen: GroupChat 群聊管理]
+                C3 --> C3b[Speaker Selection: 轮询/自动]
+                
+                style Root fill:#f5f6fa,stroke:#2f3640,stroke-width:2px
+                style Brain fill:#dff9fb,stroke:#130f40
+                style Hands fill:#f9ca2422,stroke:#f0932b
+                style Memory fill:#eb4d4b22,stroke:#eb4d4b
+                style Core fill:#6ab04c22,stroke:#6ab04c
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>一、四大核心组件深度剖析</h2>
+                <h3>1. 大脑 (LLM Adapter)</h3>
+                <ul class="compact-list">
+                    <li><b>统一接口:</b> 屏蔽模型差异，提供 <code>invoke()</code>, <code>stream()</code>, <code>batch()</code>。</li>
+                    <li><b>Prompt 解耦:</b> 区分“固定人设”与“动态上下文”，提高 Prompt 复用率。</li>
+                </ul>
+                <h3>2. 双手 (Tool Registry)</h3>
+                <ul class="compact-list">
+                    <li><b>原理:</b> 将 Python 函数通过内省 (Introspection) 转换为 LLM 可读的 JSON Schema。</li>
+                    <li><b>调用:</b> LLM 输出 <code>tool_calls</code> &rarr; 框架解析 &rarr; 执行函数 &rarr; 结果反馈 LLM。</li>
+                </ul>
+                <h3>3. 记忆 (Context Management)</h3>
+                <ul class="compact-list">
+                    <li><b>短期:</b> <code>RunnableWithMessageHistory</code> (LCEL) 实现 Session 级记忆。</li>
+                    <li><b>长期:</b> <code>VectorStoreIndex</code> (LlamaIndex) 提供 TB 级数据的毫秒级召回。</li>
+                </ul>
+                <h3>4. 中枢 (Orchestration)</h3>
+                <ul class="compact-list">
+                    <li><b>LCEL:</b> <code>prompt | llm | parser</code> 极简管道语法。</li>
+                    <li><b>ReAct:</b> 思考(Thought) &rarr; 行动(Action) &rarr; 观察(Observation) 的闭环。</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>二、主流框架选型对比矩阵</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>框架</th>
+                            <th>核心定位</th>
+                            <th>杀手锏特性</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="framework-tag lc">LangChain</span></td>
+                            <td>全能应用框架</td>
+                            <td>LCEL 语法、极广的生态集成</td>
+                        </tr>
+                        <tr>
+                            <td><span class="framework-tag li">LlamaIndex</span></td>
+                            <td>RAG 数据专家</td>
+                            <td>Index-First、一站式文档索引</td>
+                        </tr>
+                        <tr>
+                            <td><span class="framework-tag qa">Qwen-Agent</span></td>
+                            <td>轻量工具型</td>
+                            <td>内置 Code Interpreter、WebUI</td>
+                        </tr>
+                        <tr>
+                            <td><span class="framework-tag ag">AutoGen</span></td>
+                            <td>多智能体协作</td>
+                            <td>GroupChat、复杂的发言者调度</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h3>选型建议：</h3>
+                <ul class="compact-list">
+                    <li><b>通用流:</b> 首选 <span class="framework-tag lc">LC</span>，适合需要灵活控制和模型切换的场景。</li>
+                    <li><b>知识库:</b> 首选 <span class="framework-tag li">LI</span>，适合 PDF/Word 等海量私有数据问答。</li>
+                    <li><b>分析流:</b> 首选 <span class="framework-tag qa">QA</span>，适合需要自动写 Python 代码绘图的场景。</li>
+                    <li><b>流程流:</b> 首选 <span class="framework-tag ag">AG</span>，适合需要多个角色（如分析师+风控）协作。</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>三、实战要点：RAG 流程与多框架实现</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>1. 标准 RAG 链路</h3>
+                <ul class="compact-list">
+                    <li><b>加载:</b> <code>DirectoryLoader</code> (LC) / <code>SimpleDirectoryReader</code> (LI)。</li>
+                    <li><b>切片:</b> <code>RecursiveCharacterTextSplitter</code> 保持语义完整。</li>
+                    <li><b>索引:</b> <code>FAISS</code> (LC) / <code>VectorStoreIndex</code> (LI) 存储向量。</li>
+                    <li><b>检索:</b> <code>as_retriever()</code> 进行语义相似度召回。</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>2. AutoGen 的多智能体 RAG</h3>
+                <ul class="compact-list">
+                    <li><b>DataAgent:</b> 负责调用检索工具获取文档片段。</li>
+                    <li><b>AnalystAgent:</b> 负责对检索到的原始片段进行总结分析。</li>
+                    <li><b>ReviewerAgent:</b> 负责审核回复是否符合事实，避免幻觉。</li>
+                    <li><b>Manager:</b> <code>speaker_selection_method="round_robin"</code> 强制执行 检索&rarr;分析&rarr;审核 流程。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:10px;">
+            <h3>3. 代码实现速查</h3>
+            <ul class="compact-list">
+                <li><span class="framework-tag lc">LC</span>: <code>chain = prompt | llm | StrOutputParser()</code></li>
+                <li><span class="framework-tag li">LI</span>: <code>index.as_query_engine().query("...")</code></li>
+                <li><span class="framework-tag qa">QA</span>: <code>bot = Assistant(files=['doc.pdf'], function_list=['code_interpreter'])</code></li>
+                <li><span class="framework-tag ag">AG</span>: <code>groupchat = GroupChat(agents=[a1, a2], speaker_selection_method="auto")</code></li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'neutral',
+            flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>
