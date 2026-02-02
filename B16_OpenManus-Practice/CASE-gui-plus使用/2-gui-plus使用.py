@@ -24,12 +24,12 @@ messages = [
 
 client = OpenAI(
     # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
-    api_key=os.getenv("DASHSCOPE_API_KEY"),
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    api_key=os.getenv('OPENAI_API_KEY'),
+    base_url="https://api.fe8.cn/v1",
 )
 
 completion = client.chat.completions.create(
-    model="gui-plus", 
+    model="gpt-4o", 
     messages=messages
 )
 print(completion.choices[0].message.content)

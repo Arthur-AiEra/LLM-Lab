@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenManus 实战开发笔记 (Code Review)</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --card-bg: #252526;
+            --text-color: #d4d4d4;
+            --accent-color: #3794ff;
+            --border-color: #3e3e42;
+            --code-bg: #1e1e1e;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            border-bottom: 2px solid var(--accent-color);
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+
+        h1 { color: #fff; margin: 0; }
+        h2 { color: var(--accent-color); margin-top: 40px; border-left: 4px solid var(--accent-color); padding-left: 10px; }
+        h3 { color: #9cdcfe; margin-top: 25px; }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* 目录树样式 */
+        .tree-view {
+            font-family: 'Fira Code', monospace;
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            color: #4ec9b0;
+            white-space: pre;
+        }
+
+        /* 代码块覆盖 */
+        pre {
+            background: #1e1e1e !important;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .mermaid-container {
+            background: #ffffff; /* Mermaid 需要浅色背景显示清晰，或者配置深色主题 */
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .tag-env { background: #ce9178; color: #000; }
+        .tag-core { background: #4ec9b0; color: #000; }
+        .tag-fix { background: #dcdcaa; color: #000; }
+
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid var(--border-color); padding: 8px 12px; text-align: left; }
+        th { background-color: #333; color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>OpenManus 源码实战复习笔记</h1>
+        <p>基于 B16 OpenManus 开发实战视频 | 核心逻辑与代码魔改</p>
+    </header>
+
+    <div class="card">
+        <h2>01. 环境搭建 (Environment Setup)</h2>
+        <p>项目强依赖 Python 3.10+ 及 Playwright 环境。</p>
+        <pre><code class="language-bash"># 1. 创建虚拟环境
+conda create -n open_manus python=3.10
+conda activate open_manus
+
+# 2. 安装依赖
+pip install -r requirements.txt
+
+# 3. 初始化 Playwright (必须，否则浏览器无法启动)
+playwright install
+
+# 4. 环境变量 (.env 或 config/config.toml)
+# 推荐使用 DashScope (Qwen) 或 OpenAI
+export DASHSCOPE_API_KEY="sk-..."
+export OPENAI_API_KEY="sk-..."</code></pre>
+        <p><span class="tag tag-env">注意</span>: 如果使用 Daytona 沙箱，需在 <code>config.toml</code> 中配置 Daytona API Key，否则请在本地运行 <code>app/agent/manus.py</code>。</p>
+    </div>
+
+    <div class="card">
+        <h2>02. 核心架构可视化 (Architecture)</h2>
+        <h3>类继承关系图 (Class Diagram)</h3>
+        <p>理解 OpenManus 如何通过继承 ReAct 模式来实现工具调用。</p>
+        <div class="mermaid-container">
+            <div class="mermaid">
+            classDiagram
+                class BaseAgent {
+                    +memory: list
+                    +llm: LLM
+                    +step()
+                    +run()
+                }
+                class ReActAgent {
+                    +think()
+                    +act()
+                    +observe()
+                    # 实现核心循环
+                }
+                class ToolCallAgent {
+                    +available_tools: list
+                    +call_tool()
+                }
+                class Manus {
+                    +system_prompt: str
+                    +run()
+                    # 聚合Browser, Python等工具
+                }
+
+                BaseAgent <|-- ReActAgent
+                ReActAgent <|-- ToolCallAgent
+                ToolCallAgent <|-- Manus
+            </div>
+        </div>
+
+        <h3>执行流序图 (Sequence Diagram)</h3>
+        <p>模拟用户指令："查询上海到北京的机票" 的内部流转。</p>
+        <div class="mermaid-container">
+            <div class="mermaid">
+            sequenceDiagram
+                actor User
+                participant Agent as Manus Agent
+                participant LLM as Qwen-Max
+                participant Tool as BrowserUseTool
+                participant Web as Playwright/Chrome
+
+                User->>Agent: 输入: "查1月30日上海到北京机票"
+                loop Max Steps (20)
+                    Agent->>LLM: 发送当前 Memory (历史+观察)
+                    LLM-->>Agent: 返回 Thought + Action (调用 browser_use)
+                    Agent->>Tool: 执行 browser_use (参数: action='goto', url='ctrip')
+                    Tool->>Web: 访问携程
+                    Web-->>Tool: 返回 HTML/DOM Tree
+                    Tool-->>Agent: 返回 Observation (精简后的 DOM)
+                    Agent->>Agent: 更新 Memory
+                end
+                Agent->>User: 输出最终报告
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>03. 核心代码结构 (Project Tree)</h2>
+        <div class="tree-view">
+OpenManus/
+├── app/
+│   ├── agent/
+│   │   ├── base.py          # 基础 Agent 类
+│   │   ├── react.py         # ReAct 思考模式实现
+│   │   ├── tool_call.py     # 工具调用逻辑
+│   │   └── manus.py         # <span style="color:#dcdcaa">[核心]</span> 主入口，定义了 System Prompt 和工具集
+│   ├── tool/
+│   │   ├── browser_use_tool.py  # <span style="color:#dcdcaa">[核心]</span> 浏览器操作封装 (基于Playwright)
+│   │   ├── google_search.py     # 搜索工具
+│   │   └── file_saver.py        # 文件保存
+│   ├── prompt/              # 提示词模板
+│   └── flow/                # 流程控制 (如有)
+├── config/
+│   └── config.toml          # 配置文件 (API Key, LLM Model)
+├── main.py                  # CLI 启动入口
+└── requirements.txt
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>04. 实战魔改：解决动态日历无法点击问题</h2>
+        <p><strong>背景：</strong> 在视频中，Agent 无法点击携程日历的 "1月30日"，因为它是 JS 动态生成的弹窗，DOM 树抓取不到。Agent 陷入死循环。</p>
+        
+        <h3>方案 A：RAG 知识注入 (Knowledge Injection)</h3>
+        <p>通过修改 <code>manus.py</code> 的 System Prompt，注入“经验”，教 AI 绕过点击，直接拼接 URL。</p>
+        
+        <pre><code class="language-python"># 修改文件: app/agent/manus.py
+
+# 1. 定义经验知识 (Shortcut)
+TRIP_KNOWLEDGE = """
+【重要经验 - 携程机票查询】
+遇到查询机票任务时，不要尝试去点击日历控件，直接构造 URL 访问：
+URL格式: https://flights.ctrip.com/online/list/oneway-{出发城市Code}-{到达城市Code}?depdate={YYYY-MM-DD}
+例如上海(SHA)到北京(BJS) 2026-01-30:
+Target URL: https://flights.ctrip.com/online/list/oneway-sha-bjs?depdate=2026-01-30
+"""
+
+# 2. 将知识注入 System Prompt
+class Manus(ToolCallAgent):
+    def __init__(self, ...):
+        super().__init__(...)
+        self.system_prompt = f"""
+        你是一个通用的 AI Agent。
+        {TRIP_KNOWLEDGE}  # <--- 注入点
+        
+        你可以使用的工具如下...
+        """
+        </code></pre>
+
+        <h3>方案 B：GUI 视觉点击 (Visual Grounding)</h3>
+        <p>当 DOM 解析失败时，引入视觉模型 (GUI Model) 直接识别屏幕坐标进行物理点击。</p>
+        <pre><code class="language-python"># 伪代码逻辑示意 - 视频中提到的进阶方案
+
+async def act(self, action):
+    try:
+        # 1. 尝试基于文本 DOM 的操作
+        await self.browser_tool.click(element_id="44")
+    except ElementNotFound:
+        # 2. 兜底方案：视觉识别
+        screenshot = await self.browser_tool.take_screenshot()
+        # 调用视觉大模型 (如 Qwen-VL-Max) 获取坐标
+        x, y = await visual_model.predict(screenshot, instruction="点击1月30日")
+        # 物理点击坐标
+        await self.browser_tool.click_coordinates(x, y)
+        </code></pre>
+    </div>
+
+    <div class="card">
+        <h2>05. 关键配置 (Config.toml)</h2>
+        <p>确保模型配置正确，推荐使用较强的模型 (GPT-4o 或 Qwen-Max) 以保证 ReAct 逻辑的稳定性。</p>
+        <pre><code class="language-toml">[llm]
+model = "qwen-max"  # 或 "gpt-4-turbo"
+base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+api_key = "sk-xxxxxxxx"
+
+[agent]
+max_steps = 30      # 增加步数，复杂的网页操作需要更多步骤
+verbose = true      # 开启详细日志，方便调试</code></pre>
+    </div>
+
+    <footer>
+        <p>Generated based on Video Analysis. Use for educational purposes.</p>
+    </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'dark',
+        flowchart: { curve: 'basis' }
+    });
+</script>
+</body>
+</html>
