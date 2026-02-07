@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HuggingFace 生态与高效微调复习笔记</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis',
+                nodeSpacing: 20,
+                rankSpacing: 40
+            },
+            themeVariables: {
+                fontSize: '13px',
+                fontFamily: 'arial'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-radius: 6px;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.4;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        h1 { font-size: 22px; color: var(--primary-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-top: 0; }
+        h2 { font-size: 18px; color: var(--primary-color); border-left: 4px solid var(--accent-color); padding-left: 8px; margin-top: 20px; margin-bottom: 10px; background: #eef2f5; padding-top: 5px; padding-bottom: 5px;}
+        h3 { font-size: 16px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; color: #444; }
+        
+        .card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        /* Mermaid Container */
+        .mermaid-container {
+            background: #fff;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Compact Lists */
+        ul { padding-left: 20px; margin: 5px 0; }
+        li { margin-bottom: 3px; }
+        
+        /* Highlight box */
+        .highlight-box {
+            border: 1px solid #bce8f1;
+            background-color: #d9edf7;
+            color: #31708f;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        
+        .qa-box {
+            border-left: 3px solid #f0ad4e;
+            background-color: #fcf8e3;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        .qa-q { font-weight: bold; color: #8a6d3b; }
+        .qa-a { margin-top: 3px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>HuggingFace 生态与高效微调实战复习笔记</h1>
+
+    <div class="mermaid-container">
+        <div class="mermaid">
+        graph LR
+            Root("<b>HuggingFace<br>Ecosystem</b>") --> Core("<b>Core Components</b>")
+            Core --> Libs("<b>Libraries</b><br>1. Transformers (Toolbox)<br>2. Model Hub (Repo)<br>3. Datasets (Fuel)")
+            Core --> Env("<b>Environment (CN)</b><br>HF-Mirror (Env Var)<br>ModelScope (Download)")
+            
+            Root --> Arch("<b>Model Architectures</b>")
+            Arch --> Enc("<b>Encoder-Only</b><br>(Understanding)<br>BERT, RoBERTa<br>Task: Classification, NER")
+            Arch --> Dec("<b>Decoder-Only</b><br>(Generation)<br>GPT, Llama, Qwen<br>Task: Chat, Coding")
+            Arch --> EncDec("<b>Encoder-Decoder</b><br>(Translation)<br>T5, BART<br>Task: Translation, Summary")
+
+            Root --> Pipe("<b>Pipeline Logic</b>")
+            Pipe --> P1("<b>1. Tokenizer</b><br>Text -> IDs<br>Padding/Truncation")
+            Pipe --> P2("<b>2. Model</b><br>AutoModel (Hidden States)<br>AutoModelForX (Logits)")
+            Pipe --> P3("<b>3. Post-Process</b><br>Logits -> Softmax -> Labels")
+
+            Root --> FT("<b>Fine-Tuning (Full)</b>")
+            FT --> Why("<b>Purpose</b><br>General -> Specific Domain<br>Style Transfer")
+            FT --> Process("<b>7-Step Workflow</b><br>1. Env/Data<br>2. Tokenize (No Pad)<br>3. DataCollator (Dynamic Pad)<br>4. Load Model (Num_labels)<br>5. Metrics<br>6. Trainer API<br>7. Inference")
+            
+            Root --> Prompt("<b>vs. Prompting</b>")
+            Prompt --> Qwen("<b>Large Model (Qwen)</b><br>Zero-shot / Few-shot<br>No training, just Prompt")
+            
+            Root --> QA("<b>Expert Q&A</b>")
+            QA --> Q1("<b>RAG vs FT</b><br>External Context vs Internal Brain")
+            QA --> Q2("<b>HF vs LangChain</b><br>Model Mgt vs Agent Framework")
+        </div>
+    </div>
+
+    <div class="content-grid">
+        
+        <div class="card">
+            <h2>01. HuggingFace 核心生态</h2>
+            [cite_start]<p>HuggingFace 被称为 "AI 界的 GitHub" + "App Store" [cite: 16, 19][cite_start]。其核心由三大库组成 [cite: 23]：</p>
+            <ul>
+                [cite_start]<li><b>Transformers (工具箱):</b> 提供统一接口加载模型（BERT, GPT, Llama 等）[cite: 24, 25]。</li>
+                [cite_start]<li><b>Model Hub (仓库):</b> 存放模型权重 (<code>.bin</code>/<code>.safetensors</code>) 和配置 (<code>config.json</code>) [cite: 26, 27]。</li>
+                [cite_start]<li><b>Datasets (燃料):</b> 一键下载海量数据集并预处理 [cite: 28, 29]。</li>
+            </ul>
+            <div class="highlight-box">
+                <b>国内环境配置技巧：</b><br>
+                [cite_start]由于网络问题，直接连接 HF 常报错 [cite: 95, 96]。解决方案：<br>
+                1. [cite_start]<b>HF-Mirror (镜像):</b> 设置 <code>os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'</code> [cite: 98, 102]。<br>
+                2. [cite_start]<b>ModelScope (魔搭):</b> 用 ModelScope 下载模型，再用 Transformers 加载本地路径 [cite: 108, 109, 110]。
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>02. Transformer 三大流派</h2>
+            <table style="width:100%; border-collapse: collapse; font-size: 13px;">
+                <tr style="background:#eee; text-align:left;">
+                    <th style="padding:5px;">架构类型</th>
+                    <th style="padding:5px;">能力特征</th>
+                    <th style="padding:5px;">代表模型</th>
+                    <th style="padding:5px;">典型应用</th>
+                </tr>
+                <tr>
+                    [cite_start]<td style="border-bottom:1px solid #ddd; padding:5px;"><b>Encoder-Only</b> [cite: 31, 32]</td>
+                    [cite_start]<td style="border-bottom:1px solid #ddd; padding:5px;">擅长<b>理解与分析</b> (特征提取) [cite: 34]</td>
+                    [cite_start]<td style="border-bottom:1px solid #ddd; padding:5px;">BERT, RoBERTa [cite: 33]</td>
+                    [cite_start]<td style="border-bottom:1px solid #ddd; padding:5px;">文本分类, NER, 搜索匹配 [cite: 36]</td>
+                </tr>
+                <tr>
+                    [cite_start]<td style="border-bottom:1px solid #ddd; padding:5px;"><b>Decoder-Only</b> [cite: 38]</td>
+                    [cite_start]<td style="border-bottom:1px solid #ddd; padding:5px;">擅长<b>生成</b> (接龙) [cite: 40]</td>
+                    [cite_start]<td style="border-bottom:1px solid #ddd; padding:5px;">GPT系列, Llama, Qwen [cite: 39]</td>
+                    [cite_start]<td style="border-bottom:1px solid #ddd; padding:5px;">聊天, 代码生成, 写作 [cite: 42]</td>
+                </tr>
+                <tr>
+                    [cite_start]<td style="padding:5px;"><b>Encoder-Decoder</b> [cite: 43]</td>
+                    [cite_start]<td style="padding:5px;">擅长<b>转换</b> (重组) [cite: 45]</td>
+                    [cite_start]<td style="padding:5px;">T5, BART [cite: 44]</td>
+                    [cite_start]<td style="padding:5px;">机器翻译, 文本摘要 [cite: 47]</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>03. Pipeline 内部机制 (黑盒拆解)</h2>
+            [cite_start]<p>Pipeline 封装了 <code>Pre-process</code> -> <code>Model</code> -> <code>Post-process</code> 三步 [cite: 125]。</p>
+            <h3>Step 1: Tokenization (预处理)</h3>
+            <ul>
+                [cite_start]<li><b>作用:</b> 文本 -> 数字 (Tensor) [cite: 191][cite_start]。模型不认识字，只认识 ID [cite: 70]。</li>
+                <li><b>核心参数:</b>
+                    <ul>
+                        [cite_start]<li><code>Padding</code>: 补齐短句 (补0)，适应 GPU 矩阵计算 [cite: 193]。</li>
+                        [cite_start]<li><code>Truncation</code>: 截断长句，防止超过模型最大长度 (如 512) [cite: 194]。</li>
+                    </ul>
+                </li>
+                [cite_start]<li><b>注意:</b> 不同模型的 Tokenizer <b>绝不可混用</b> (如 BERT vs GPT) [cite: 75]。</li>
+            </ul>
+            <h3>Step 2: Model (推理)</h3>
+            <ul>
+                [cite_start]<li><b>Base Model (<code>AutoModel</code>):</b> 只有"大脑"，输出 <code>Hidden States</code> (高维向量)，适合提取特征 [cite: 220, 221]。</li>
+                [cite_start]<li><b>With Head (<code>AutoModelFor...</code>):</b> 大脑+嘴巴，输出 <code>Logits</code> (分类分数)，适合直接任务 [cite: 222, 223]。</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>04. 全量微调实战 (Spam Classifier)</h2>
+            [cite_start]<p><b>为什么微调?</b> 将"通识教育"(Pre-training) 转化为 "岗前培训"(Fine-tuning)，适应特定领域或风格 [cite: 349, 353, 355]。</p>
+            <h3>7步标准流程:</h3>
+            <ol>
+                [cite_start]<li><b>环境与数据:</b> 准备 <code>train</code> / <code>test</code> 数据集 (Label: 0/1) [cite: 393, 396]。</li>
+                [cite_start]<li><b>Tokenize:</b> 映射文本为 ID。<b>关键点:</b> 此处 <code>padding=False</code> (不补齐)，只做截断 [cite: 406]。</li>
+                [cite_start]<li><b>DataCollator (动态补齐):</b> <span style="color:#d63384;">神器。</span>在 Batch 级别动态补齐到当前批次最长长度，而非全局 512。大幅节省显存和计算时间 [cite: 376, 378, 416]。</li>
+                [cite_start]<li><b>Load Model:</b> 使用 <code>AutoModelForSequenceClassification</code>，指定 <code>num_labels=2</code> [cite: 420]。</li>
+                [cite_start]<li><b>Metrics:</b> 定义评估指标 (如 Accuracy) [cite: 428, 431]。</li>
+                [cite_start]<li><b>Trainer API:</b> 封装了 Forward/Backward/Optimizer 等脏活 [cite: 382, 383, 462]。
+                    <ul>
+                        <li>超参数参考: <code>epochs=3~6</code> (防过拟合), <code>lr=2e-5</code> (极小)。</li>
+                    </ul>
+                </li>
+                [cite_start]<li><b>Inference:</b> 使用微调后的模型预测 [cite: 466]。</li>
+            </ol>
+            <div class="highlight-box">
+                <b>Prompting vs Fine-Tuning:</b><br>
+                [cite_start]对于 Qwen 等大模型，可用 Prompt ("你是一个垃圾邮件分类专家...") 实现零样本分类，无需训练 [cite: 485, 513]。<br>
+                [cite_start]<b>选择标准:</b> 数据量大且需高精度/生产环境 -> BERT 微调；无数据/快速验证 -> LLM Prompting [cite: 573, 574]。
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>05. 专家精华 Q&A (技术核心)</h2>
+            <div class="qa-box">
+                <div class="qa-q">Q: HuggingFace 与 LangChain 有什么区别？</div>
+                <div class="qa-a"><b>A:</b> LangChain 是面向 <b>Agent</b> 开发的框架 (LLM + Tools + Memory)；HuggingFace 是面向 <b>Model</b> 底层的框架 (模型加载、微调、训练)。LangChain 可调用 HF 的模型作为组件。</div>
+            </div>
+            <div class="qa-box">
+                <div class="qa-q">Q: RAG (检索增强) 与 微调 (Fine-tuning) 解决的问题一样吗？</div>
+                <div class="qa-a"><b>A:</b> 不一样。RAG 是在 <b>Input</b> 端增强 (提供外部说明书/上下文)；微调是增强 <b>LLM 本身</b> (内化知识/改变说话方式)。</div>
+            </div>
+            <div class="qa-box">
+                <div class="qa-q">Q: 全量微调 vs 高效微调 (PEFT/LoRA)？</div>
+                <div class="qa-a"><b>A:</b> 全量微调更新所有参数 (如 7B 参数全改)；高效微调仅更新极少部分参数 (如 1%)。全量对显存要求极高，PEFT 是主流趋势。</div>
+            </div>
+            <div class="qa-box">
+                <div class="qa-q">Q: 什么时候必须微调？</div>
+                <div class="qa-a"><b>A:</b> 1. 原始语料与目标语料不一致 (如通用 BERT 对"恭喜中奖"认为是好事，但业务场景是垃圾邮件)。2. 需要特定的风格转换 (如更调皮的客服)。</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
