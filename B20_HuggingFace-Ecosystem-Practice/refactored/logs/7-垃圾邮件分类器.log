@@ -1,0 +1,58 @@
+/private/var/www/github/Arthur-AiEra/LLM-Lab/B20_HuggingFace-Ecosystem-Practice/refactored/.venv/bin/python /private/var/www/github/Arthur-AiEra/LLM-Lab/B20_HuggingFace-Ecosystem-Practice/refactored/7-垃圾邮件分类器.py
+Map: 100%|██████████| 4/4 [00:00<00:00, 782.12 examples/s]
+Map: 100%|██████████| 2/2 [00:00<00:00, 1578.88 examples/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 12852.89it/s, Materializing param=bert.pooler.dense.weight]
+BertForSequenceClassification LOAD REPORT from: bert-base-chinese
+Key                                        | Status     |
+-------------------------------------------+------------+-
+cls.seq_relationship.bias                  | UNEXPECTED |
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |
+cls.predictions.bias                       | UNEXPECTED |
+cls.seq_relationship.weight                | UNEXPECTED |
+cls.predictions.transform.dense.weight     | UNEXPECTED |
+cls.predictions.transform.dense.bias       | UNEXPECTED |
+classifier.bias                            | MISSING    |
+classifier.weight                          | MISSING    |
+
+Notes:
+- UNEXPECTED  :can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING :those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+  0%|          | 0/3 [00:00<?, ?it/s]/private/var/www/github/Arthur-AiEra/LLM-Lab/B20_HuggingFace-Ecosystem-Practice/refactored/.venv/lib/python3.12/site-packages/torch/utils/data/dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but not supported on MPS now, device pinned memory won't be used.
+  super().__init__(loader)
+ 33%|███▎      | 1/3 [00:00<00:00,  5.33it/s]
+
+ 33%|███▎      | 1/3 [00:00<00:00,  5.33it/s]
+100%|██████████| 1/1 [00:00<00:00, 290.77it/s]
+
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]{'eval_loss': '0.5018', 'eval_accuracy': '1', 'eval_runtime': '0.1454', 'eval_samples_per_second': '13.75', 'eval_steps_per_second': '6.875', 'epoch': '1'}
+
+Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  4.27it/s]
+/private/var/www/github/Arthur-AiEra/LLM-Lab/B20_HuggingFace-Ecosystem-Practice/refactored/.venv/lib/python3.12/site-packages/torch/utils/data/dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but not supported on MPS now, device pinned memory won't be used.
+  super().__init__(loader)
+ 67%|██████▋   | 2/3 [00:01<00:00,  1.37it/s]
+
+ 67%|██████▋   | 2/3 [00:01<00:00,  1.37it/s]
+100%|██████████| 1/1 [00:00<00:00, 376.78it/s]
+
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]{'eval_loss': '0.4863', 'eval_accuracy': '1', 'eval_runtime': '0.0444', 'eval_samples_per_second': '45.02', 'eval_steps_per_second': '22.51', 'epoch': '2'}
+
+Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  6.66it/s]
+/private/var/www/github/Arthur-AiEra/LLM-Lab/B20_HuggingFace-Ecosystem-Practice/refactored/.venv/lib/python3.12/site-packages/torch/utils/data/dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but not supported on MPS now, device pinned memory won't be used.
+  super().__init__(loader)
+100%|██████████| 3/3 [00:02<00:00,  1.25it/s]
+
+100%|██████████| 3/3 [00:02<00:00,  1.25it/s]
+100%|██████████| 1/1 [00:00<00:00, 413.23it/s]
+
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]{'eval_loss': '0.4731', 'eval_accuracy': '1', 'eval_runtime': '0.0276', 'eval_samples_per_second': '72.52', 'eval_steps_per_second': '36.26', 'epoch': '3'}
+
+Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  6.06it/s]
+100%|██████████| 3/3 [00:03<00:00,  1.02s/it]
+{'train_runtime': '3.067', 'train_samples_per_second': '3.912', 'train_steps_per_second': '0.978', 'train_loss': '0.5017', 'epoch': '3'}
+输入文本: 澳门线上赌场，特价酬宾
+预测类别: 垃圾邮件
+输入文本: 澳门线上赌场，特价酬宾
+预测类别: 垃圾邮件
+
+Process finished with exit code 0
