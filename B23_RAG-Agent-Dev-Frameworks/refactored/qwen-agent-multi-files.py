@@ -5,7 +5,7 @@ from qwen_agent.tools.base import BaseTool, register_tool
 from qwen_agent.gui import WebUI
 import os
 
-#t 21:31
+#t 109:42
 
 # 步骤 1：添加一个名为 `my_image_gen` 的自定义工具。
 @register_tool('my_image_gen')
@@ -31,13 +31,10 @@ class MyImageGen(BaseTool):
 
 # 步骤 2：配置您所使用的 LLM。
 llm_cfg = {
-    # 使用 DashScope 提供的模型服务：
-    'model': 'deepseek-v3',
-    'model_server': 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-    'api_key': os.getenv('DASHSCOPE_API_KEY'),  # 从环境变量获取API Key
-    'generate_cfg': {
-        'top_p': 0.8
-    }
+    # 使用 代理 模型服务：
+    'model': 'gpt-4.1-mini',
+    'model_server': 'https://api.fe8.cn/v1',
+    'api_key': os.getenv('OPENAI_API_KEY'),  # 从环境变量获取API Key
 }
 
 # 步骤 3：定义系统提示词和工具列表

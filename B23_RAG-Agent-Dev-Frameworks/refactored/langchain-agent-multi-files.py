@@ -4,20 +4,24 @@
 基于 LangChain 的多文件 RAG 应用
 支持加载 docs 文件夹下的多种格式文件进行问答
 """
+#t 100:20
 
 import os
+
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import DashScopeEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_community.chat_models import ChatTongyi
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # 获取 API Key
-DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
-if not DASHSCOPE_API_KEY:
-    raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+# DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
+# if not DASHSCOPE_API_KEY:
+#     raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+BASE_URL = "https://api.fe8.cn/v1"  # 参考附件中的代理地址
 
 
 # 步骤 1：加载文档并创建索引
@@ -25,9 +29,14 @@ def load_documents_and_create_index(file_dir: str = './docs', persist_dir: str =
     """加载文档文件夹中的所有文件并创建向量索引"""
     
     # 创建嵌入模型
-    embeddings = DashScopeEmbeddings(
-        model="text-embedding-v1",
-        dashscope_api_key=DASHSCOPE_API_KEY,
+    # embeddings = DashScopeEmbeddings(
+    #     model="text-embedding-v1",
+    #     dashscope_api_key=DASHSCOPE_API_KEY,
+    # )
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-ada-002",
+        api_key=OPENAI_KEY,
+        base_url=BASE_URL  # 将此处设置为您附件中的代理地址
     )
     
     # 检查索引是否已存在
@@ -108,10 +117,11 @@ def create_qa_chain(llm):
 def main():
     """主函数"""
     # 配置 LLM
-    llm = ChatTongyi(
-        model_name="deepseek-v3",
-        dashscope_api_key=DASHSCOPE_API_KEY
-    )
+    # llm = ChatTongyi(
+    #     model_name="deepseek-v3",
+    #     dashscope_api_key=DASHSCOPE_API_KEY
+    # )
+    llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
     
     # 加载文档并创建索引
     vector_store = load_documents_and_create_index()

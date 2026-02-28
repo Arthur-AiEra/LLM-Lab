@@ -10,9 +10,14 @@ LangChain + LlamaIndex 组合版：多文件智能问答 + 报告生成 + 邮件
 """
 
 import os
-import json
 from datetime import datetime
 
+from langchain_core.documents import Document as LCDocument
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.tools import tool
+from langchain_openai import ChatOpenAI
+from langchain_openai import OpenAIEmbeddings
 from llama_index.core import (
     VectorStoreIndex,
     SimpleDirectoryReader,
@@ -20,24 +25,17 @@ from llama_index.core import (
     StorageContext,
     load_index_from_storage,
 )
-from llama_index.llms.dashscope import DashScope
-from llama_index.embeddings.dashscope import (
-    DashScopeEmbedding,
-    DashScopeTextEmbeddingModels,
-)
+from llama_index.llms.langchain import LangChainLLM  # 添加这个导入
+import logging
 
-from langchain_community.chat_models import ChatTongyi
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.documents import Document as LCDocument
-from langchain_core.tools import tool
+# --- 1. 环境配置与日志设置 ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+#t 118:08， 124:34
 
-#t 21:40， 21:46
-
-DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
-if not DASHSCOPE_API_KEY:
-    raise ValueError("请设置环境变量 DASHSCOPE_API_KEY")
+# 获取 API Key
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+BASE_URL = "https://api.fe8.cn/v1"  # 参考附件中的代理地址
 
 
 # ============================================================
@@ -46,18 +44,27 @@ if not DASHSCOPE_API_KEY:
 
 def setup_llamaindex():
     """配置 LlamaIndex 的 LLM 和 Embedding（全局设置）"""
-    llm = DashScope(
-        model="deepseek-v3",
-        api_key=DASHSCOPE_API_KEY,
-        temperature=0.1,
-        top_p=0.8,
-    )
-    embed_model = DashScopeEmbedding(
-        model_name=DashScopeTextEmbeddingModels.TEXT_EMBEDDING_V2,
+    # llm = DashScope(
+    #     model="deepseek-v3",
+    #     api_key=DASHSCOPE_API_KEY,
+    #     temperature=0.1,
+    #     top_p=0.8,
+    # )
+    # embed_model = DashScopeEmbedding(
+    #     model_name=DashScopeTextEmbeddingModels.TEXT_EMBEDDING_V2,
+    # )
+    langchain_llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
+    # 将 LangChain LLM 封装为 LlamaIndex LLM
+    llm = LangChainLLM(llm=langchain_llm)
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-ada-002",
+        api_key=OPENAI_KEY,
+        base_url=BASE_URL  # 将此处设置为您附件中的代理地址
     )
     Settings.llm = llm
-    Settings.embed_model = embed_model
-    return llm, embed_model
+    Settings.embed_model = embeddings
+
+    return llm, embeddings
 
 
 def build_llamaindex_index(file_dir: str = './docs', persist_dir: str = './combined_storage'):
@@ -67,7 +74,7 @@ def build_llamaindex_index(file_dir: str = './docs', persist_dir: str = './combi
         try:
             storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
             index = load_index_from_storage(storage_context)
-            print("[LlamaIndex] 从本地存储加载索引成功")
+            logging.info("✅ [LlamaIndex] 从本地存储加载索引成功")
             return index
         except Exception as e:
             print(f"[LlamaIndex] 加载索引失败: {e}，将重新创建")
@@ -81,11 +88,11 @@ def build_llamaindex_index(file_dir: str = './docs', persist_dir: str = './combi
         print("[LlamaIndex] 没有找到任何文档")
         return None
 
-    print(f"[LlamaIndex] 加载了 {len(documents)} 个文档，正在构建索引...")
+    logging.info(f"✅ [LlamaIndex] 加载了 {len(documents)} 个文档，正在构建索引...")
     index = VectorStoreIndex.from_documents(documents)
 
     index.storage_context.persist(persist_dir=persist_dir)
-    print(f"[LlamaIndex] 索引已保存到 {persist_dir}")
+    logging.info(f"✅ [LlamaIndex] 索引已保存到 {persist_dir}")
     return index
 
 
@@ -179,7 +186,7 @@ def save_report(filename: str, content: str) -> str:
     filepath = os.path.join(output_dir, filename)
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(content)
-    print(f"[保存报告] 已保存到 {filepath}")
+    logging.info(f"✅ [保存报告] 已保存到 {filepath}")
     return f"报告已保存到 {filepath}"
 
 
@@ -198,7 +205,7 @@ def main():
 
     # --- 步骤 1：初始化 LlamaIndex（数据层） ---
     print("=" * 60)
-    print("步骤 1：初始化 LlamaIndex 索引")
+    logging.info("✅ 步骤 1：初始化 LlamaIndex 索引")
     print("=" * 60)
     setup_llamaindex()
     index = build_llamaindex_index()
@@ -208,19 +215,21 @@ def main():
 
     # --- 步骤 2：初始化 LangChain（编排层） ---
     print("\n" + "=" * 60)
-    print("步骤 2：初始化 LangChain 编排链")
+    logging.info("✅ 步骤 2：初始化 LangChain 编排链")
     print("=" * 60)
-    langchain_llm = ChatTongyi(
-        model_name="deepseek-v3",
-        dashscope_api_key=DASHSCOPE_API_KEY
-    )
+    # langchain_llm = ChatTongyi(
+    #     model_name="deepseek-v3",
+    #     dashscope_api_key=DASHSCOPE_API_KEY
+    # )
+    langchain_llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
+
     qa_chain = create_qa_chain(langchain_llm)
     report_chain = create_report_chain(langchain_llm)
 
     # --- 步骤 3：LlamaIndex 检索 → LangChain 问答 ---
     query = "雇主责任险的保障范围和理赔流程是什么？"
     print(f"\n{'=' * 60}")
-    print(f"步骤 3：执行检索与问答")
+    logging.info(f"✅ 步骤 3：执行检索与问答")
     print(f"{'=' * 60}")
     print(f"用户查询: {query}\n")
 
@@ -241,13 +250,13 @@ def main():
     )
     answer = qa_chain.invoke({"context": context, "question": query})
 
-    print("===== AI 回答（LangChain LCEL 链） =====")
+    logging.info("✅ ===== AI 回答（LangChain LCEL 链） =====")
     print(answer)
     print("=" * 50 + "\n")
 
     # --- 步骤 4：LangChain 报告链生成报告 ---
     print(f"{'=' * 60}")
-    print(f"步骤 4：生成分析报告")
+    logging.info(f"✅ 步骤 4：生成分析报告")
     print(f"{'=' * 60}")
 
     sources = ", ".join(set(doc.metadata['file_name'] for doc in lc_docs))
@@ -263,7 +272,7 @@ def main():
 
     # --- 步骤 5：调用工具保存报告 + 发送邮件 ---
     print(f"{'=' * 60}")
-    print(f"步骤 5：保存报告 & 发送邮件（LangChain 工具调用）")
+    logging.info(f"✅ 步骤 5：保存报告 & 发送邮件（LangChain 工具调用）")
     print(f"{'=' * 60}")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -283,7 +292,7 @@ def main():
     print(email_result)
 
     print(f"\n{'=' * 60}")
-    print("全部流程完成")
+    logging.info("✅ 全部流程完成")
     print(f"{'=' * 60}")
 
 
