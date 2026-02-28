@@ -1,0 +1,6 @@
+json5==0.9.14
+langchain_community==0.4.1
+langchain_core==1.2.8
+langchain_text_splitters==1.1.0
+llama_index==0.14.13
+qwen_agent==0.0.25
