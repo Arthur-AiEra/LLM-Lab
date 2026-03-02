@@ -121,7 +121,7 @@ def main():
     #     model_name="deepseek-v3",
     #     dashscope_api_key=DASHSCOPE_API_KEY
     # )
-    llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
+    llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4.1-mini", temperature=0)
     
     # 加载文档并创建索引
     vector_store = load_documents_and_create_index()

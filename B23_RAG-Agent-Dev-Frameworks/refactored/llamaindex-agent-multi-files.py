@@ -35,7 +35,7 @@ def setup_llm_and_embedding():
     #     temperature=0.7,
     #     top_p=0.8,
     # )
-    langchain_llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
+    langchain_llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4.1-mini", temperature=0)
 
     # 将 LangChain LLM 封装为 LlamaIndex LLM
     llm = LangChainLLM(llm=langchain_llm)

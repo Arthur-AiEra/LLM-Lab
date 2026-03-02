@@ -53,7 +53,7 @@ def setup_llamaindex():
     # embed_model = DashScopeEmbedding(
     #     model_name=DashScopeTextEmbeddingModels.TEXT_EMBEDDING_V2,
     # )
-    langchain_llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
+    langchain_llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4.1-mini", temperature=0)
     # 将 LangChain LLM 封装为 LlamaIndex LLM
     llm = LangChainLLM(llm=langchain_llm)
     embeddings = OpenAIEmbeddings(
@@ -221,7 +221,7 @@ def main():
     #     model_name="deepseek-v3",
     #     dashscope_api_key=DASHSCOPE_API_KEY
     # )
-    langchain_llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
+    langchain_llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4.1-mini", temperature=0)
 
     qa_chain = create_qa_chain(langchain_llm)
     report_chain = create_report_chain(langchain_llm)

@@ -4,3 +4,6 @@ langchain_core==1.2.8
 langchain_text_splitters==1.1.0
 llama_index==0.14.13
 qwen_agent==0.0.25
+# Milvus (lite) is used by milvus_hybrid_rag.py for local vector storage
+# the extra installs the milvus_lite dependency required at runtime
+pymilvus[milvus_lite]>=2.3.0
