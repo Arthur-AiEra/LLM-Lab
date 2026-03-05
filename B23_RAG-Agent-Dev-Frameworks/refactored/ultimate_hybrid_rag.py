@@ -111,13 +111,54 @@ def validate_documents(documents: list) -> list:
 
 
 async def get_or_build_milvus_index():
-    print(f"📂 正在扫描 '{DOCS_DIR}' 目录...")
-    documents = SimpleDirectoryReader(DOCS_DIR).load_data()
+    print(f"📂 正在扫描 '{DOCS_DIR}' 目录，并执行智能过滤规则...")
+
+    # 1. 定义过滤规则
+    MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB 字节上限
+    # RAG 常见的高质量知识载体白名单（你可以根据业务需要增删）
+    ALLOWED_EXTENSIONS = {
+        ".txt", ".md", ".pdf", ".docx", ".doc",
+        ".pptx", ".ppt", ".xlsx", ".xls",# , ".csv"
+        ".html", ".htm"
+    }
+
+    valid_files = []
+
+    # 2. 物理遍历与双重校验
+    for root, _, files in os.walk(DOCS_DIR):
+        for file in files:
+            file_path = os.path.join(root, file)
+
+            # 第一重校验：检查扩展名是否在白名单内
+            _, ext = os.path.splitext(file)
+            if ext.lower() not in ALLOWED_EXTENSIONS:
+                # 打印日志（如果嫌输出太多，可以把这行注释掉）
+                print(f"⏭️ 格式无关，跳过解析: {file_path}")
+                continue
+
+            # 第二重校验：检查文件体积是否合规
+            file_size = os.path.getsize(file_path)
+            if file_size > MAX_FILE_SIZE:
+                print(f"⏭️ 超出 100MB，跳过解析 ({file_size / (1024 * 1024):.2f} MB): {file_path}")
+                continue
+
+            # 通过所有校验，加入合法队列
+            valid_files.append(file_path)
+
+    # 3. 结果防御
+    if not valid_files:
+        print("⚠️ 过滤完毕，未在目录中发现任何符合条件（格式允许且小于 100MB）的文档。")
+        return None
+
+    print(f"🔍 过滤完成，准备将 {len(valid_files)} 个合法文件喂给 LlamaIndex...")
+
+    # 4. 精确加载
+    documents = SimpleDirectoryReader(input_files=valid_files).load_data()
     if not documents: return None
 
     documents = validate_documents(documents)
     if not documents: return None
-    print(f"✅ 共发现 {len(documents)} 份有效文档片段。")
+    print(f"✅ LlamaIndex 解析完毕，共生成 {len(documents)} 份有效文档片段(Chunks)。")
 
     # [BM25 词频库加载/训练]
     if os.path.exists(BM25_MODEL_PATH):

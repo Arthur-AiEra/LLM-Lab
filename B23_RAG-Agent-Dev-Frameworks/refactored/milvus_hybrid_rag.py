@@ -24,7 +24,7 @@ from pymilvus.model.sparse.bm25.tokenizers import build_default_analyzer
 # 用 Ollama 拉取专门用于 Embedding 的高分轻量模型 (速度极快)
 # ollama pull bge-m3
 Settings.embed_model = OllamaEmbedding(model_name="bge-m3", base_url="http://localhost:11434")
-langchain_llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4.1-mini", temperature=0)
+langchain_llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4o", temperature=0)
 Settings.llm = LangChainLLM(llm=langchain_llm)
 # 👉 新增：调大分块上限，让单份常规文档能一次性被塞入一个 Chunk 中
 Settings.chunk_size = 2048
