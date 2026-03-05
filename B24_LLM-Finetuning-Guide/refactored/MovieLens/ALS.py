@@ -1,8 +1,8 @@
-# 使用ALS进行矩阵分解
+# 使用ALS(交替最小二乘法)进行矩阵分解
 from itertools import product, chain
 from copy import deepcopy
 
-#t 21:08
+#t 86:06 https://gemini.google.com/app/3a00da71743318b4
 
 class Matrix(object):
     def __init__(self, data):
@@ -69,6 +69,7 @@ class Matrix(object):
         data = self._eye(self.shape[0])
         return Matrix(data)
 
+    # 用高斯-约当消元法将将一个增广矩阵（Augmented Matrix）的左半部分转化为单位矩阵，其右半部分就是原矩阵的逆矩阵！
     def _gaussian_elimination(self, aug_matrix):
         """To simplify the left square matrix of the augmented matrix
         as a unit diagonal matrix.
@@ -285,11 +286,11 @@ class ALS(object):
                 Matrix -- Item matrix.
         """
         def f(users_row, item_id):
-            user_ids = iter(ratings_T[item_id].keys())
+            user_ids = iter(ratings_T[item_id].keys()) # 提取打分用户， 跳过所有空白评分，只对真实存在的分数进行点积计算
             scores = iter(ratings_T[item_id].values())
             col_nos = map(lambda x: self.user_ids_dict[x], user_ids)
             _users_row = map(lambda x: users_row[x], col_nos)
-            return sum(a * b for a, b in zip(_users_row, scores))
+            return sum(a * b for a, b in zip(_users_row, scores)) # 将摘出来的用户特征值，与他们的真实评分一一配对相乘，并求和
      
         ret = [[f(users_row, item_id) for item_id in self.item_ids] for users_row in users.data]
         return Matrix(ret)
@@ -346,12 +347,17 @@ class ALS(object):
         ratings, ratings_T = self._process_data(X)
         self.user_items = {k: set(v.keys()) for k, v in ratings.items()}
         m, n = self.shape
-     
+
+        # k < min(m, n)的原因：
+        # 1. 信息的“降维压缩”本质（防止过拟合Overfitting）这样算出来的 U 和 V 才是真正具备泛化能力的“精华”
+        # 2. 计算的可行性（高斯消元求逆的极限）
+        # 3. 填补空白数据的需要（推荐的前提）
+        # ** 在真实的推荐系统中，m（用户）可能是几千万，n（商品）可能是几百万，而 k（隐藏特征）通常只会设置在 10 到 200 之间
         error_msg = "Parameter k must be less than the rank of original matrix"
         assert k < min(m, n), error_msg
      
         self.user_matrix = self._gen_random_matrix(k, m)
-     
+        # 因为交替固定后地形变成了完美的抛物线（强凸），所以我们可以直接套用导数为 0 推导出的“公式”，在一次计算中直接空降到谷底（求出最优的 V），彻底抛弃了低效的“慢慢试探”（梯度下降）
         for i in range(max_iter):
             if i % 2:
                 items = self.item_matrix
@@ -371,6 +377,7 @@ class ALS(object):
         self.rmse = rmse
 
     # Top-n推荐，用户列表：user_id, n_items: Top-n
+    # 稠密矩阵： user_matrix（用户特征矩阵 U）和 item_matrix（物品特征矩阵 V）
     def _predict(self, user_id, n_items):
         users_col = self.user_matrix.col(self.user_ids_dict[user_id])
         users_col = users_col.transpose
@@ -402,7 +409,7 @@ def load_movie_ratings(file_name):
 
     return data
 
-print("使用ALS算法") 
+print("使用ALS(交替最小二乘法)算法")
 model = ALS()
 # 数据加载
 X = load_movie_ratings('./ratings_small.csv')

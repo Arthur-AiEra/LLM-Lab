@@ -244,6 +244,7 @@
 
     </div>
 </div>
-
+<script> // 自动清除所有的 和 标记 
+document.body.innerHTML = document.body.innerHTML.replace(/\[cite.*?\]/g, '').replace(/\[cite_start\]/g, ''); </script>
 </body>
 </html>

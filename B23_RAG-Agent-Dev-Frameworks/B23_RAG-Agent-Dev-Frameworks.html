@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI底层技术与开发框架核心笔记</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.3; color: #000; background-color: #fff; margin: 0 auto; max-width: 980px; padding: 10px; font-size: 12px; }
+        h1 { font-size: 1.4em; text-align: center; margin: 0 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid #333; }
+        h2 { font-size: 1.2em; margin: 12px 0 6px 0; color: #111; border-left: 3px solid #0056b3; padding-left: 6px; background: #f8f9fa; }
+        h3 { font-size: 1.05em; margin: 8px 0 4px 0; color: #222; font-weight: bold; }
+        p, ul, ol { margin: 0 0 6px 0; }
+        ul { padding-left: 18px; }
+        li { margin-bottom: 3px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 11px; }
+        th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
+        th { background-color: #eee; font-weight: bold; }
+        .mermaid-container { text-align: center; margin: 6px 0; padding: 0; overflow-x: auto;}
+        .section { padding: 4px 0; margin-bottom: 8px; border-bottom: 1px dashed #eee; }
+        .math { font-family: "Cambria Math", "Latin Modern Math", serif; }
+    </style>
+</head>
+<body>
+
+    <h1>AI底层技术与开发框架核心笔记</h1>
+
+    <div class="mermaid-container">
+        <div class="mermaid">
+        %%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#ffffff', 'primaryTextColor': '#000000', 'lineColor': '#000000', 'fontFamily': 'sans-serif'}, 'flowchart': {'nodeSpacing': 12, 'rankSpacing': 35, 'curve': 'linear'}}}%%
+        graph LR
+            Root(AI技术知识体系) --> Agent[Agent与RAG架构]
+            Root --> NLP[大模型与NLP原理]
+            Root --> CV[计算机视觉与YOLO]
+            Root --> Eng[工程落地与技术选型]
+
+            Agent --> L_Core(LangChain六大组件)
+            Agent --> L_Memory(Memory机制)
+            Agent --> Arch(底层四大架构)
+            Agent --> ReAct(ReAct状态机)
+            Agent --> LCEL(LCEL数据流编排)
+            Agent --> Select(Agent框架选型)
+
+            NLP --> Trans(Transformer三大流派)
+            NLP --> Tok(Tokenizer原理)
+            NLP --> Grad(梯度消失与ReLU)
+
+            CV --> YOLO_Core(One-stage核心理念)
+            CV --> NMS(NMS去重与IOU)
+
+            Eng --> TF_PT(TF与PyTorch生态)
+            Eng --> TF_Graph(即时执行与静态图)
+            Eng --> QA(核心实战Q&A)
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>一、 Agent 框架与 RAG 架构</h2>
+        <h3>1. LangChain 核心机制</h3>
+        <ul>
+            [cite_start]<li><strong>六大组件：</strong> Models（模型层）、Prompts（提示管理）、Memory（记忆载入）、Indexes/Retrievers（外部结构化索引）、Chains（逻辑串联）、Agents（工具调用决策） [cite: 21, 22]。</li>
+            [cite_start]<li><strong>Memory 机制：</strong> BufferMemory（完整存储）、BufferWindowMemory（保留最近K组防止Token爆炸）、Conversation Summary Memory（LLM压缩历史以节省窗口空间）、VectorStore-backed Memory（RAG模式向量存储） [cite: 25, 26, 27, 28]。</li>
+            [cite_start]<li><strong>LCEL（链式表达式语言）：</strong> 借鉴Unix管道符设计，实现声明式数据流编排 [cite: 81, 82][cite_start]。底层强制所有组件继承 Runnable 基类，统一接口 [cite: 120, 122, 123][cite_start]。原生支持自动并发（RunnableParallel）、流式输出（.stream()）和异步批处理（.abatch()），极大降低多步任务并发部署成本 [cite: 84, 90]。</li>
+        </ul>
+
+        <h3>2. Agent 底层架构与 ReAct 逻辑</h3>
+        <ul>
+            [cite_start]<li><strong>从零手写 Agent 的四大架构：</strong> 大脑适配层（抹平API调用与Prompt差异）、双手扩展层（将Python函数转化为LLM能理解的Schema并执行）、记忆管理层（会话截断或向量化）、中枢编排层（调度Pipeline或Loop循环控制） [cite: 31, 32, 33, 34]。</li>
+            [cite_start]<li><strong>ReAct（Reason + Act）运行机制：</strong> 核心在于交替进行推理和行动 [cite: 65][cite_start]。状态机循环为：Thought（分析现状推理第一步） -> Action（从注册工具箱挑选工具） -> Action Input（组装参数喂给工具） -> Observation（框架执行工具代码并带回真实结果） [cite: 65, 66, 67, 68][cite_start]。此闭环不断运转直到输出 Final Answer [cite: 69]。</li>
+        </ul>
+
+        <h3>3. 框架选型与多文档 RAG 系统</h3>
+        <table>
+            <tr><th>框架</th><th>核心定位</th><th>关键技术特性</th></tr>
+            [cite_start]<tr><td>LangChain</td><td>全能型管家</td><td>流程优先，擅长业务流编排与复杂API对接 [cite: 146, 408]。</td></tr>
+            [cite_start]<tr><td>LlamaIndex</td><td>数据驱动专家</td><td>索引优先，解析海量私有文档的主力，一站式RAG支持 [cite: 147, 409]。</td></tr>
+            [cite_start]<tr><td>Qwen-Agent</td><td>轻量级选手</td><td>开箱即用体验好，内置代码解释器 [cite: 148, 344, 346]。</td></tr>
+            [cite_start]<tr><td>AutoGen</td><td>多智能体协作</td><td>适合单一Agent无法搞定的长链路任务及多角色辩论 [cite: 149, 155]。</td></tr>
+        </table>
+        <ul>
+            [cite_start]<li><strong>RAG 组合拳 (LangChain + LlamaIndex)：</strong> LlamaIndex 负责底层数据层（建索引、分块、检索），其检索返回的 Node 会被转换为 LangChain 的 Document 格式 [cite: 496, 497][cite_start]。随后接入 LangChain 的 LCEL 问答链进行生成，并可通过 @tool 串联报告保存等后续动作 [cite: 497]。</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>二、 大模型与 NLP 理论基础</h2>
+        <ul>
+            [cite_start]<li><strong>Transformer 三大流派：</strong> Encoder-Only (如BERT) 采用双向注意力机制，重理解（文本分类、NER） [cite: 502][cite_start]。Decoder-Only (如GPT/Llama) 采用单向自回归机制，重生成（对话、代码） [cite: 503][cite_start]。Encoder-Decoder (如T5/BART) 兼具两者，重序列转换（机器翻译、摘要） [cite: 504]。</li>
+            [cite_start]<li><strong>Tokenizer 隔离原则：</strong> 分词器绝对不能跨模型混用 [cite: 507][cite_start]。不同模型预训练的字典（Vocabulary）切词映射机制不同，且控制标记（如 BERT的 [CLS], Llama的 &lt;s&gt;）完全不兼容 [cite: 509, 510][cite_start]。混用等同于用乱码字典翻译外语，会导致输出乱码 [cite: 511, 517]。</li>
+            [cite_start]<li><strong>梯度消失与 ReLU 函数：</strong> 深度神经网络更新权重依赖反向传播的链式法则 [cite: 646][cite_start]。若使用 Sigmoid，其导数 $f'(x)=f(x)(1-f(x))$ 的最大值仅为 0.25 [cite: 647][cite_start]。在深层网络中连续相乘会导致靠近输入层的梯度衰减至接近于 0 [cite: 648, 649][cite_start]。ReLU 在 $x>0$ 时导数恒为 1，确保误差能无衰减传回浅层 [cite: 653, 654]。</li>
+            [cite_start]<li><strong>零样本验证分类：</strong> 直接调用 HuggingFace Pipeline 接口，指定 task="zero-shot-classification" [cite: 524, 535][cite_start]。可避开数据采集与模型微调周期，快速跑出业务 Demo [cite: 524, 525]。</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>三、 计算机视觉与 YOLO 算法</h2>
+        <ul>
+            [cite_start]<li><strong>核心差异：</strong> Two-stage (如 R-CNN) 先通过 RPN 提候选框再精细分类，步骤多速度慢 [cite: 681, 682, 683][cite_start]。One-stage (YOLO) 将检测问题重新定义为回归问题 [cite: 684, 685][cite_start]。输入网络一次就能同时输出所有物体的边界框坐标和类别概率，轻松达到 45+FPS [cite: 742, 743]。</li>
+            [cite_start]<li><strong>原理机制：</strong> YOLO 将图片划分为 $S \times S$ 的网格，每个网格负责预测中心点落在该格内的物体 [cite: 686][cite_start]。每个框预测出 B 个 bounding boxes，包含 $(x, y, h, w)$ 及其置信度 confidence [cite: 723, 724, 725]。<br>
+            </li>
+            [cite_start]<li><strong>NMS (非极大值抑制) 与 IOU：</strong> 预测输出后同一个物体往往被多次预测，NMS 负责去重 [cite: 747][cite_start]。流程：将框按置信度排序，选取最高的作为基准框A [cite: 748, 749][cite_start]。计算框A与其余框的 IOU，公式为 $IOU=(A \cap B)/(A \cup B)$ [cite: 750, 772][cite_start]。若 IOU 超过阈值（如 0.5），则剔除该冗余框，然后循环处理剩余框 [cite: 751, 752]。<br>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>四、 工程部署与高频 Q&A 精华</h2>
+        <ul>
+            [cite_start]<li><strong>TensorFlow 2.x 运行机制：</strong> Eager Execution（动态图）逐行解释执行，支持原生 Python 逻辑，适合开发调试但速度较慢 [cite: 659, 660, 661][cite_start]。Graph（静态图）将逻辑编译成独立数据流图，支持算子融合，推理性能极高 [cite: 662, 663, 664][cite_start]。生产中通常“开发用 Eager，上线转 Graph”，并通过 @tf.function 装饰器进行追踪并编译打包 [cite: 667, 668, 669]。</li>
+            [cite_start]<li><strong>生态对比：</strong> PyTorch 统治了学术界与大模型生态；TensorFlow 在工业级高性能推理（TF Serving）及移动端部署（TFLite）方面依然有成熟优势 [cite: 674, 676]。</li>
+            [cite_start]<li><strong>Tool Registry 交互流：</strong> 将外部工具的参数转成 JSON Schema 提供给 LLM [cite: 38][cite_start]。当 LLM 响应决定调用某工具（如返回 {"tool": "get_weather", "param": {"city": "beijing"}}）时，框架自动拦截，调度真实 Python 函数执行，最后将结果包装为 Tool Message 塞回给模型生成回复 [cite: 43, 44, 45, 824]。</li>
+            [cite_start]<li><strong>文档增量更新与机器学习选型：</strong> RAG 系统的频繁更新依赖 Elasticsearch 或 FAISS 知识库的支持 [cite: 824][cite_start]。对于企业负债风险预测或二手车价格预测等基于表格数据的回归与分类问题，以特征工程驱动的 XGBoost、CatBoost 和 LightGBM 算法是最优解 [cite: 823, 824]。</li>
+        </ul>
+    </div>
+<script> // 自动清除所有的 和 标记 
+document.body.innerHTML = document.body.innerHTML.replace(/\[cite.*?\]/g, '').replace(/\[cite_start\]/g, ''); </script>
+</body>
+</html>

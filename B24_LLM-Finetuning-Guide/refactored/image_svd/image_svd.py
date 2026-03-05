@@ -3,7 +3,8 @@ from scipy.linalg import svd
 from PIL import Image
 import matplotlib.pyplot as plt
 
-#t 21:24
+# 利用**奇异值分解（SVD, Singular Value Decomposition）**来实现图像压缩
+#t 102:08
 
 # 取前k个特征，对图像进行还原
 def get_image_feature(s, k):
@@ -13,10 +14,11 @@ def get_image_feature(s, k):
 	s = s_temp * np.identity(s.shape[0])
 	# 用新的s_temp，以及p,q重构A
 	temp = np.dot(p,s)
-	temp = np.dot(temp,q)
+	temp = np.dot(temp,q) # 仅用 k 个特征还原出来的“近似原图矩阵”
 	plt.imshow(temp, cmap=plt.cm.gray, interpolation='nearest')
 	plt.show()
-	print(A-temp)
+	print(f"###### 打印出残差矩阵, k: {k} ##########")
+	print(A-temp) # 用原图像减去重构后的图像，打印出残差矩阵（也就是图像压缩过程中丢失的细节和产生的误差）
 
 
 # 加载256色图片

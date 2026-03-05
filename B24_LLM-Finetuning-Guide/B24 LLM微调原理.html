@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>LLM微调原理与底层架构核心笔记</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+            primaryColor: '#ffffff',
+            primaryBorderColor: '#000000',
+            primaryTextColor: '#000000',
+            lineColor: '#000000',
+            fontFamily: 'sans-serif'
+        },
+        flowchart: { nodeSpacing: 10, rankSpacing: 25 }
+    });
+</script>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 8px; background: #fff; color: #000; font-size: 12px; line-height: 1.3; }
+    h1 { font-size: 16px; text-align: center; border-bottom: 2px solid #000; margin: 0 0 8px 0; padding-bottom: 4px; letter-spacing: 1px; }
+    h2 { font-size: 13px; margin: 6px 0 4px 0; background: #f0f0f0; padding: 3px 6px; border-left: 3px solid #000; display: block; }
+    h3 { font-size: 12px; margin: 4px 0; font-weight: bold; border-bottom: 1px dashed #ccc; display: inline-block; }
+    .mermaid-box { text-align: center; margin-bottom: 8px; transform: scale(0.95); transform-origin: top center; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+    .col { border: 1px solid #ddd; padding: 6px; border-radius: 2px; }
+    ul, p { margin: 2px 0; padding-left: 18px; }
+    li { margin-bottom: 2px; text-align: justify; }
+    .qa-box { padding: 4px 6px; border-left: 2px solid #555; background: #fafafa; margin-bottom: 4px; }
+    .q { font-weight: bold; margin-bottom: 2px; color: #111; }
+    .a { color: #333; text-align: justify; }
+    code { font-family: monospace; background: #eee; padding: 0 2px; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<h1>LLM微调原理与底层架构核心笔记</h1>
+
+<div class="mermaid-box">
+<div class="mermaid">
+graph LR
+    Root[LLM微调原理] --> A(应用范式选型)
+    A --> A1(Prompt工程: 澄清逻辑与指令)
+    A --> A2(RAG检索增强: 解决外部背景知识缺失)
+    A --> A3(微调: 解决深层能力不足/注入特定技能或风格)
+    
+    Root --> B(PEFT高效微调)
+    B --> B1(Prompt/P-Tuning: 添加软提示词, 极低参数量)
+    B --> B2(Prefix Tuning: 隐式前缀, 适用NLG任务)
+    B --> B3(LoRA: 旁路低秩更新, 降维再升维, 泛用性强)
+    B --> B4(QLoRA: 基于4-bit量化的LoRA, 降低显存门槛)
+    
+    Root --> C(底层数学印证: 矩阵分解)
+    C --> C1(内在低秩假设: 增量权重集中的核心方向)
+    C --> C2(SVD分解: 图像压缩, Top-K奇异值过滤噪点)
+    C --> C3(ALS算法: 推荐系统, 交替最小二乘法寻优)
+    
+    Root --> D(训练工程与资源)
+    D --> D1(数据法则: Textbook级别质量高于海量堆砌)
+    D --> D2(混合配比: 混入通用数据对抗灾难性遗忘)
+    D --> D3(显存估算: 经验2.2倍法则或拆分细化计算)
+</div>
+</div>
+
+<div class="grid">
+    <div class="col">
+        <h2>1. LoRA (Low-Rank Adaptation) 核心机制</h2>
+        <ul>
+            <li><b>基本思想：</b> 冻结预训练大模型权重 $W$，假设权重更新量 $\Delta W$ 具备“内在低秩特性”，通过添加旁路注入可训练的小矩阵 $A$（降维）和 $B$（升维）。</li>
+            <li><b>数学表达：</b> 前向传播 $h = Wx + BAx$。训练时初始 $A$ 高斯分布，$B$ 为全零矩阵（确保初始 $\Delta W = 0$）。</li>
+            <li><b>工程优势：</b> 
+                <ul>
+                    <li>可插拔：一个基础模型支持多个LoRA权重（几十到数百MB级别），自由切换任务。</li>
+                    <li>无推理延迟：推理阶段可将旁路权重合并至主干参数：$W' = W + BA$。</li>
+                    <li>极高压缩率：参数更新量缩减至 1%~10%，大幅降低优化器状态与梯度所需的显存。</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="col">
+        <h2>2. 矩阵分解原理跨界印证</h2>
+        <ul>
+            <li><b>SVD 图像压缩（主成分提取）：</b> 图像本质是庞大高秩矩阵，通过SVD（$A = P \Lambda Q^T$）拆解，按权重大小保留 Top-K 对角线特征值（秩Rank）。实测中，仅保留 8% 的关键低秩信息即可重构 95% 原图核心轮廓。LoRA 的矩阵拆分即借鉴了舍弃次要特征、锁定主导梯度的思想。</li>
+            <li><b>ALS 交替最小二乘法（如推荐系统）：</b> 针对稀疏大矩阵（如十万用户×十万商品），将其降维映射为稠密的“User隐矩阵”和“Item隐矩阵”。求解时，通过固定 $Y$ 求 $X$，再固定 $X$ 求 $Y$ 的迭代方式（寻找梯度为0极值），优化目标为最小化 <b>MSE(误差平方和) + L2正则化惩罚</b>，这等同于神经网络利用损失函数梯度下降寻找最优 $\Delta W$ 的过程。</li>
+        </ul>
+    </div>
+</div>
+
+<div class="grid-3">
+    <div class="col">
+        <h2>3. 微调数据质量工程</h2>
+        <ul>
+            <li><b>绝对主导地位：</b> 高质量数据是微调成功的先决条件（Textbook级别）。1000条格式统一的完美数据远胜于10万条杂乱数据。数据清理标注耗时可占工程总周期的 80% 以上。</li>
+            <li><b>三要素：</b>
+                <ul>
+                    <li><b>一致性：</b> 指令风格、输入模板、输出格式绝对对齐。</li>
+                    <li><b>准确性：</b> 模型会拟合所有Pattern，容错率为零（Garbage In, Garbage Out）。</li>
+                    <li><b>多样性：</b> 防止模型变“死板”，指令须覆盖真实场景泛化结构。</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="col">
+        <h2>4. 硬件需求与显存计算评估</h2>
+        <ul>
+            <li><b>显存四大开销：</b> <code>总显存 = 模型权重 + 优化器状态 + 梯度 + 激活值</code></li>
+            <li><b>估算公式：</b>
+                <ul>
+                    <li>模型权重：参数量(B) × 2字节(FP16)。7B模型约14GB。</li>
+                    <li>激活值估算：与Batch Size和Seq Length强相关，常粗估为模型权重的 20%-50%。</li>
+                    <li>经验定标：微调所需的总显存约为模型权重的 <b>2.2 ~ 3倍</b> 左右。</li>
+                </ul>
+            </li>
+            <li><b>配置对照：</b> 7B/8B模型(24GB显存，如4090)；13B模型(32GB+显存，或采用QLoRA的4-bit量化极压榨方案)。</li>
+        </ul>
+    </div>
+    
+    <div class="col">
+        <h2>5. 评估与抗遗忘策略</h2>
+        <ul>
+            <li><b>验证与测试分离：</b> 训练集微调，验证集监控是否过拟合（Loss反升即停止），测试集(封存)用作最终评估。</li>
+            <li><b>评估维度：</b> 任务主指标量化（如BLEU、F1）、通用能力保持（常识/推理）、泛化能力、人工定性分析。</li>
+            <li><b>防止灾难性遗忘：</b>
+                <ul>
+                    <li>数据层面：必须按比例（如4:1）混合通用预训练知识和垂直领域数据。</li>
+                    <li>工程层面：高频保存 Checkpoint，若发生通用能力崩塌，立刻回滚至正常节点调参。</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<h2>课堂精华 Q&A</h2>
+<div class="grid">
+    <div class="qa-box">
+        <div class="q">Q: LoRA 的秩 (Rank/K) 如何设定？</div>
+        <div class="a">A: Rank 属于人为指定的超参数。一般设为2的倍数。较小的K（2, 4, 8）足以应对普通校准和轻量风格微调，大幅节省显存；若任务庞大复杂且信息折损不可接受，可调大至64或128，但成本会逼近全参微调。</div>
+    </div>
+    <div class="qa-box">
+        <div class="q">Q: 大模型为何不直接使用 SVD 进行压缩？</div>
+        <div class="a">A: 静态直接使用SVD对数百亿参数非线性网络进行全局压缩代价高昂且易损失非线性表达。现阶段部分大模型内嵌低秩机制，而LoRA关注的是在特定下游任务的“增量动态学习”时利用低秩特性，这更符合应用侧高效落地的诉求。</div>
+    </div>
+    <div class="qa-box">
+        <div class="q">Q: 损失函数或权重计算出现负值是否正常？</div>
+        <div class="a">A: 算法求解的权重偏置偏导出现负数属于正常的数学空间探索方向。评估模型收敛的唯一锚点是预测与实际标记之间的误差平方和（MSE/RMSE）是否整体趋于最小化极值。</div>
+    </div>
+    <div class="qa-box">
+        <div class="q">Q: 微调和知识蒸馏在原理上一样吗？</div>
+        <div class="a">A: 本质机制不同。蒸馏是用大模型生成伪标签/软标签数据（Input/Output）去训练小模型，小模型通过拟合高维分布捕获关键特征；而微调是在已有基座网络上叠加少量参数层（如LoRA Delta）进行实体物理网络结构的权重更新。</div>
+    </div>
+    <div class="qa-box">
+        <div class="q">Q: 微调造成模型原有通用能力退化（变傻）怎么办？</div>
+        <div class="a">A: 这是由于垂类数据的极度拟合打破了原有分布权重。应对方案：一是在微调数据集中按比例混入既有通用知识；二是利用 Checkpoint 机制果断回退到指标完好的历史版本，切忌“一条道走到黑”。</div>
+    </div>
+    <div class="qa-box">
+        <div class="q">Q: LoRA 是在全量权重上经过两道处理吗？</div>
+        <div class="a">A: 推理与训练中是形成“旁支并联”。输入数据 $X$ 会同时流经冻结的主矩阵 $W$ 和低秩旁路矩阵 $B \times A$，两者独立运算后对各自生成的张量结果进行加和处理（累加重构）。</div>
+    </div>
+</div>
+
+</body>
+</html>
