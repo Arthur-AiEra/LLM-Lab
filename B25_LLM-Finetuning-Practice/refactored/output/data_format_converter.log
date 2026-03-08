@@ -1,0 +1,70 @@
+/usr/local/bin/python3.12 /private/var/www/github/Arthur-AiEra/LLM-Lab/B25_LLM-Finetuning-Practice/refactored/data_format_converter.py
+============================================================
+数据格式转换工具 - 演示
+============================================================
+
+--- 示例：Alpaca格式 ---
+{
+  "instruction": "请回答以下医疗相关问题",
+  "input": "我最近总是感觉头晕，应该怎么办？",
+  "output": "头晕的原因很多，建议您首先注意休息..."
+}
+
+--- 示例：Chat格式 ---
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "你是一个专业的医疗助手。"
+    },
+    {
+      "role": "user",
+      "content": "我最近总是感觉头晕，应该怎么办？"
+    },
+    {
+      "role": "assistant",
+      "content": "头晕的原因很多，建议您首先注意休息..."
+    }
+  ]
+}
+
+--- 演示：Alpaca -> Chat ---
+Alpaca -> Chat: 2 条
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "你是一个专业的医疗助手"
+    },
+    {
+      "role": "user",
+      "content": "感冒发烧怎么办？"
+    },
+    {
+      "role": "assistant",
+      "content": "建议多休息、多喝水，如体温超过38.5度可服用退烧药。"
+    }
+  ]
+}
+
+--- 演示：Chat -> Alpaca ---
+Chat -> Alpaca: 2 条
+{
+  "instruction": "你是一个专业的医疗助手",
+  "input": "感冒发烧怎么办？",
+  "output": "建议多休息、多喝水，如体温超过38.5度可服用退烧药。"
+}
+
+--- 演示：格式化为Unsloth SFT ---
+格式化为Unsloth SFT格式: 2 条
+你是一个专业的医疗助手。请根据患者的问题提供专业、准确的回答。
+
+### 问题：
+感冒发烧怎么办？
+
+### 回答：
+建议多休息、多喝水，如体温超过38.5度可服用退烧药。<|endoftext|>
+
+格式转换演示完成!
+
+Process finished with exit code 0

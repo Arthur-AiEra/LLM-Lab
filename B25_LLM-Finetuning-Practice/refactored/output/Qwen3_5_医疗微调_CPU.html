@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen3.5 医疗大模型微调代码分析</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .mermaid {
+            text-align: center;
+            margin: 30px 0;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        code {
+            background-color: #f1f3f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+        .section-block {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        .section-block:last-child {
+            border-bottom: none;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Qwen3.5 医疗微调代码 (CPU版) 分析报告</h1>
+    <p>该脚本的主要目标是在 CPU 环境下，使用约 3.2GB 内存完成 Qwen3.5-0.8B 模型的中文医疗数据监督微调（SFT）。</p>
+
+    <hr>
+
+    <h2>1. 函数调用关系与执行流程</h2>
+    <div class="mermaid">
+    graph TD
+        Main((程序入口 __main__))
+        
+        subgraph 主执行流程
+            Main --> Step1[1. 加载模型与分词器]
+            Main --> Step2[2. 配置 LoRA]
+            Main --> Step3[3. 准备与格式化数据]
+            Main --> Step4[4. SFT 训练]
+            Main --> Step5[5. 测试推理]
+            Main --> Step6[6. 保存模型]
+        end
+
+        subgraph 数据处理模块
+            Step3 -->|调用| prepare_training_data
+            prepare_training_data -->|优先| load_from_jsonl
+            prepare_training_data -->|兜底| load_from_csv
+            load_from_csv -->|调用| read_csv_with_encoding
+            Step3 -->|map映射| formatting_func
+        end
+        
+        Step1 --> Step2
+        Step2 --> Step3
+        Step3 --> Step4
+        Step4 --> Step5
+        Step5 --> Step6
+    </div>
+
+    <h2>2. 各模块功能详细解释</h2>
+
+    <div class="section-block">
+        <h3>数据处理与加载函数</h3>
+        <p>这一部分定义了从本地环境提取并清洗对话数据的逻辑：</p>
+        <ul>
+            <li><strong><code>read_csv_with_encoding(file_path)</code></strong>: 一个高容错的 CSV 读取器。它会依次尝试 <code>gb18030</code>、<code>utf-8</code>、<code>gbk</code> 和 <code>gb2312</code> 编码。如果都失败，会使用 <code>gb18030</code> 结合忽略错误（<code>errors='replace'</code>）的方式强行读取，防止数据加载中断。</li>
+            <li><strong><code>load_from_jsonl(jsonl_path)</code></strong>: 逐行读取 JSONL 格式的文件，并将其解析为 Python 字典列表。</li>
+            <li><strong><code>load_from_csv(data_dir, max_samples=2000)</code></strong>: 从指定的医疗科室子目录（如内科、外科等）中遍历读取 CSV 文件。提取问题和回答字段，过滤掉无效的空值以及长度过短的数据（问题需≥5字符，回答需≥10字符），最多提取 <code>max_samples</code> 条数据。</li>
+            <li><strong><code>prepare_training_data()</code></strong>: 数据获取的调度中心。它采取优先级策略：优先检查并加载已处理好的 <code>processed_data</code> 目录下的 JSONL 文件，若未找到，才回退调用 <code>load_from_csv</code> 从原始目录处理数据。</li>
+        </ul>
+    </div>
+    
+    
+    <div class="section-block">
+        <h3>主程序流程 (<code>__main__</code> 内部逻辑)</h3>
+        <p>这是整个微调生命周期的主干，涵盖了从模型加载到导出的 6 个核心步骤：</p>
+        <ul>
+            <li><strong>第一步：加载模型</strong>。使用 <code>AutoTokenizer</code> 和 <code>AutoModelForCausalLM</code> 加载指定路径的 Qwen 模型。为了适配 CPU 训练，显式指定了 <code>dtype=torch.float32</code>。同时处理了缺少 pad_token 的情况。</li>
+            <li><strong>第二步：配置 LoRA</strong>。初始化 <code>LoraConfig</code>，设置秩 <code>r=8</code>，缩放因子 <code>lora_alpha=16</code>，并针对自注意力层和前馈层的投影矩阵（<code>q_proj</code>, <code>k_proj</code>, <code>v_proj</code>, <code>o_proj</code>）注入可训练参数。随后通过 <code>get_peft_model</code> 应用该配置。</li>
+            <li><strong>第三步：准备与格式化数据</strong>。调用前述的数据获取函数，将数据转化为 HuggingFace 的 <code>Dataset</code> 对象。定义内部闭包函数 <code>formatting_func</code>，将输入和输出拼接进 <code>MEDICAL_PROMPT</code> 模板，并在末尾追加 <code>eos_token</code>（终止符），随后通过 <code>dataset.map</code> 批量应用。</li>
+            <li><strong>第四步：SFT 训练</strong>。设置 <code>train_kwargs</code>（单设备批次大小1，梯度累积步数2，最大训练步数10等）。实例化 <code>SFTConfig</code>（传入最新的 <code>max_length=512</code>）和 <code>SFTTrainer</code>（传入最新的 <code>processing_class=tokenizer</code>），并执行 <code>trainer.train()</code> 启动训练。</li>
+            <li><strong>第五步：测试推理</strong>。训练完成后，将模型设为 <code>eval()</code> 模式。针对三个内置的测试问题，构造 Prompt，使用 <code>model.generate</code> 生成回答（限制最大生成128 token，温度0.7），并清洗输出只保留回答主体内容进行打印。</li>
+            <li><strong>第六步：保存 LoRA 模型</strong>。在本地创建名为 <code>lora_model_medical</code> 的文件夹，调用 <code>save_pretrained</code> 方法将微调得到的增量权重与分词器持久化保存。</li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,232 @@
+/usr/local/bin/python3.12 /private/var/www/github/Arthur-AiEra/LLM-Lab/B25_LLM-Finetuning-Practice/refactored/sft_quick_comparison.py
+============================================================
+  清洗前后SFT微调快速对比实验
+  运行模式: CPU (transformers+peft)
+============================================================
+
+============================================================
+  清洗前后SFT微调对比实验 (CPU模式)
+  每组数据: 200条, 训练: 8步
+============================================================
+  [原始数据] 加载 200 条（未清洗）
+  [清洗数据] 加载 200 条（已清洗）
+Map: 100%|██████████| 200/200 [00:00<00:00, 46402.30 examples/s]
+Map: 100%|██████████| 200/200 [00:00<00:00, 149689.65 examples/s]
+
+============================================================
+  开始训练: 原始数据(未清洗)
+  数据量: 200 条, 模式: CPU
+  步数: 8
+============================================================
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights: 100%|██████████| 320/320 [00:01<00:00, 215.14it/s, Materializing param=model.norm.weight]
+Adding EOS to train dataset: 100%|██████████| 200/200 [00:00<00:00, 44942.98 examples/s]
+Tokenizing train dataset: 100%|██████████| 200/200 [00:00<00:00, 4854.83 examples/s]
+Truncating train dataset: 100%|██████████| 200/200 [00:00<00:00, 207844.60 examples/s]
+The tokenizer has new PAD/BOS/EOS tokens that differ from the model config and generation config. The model config and generation config were aligned accordingly, being updated with the tokenizer's values. Updated tokens: {'eos_token_id': 248046, 'pad_token_id': 248044}.
+ 12%|█▎        | 1/8 [00:23<02:44, 23.46s/it]{'loss': '4.506', 'grad_norm': '1.029', 'learning_rate': '0', 'entropy': '3.822', 'num_tokens': '265', 'mean_token_accuracy': '0.2294', 'epoch': '0.01'}
+ 25%|██▌       | 2/8 [00:47<02:21, 23.63s/it]{'loss': '4.314', 'grad_norm': '0.8579', 'learning_rate': '0.0001', 'entropy': '3.89', 'num_tokens': '568', 'mean_token_accuracy': '0.3034', 'epoch': '0.02'}
+{'loss': '4.934', 'grad_norm': '0.9122', 'learning_rate': '0.0002', 'entropy': '4.112', 'num_tokens': '863', 'mean_token_accuracy': '0.2379', 'epoch': '0.03'}
+ 50%|█████     | 4/8 [01:34<01:34, 23.57s/it]{'loss': '4.933', 'grad_norm': '1.047', 'learning_rate': '0.0001667', 'entropy': '4.001', 'num_tokens': '1132', 'mean_token_accuracy': '0.2337', 'epoch': '0.04'}
+{'loss': '5.537', 'grad_norm': '1.113', 'learning_rate': '0.0001333', 'entropy': '4.325', 'num_tokens': '1452', 'mean_token_accuracy': '0.2072', 'epoch': '0.05'}
+ 75%|███████▌  | 6/8 [02:22<00:47, 23.79s/it]{'loss': '3.873', 'grad_norm': '0.9315', 'learning_rate': '0.0001', 'entropy': '3.735', 'num_tokens': '1753', 'mean_token_accuracy': '0.2804', 'epoch': '0.06'}
+ 88%|████████▊ | 7/8 [02:46<00:24, 24.01s/it]{'loss': '4.773', 'grad_norm': '1.095', 'learning_rate': '6.667e-05', 'entropy': '3.914', 'num_tokens': '2067', 'mean_token_accuracy': '0.2733', 'epoch': '0.07'}
+{'loss': '3.928', 'grad_norm': '1.096', 'learning_rate': '3.333e-05', 'entropy': '3.39', 'num_tokens': '2332', 'mean_token_accuracy': '0.3103', 'epoch': '0.08'}
+100%|██████████| 8/8 [03:10<00:00, 23.80s/it]
+{'train_runtime': '190.4', 'train_samples_per_second': '0.084', 'train_steps_per_second': '0.042', 'train_loss': '4.6', 'epoch': '0.08'}
+
+--- 原始数据(未清洗): 推理测试 ---
+  Q: 我最近总是感觉头晕，应该怎么办？
+  A: 1. 头晕是一种常见症状，可以缓解症状的方法有：
+   - 1. 立即停止活动，休息
+   - 2. 多喝温水
+   - 3. 保持心情愉快
+   - 4. 避免吃油腻食物
+   - 5. 避免吃生冷食物
+   - 6. 避免吃辛辣食物
+   - 7. 保持室内温暖
+   - 8. 避免使用电子产品
+   - 9. 避免长时间站立
+   - 10. 保持室内通风
+   - 11. 保持
+
+  Q: 感冒发烧应该吃什么药？
+  A: ### 回答
+
+  Q: 高血压患者需要注意什么？
+  A: 高血压患者需要注意什么？
+高血压患者需要注意以下事项：
+1. 控制血压：
+   - 每日血压记录
+   - 每日血压记录
+   - 每日血压记录
+2. 饮食方面：
+   - 低盐饮食
+   - 低盐饮食
+   - 低盐饮食
+3. 运动方面：
+   - 有氧运动
+   - 有氧运动
+   - 有氧运动
+4. 心理方面：
+   - 保持心态
+   - 保持心态
+   - 保持心态
+5. 睡眠方面：
+
+
+
+============================================================
+  开始训练: 清洗后数据
+  数据量: 200 条, 模式: CPU
+  步数: 8
+============================================================
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 1103.17it/s, Materializing param=model.norm.weight]
+Adding EOS to train dataset: 100%|██████████| 200/200 [00:00<00:00, 37327.50 examples/s]
+Tokenizing train dataset: 100%|██████████| 200/200 [00:00<00:00, 5306.19 examples/s]
+Truncating train dataset: 100%|██████████| 200/200 [00:00<00:00, 233991.85 examples/s]
+The tokenizer has new PAD/BOS/EOS tokens that differ from the model config and generation config. The model config and generation config were aligned accordingly, being updated with the tokenizer's values. Updated tokens: {'eos_token_id': 248046, 'pad_token_id': 248044}.
+ 12%|█▎        | 1/8 [00:24<02:52, 24.71s/it]{'loss': '4.506', 'grad_norm': '0.9022', 'learning_rate': '0', 'entropy': '3.822', 'num_tokens': '265', 'mean_token_accuracy': '0.2294', 'epoch': '0.01'}
+{'loss': '4.314', 'grad_norm': '0.7735', 'learning_rate': '0.0001', 'entropy': '3.89', 'num_tokens': '568', 'mean_token_accuracy': '0.3034', 'epoch': '0.02'}
+ 38%|███▊      | 3/8 [01:12<02:00, 24.03s/it]{'loss': '4.937', 'grad_norm': '0.8158', 'learning_rate': '0.0002', 'entropy': '4.109', 'num_tokens': '863', 'mean_token_accuracy': '0.2379', 'epoch': '0.03'}
+{'loss': '4.943', 'grad_norm': '0.9413', 'learning_rate': '0.0001667', 'entropy': '3.991', 'num_tokens': '1132', 'mean_token_accuracy': '0.2337', 'epoch': '0.04'}
+ 62%|██████▎   | 5/8 [01:59<01:11, 23.77s/it]{'loss': '5.562', 'grad_norm': '0.9663', 'learning_rate': '0.0001333', 'entropy': '4.225', 'num_tokens': '1436', 'mean_token_accuracy': '0.1896', 'epoch': '0.05'}
+{'loss': '3.889', 'grad_norm': '0.8592', 'learning_rate': '0.0001', 'entropy': '3.708', 'num_tokens': '1737', 'mean_token_accuracy': '0.2804', 'epoch': '0.06'}
+ 88%|████████▊ | 7/8 [02:53<00:25, 25.67s/it]{'loss': '4.529', 'grad_norm': '1.029', 'learning_rate': '6.667e-05', 'entropy': '3.686', 'num_tokens': '2027', 'mean_token_accuracy': '0.2948', 'epoch': '0.07'}
+100%|██████████| 8/8 [03:20<00:00, 26.05s/it]{'loss': '3.944', 'grad_norm': '1.023', 'learning_rate': '3.333e-05', 'entropy': '3.355', 'num_tokens': '2292', 'mean_token_accuracy': '0.3137', 'epoch': '0.08'}
+100%|██████████| 8/8 [03:20<00:00, 25.10s/it]
+{'train_runtime': '200.8', 'train_samples_per_second': '0.08', 'train_steps_per_second': '0.04', 'train_loss': '4.578', 'epoch': '0.08'}
+
+--- 清洗后数据: 推理测试 ---
+  Q: 我最近总是感觉头晕，应该怎么办？
+  A: ### 请根据患者的问题提供专业、准确的回答。
+
+### 问题：
+我最近总是感觉头晕，应该怎么办？
+
+###
+
+  Q: 感冒发烧应该吃什么药？
+  A: 感冒发烧应该吃什么药？
+
+  Q: 高血压患者需要注意什么？
+  A: 高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患
+
+
+============================================================
+  对比结果: 清洗前 vs 清洗后
+============================================================
+
+--- 训练统计 ---
+  指标                   清洗前             清洗后
+  数据量                  200             200
+  训练时间(秒)              190.43          200.8
+  最终Loss               4.5999          4.5781
+
+--- Loss曲线对比 ---
+  Step   1: 清洗前=4.5057  清洗后=4.5057
+  Step   2: 清洗前=4.3143  清洗后=4.3143
+  Step   3: 清洗前=4.9343  清洗后=4.9369
+  Step   4: 清洗前=4.9332  清洗后=4.9426
+  Step   5: 清洗前=5.5368  清洗后=5.5625
+  Step   6: 清洗前=3.8735  清洗后=3.8893
+  Step   7: 清洗前=4.7733  清洗后=4.5291
+  Step   8: 清洗前=3.9284  清洗后=3.9442
+
+--- 生成质量对比 ---
+
+  问题: 我最近总是感觉头晕，应该怎么办？
+  清洗前: 1. 头晕是一种常见症状，可以缓解症状的方法有：
+   - 1. 立即停止活动，休息
+   - 2. 多喝温水
+   - 3. 保持心情愉快
+   - 4. 避免吃油腻食物
+   - 5. 避免吃生冷食物
+   - 6. 避免吃辛辣食物
+   - 7. 保持室内温暖
+   - 8. 避免使用电子产品
+  清洗后: ### 请根据患者的问题提供专业、准确的回答。
+
+### 问题：
+我最近总是感觉头晕，应该怎么办？
+
+###
+
+  问题: 感冒发烧应该吃什么药？
+  清洗前: ### 回答
+  清洗后: 感冒发烧应该吃什么药？
+
+  问题: 高血压患者需要注意什么？
+  清洗前: 高血压患者需要注意什么？
+高血压患者需要注意以下事项：
+1. 控制血压：
+   - 每日血压记录
+   - 每日血压记录
+   - 每日血压记录
+2. 饮食方面：
+   - 低盐饮食
+   - 低盐饮食
+   - 低盐饮食
+3. 运动方面：
+   - 有氧运动
+   - 有氧运动
+   - 有氧运动
+  清洗后: 高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什么？
+
+高血压患者需要注意什
+
+  对比报告已保存: comparison_report.json
+
+============================================================
+  核心结论: 数据质量 > 数据数量
+============================================================
+
+实验完成!
+
+Process finished with exit code 0

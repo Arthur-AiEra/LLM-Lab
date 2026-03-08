@@ -158,11 +158,13 @@ def make_dataset(data_list, tokenizer):
 # 模型加载（GPU/CPU兼容）
 # ========================================
 
+# Unsloth: 它重写了底层的大量数学运算逻辑（称为 CUDA 算子，如 Flash Attention、RoPE 等），能让微调速度提升 2 到 5 倍、省显存，无法降级到 CPU
+# CPU 的架构擅长处理复杂的逻辑控制，而不擅长处理深度学习需要的大规模并行矩阵乘法
 def load_model(model_name=None, use_gpu=None):
     """
     加载模型和tokenizer
-    GPU: 使用Unsloth + 4bit量化
-    CPU: 使用transformers + float32
+    GPU: 使用Unsloth + 4bit量化 => 极速、省显存
+    CPU: 使用transformers + float32 => 慢、高兼容性， 对低比特量化（如 4-bit/8-bit）的训练支持极差；Hugging Face 的官方标准库组合。transformers 负责加载模型，peft 负责外挂 LoRA 模块；
     """
     if model_name is None:
         model_name = MODEL_NAME

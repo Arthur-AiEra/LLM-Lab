@@ -1,0 +1,60 @@
+/usr/local/bin/python3.12 /private/var/www/github/Arthur-AiEra/LLM-Lab/B25_LLM-Finetuning-Practice/refactored/Qwen3_5_医疗微调_CPU.py
+2026-03-07 11:14:00,401 - INFO - MODEL_NAME: /private/var/ifc/app_data/autodl-tmp/models/Qwen/Qwen3___5-0___8B
+CPU模式: float32加载 (约需3.2GB内存)
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights: 100%|██████████| 320/320 [00:01<00:00, 219.57it/s, Materializing param=model.norm.weight]
+trainable params: 540,672 || all params: 752,933,696 || trainable%: 0.0718
+Map: 100%|██████████| 2000/2000 [00:00<00:00, 166470.36 examples/s]
+Adding EOS to train dataset:   0%|          | 0/2000 [00:00<?, ? examples/s]训练数据: 2000 条
+Adding EOS to train dataset: 100%|██████████| 2000/2000 [00:00<00:00, 74173.11 examples/s]
+Tokenizing train dataset: 100%|██████████| 2000/2000 [00:00<00:00, 6144.96 examples/s]
+Truncating train dataset: 100%|██████████| 2000/2000 [00:00<00:00, 870007.05 examples/s]
+The tokenizer has new PAD/BOS/EOS tokens that differ from the model config and generation config. The model config and generation config were aligned accordingly, being updated with the tokenizer's values. Updated tokens: {'eos_token_id': 248046, 'pad_token_id': 248044}.
+ 10%|█         | 1/10 [00:24<03:38, 24.30s/it]{'loss': '4.027', 'grad_norm': '0.8826', 'learning_rate': '0.0002', 'entropy': '3.607', 'num_tokens': '320', 'mean_token_accuracy': '0.3242', 'epoch': '0.001'}
+{'loss': '3.753', 'grad_norm': '0.7567', 'learning_rate': '0.00018', 'entropy': '3.458', 'num_tokens': '610', 'mean_token_accuracy': '0.3047', 'epoch': '0.002'}
+ 30%|███       | 3/10 [01:09<02:40, 22.95s/it]{'loss': '4.878', 'grad_norm': '0.8617', 'learning_rate': '0.00016', 'entropy': '3.996', 'num_tokens': '914', 'mean_token_accuracy': '0.2481', 'epoch': '0.003'}
+ 40%|████      | 4/10 [01:31<02:13, 22.25s/it]{'loss': '3.946', 'grad_norm': '0.9253', 'learning_rate': '0.00014', 'entropy': '3.459', 'num_tokens': '1201', 'mean_token_accuracy': '0.3264', 'epoch': '0.004'}
+{'loss': '4.147', 'grad_norm': '0.9258', 'learning_rate': '0.00012', 'entropy': '3.642', 'num_tokens': '1489', 'mean_token_accuracy': '0.2922', 'epoch': '0.005'}
+ 60%|██████    | 6/10 [02:13<01:25, 21.49s/it]{'loss': '3.744', 'grad_norm': '0.9535', 'learning_rate': '0.0001', 'entropy': '3.239', 'num_tokens': '1790', 'mean_token_accuracy': '0.3607', 'epoch': '0.006'}
+ 70%|███████   | 7/10 [02:34<01:04, 21.43s/it]{'loss': '3.528', 'grad_norm': '0.8994', 'learning_rate': '8e-05', 'entropy': '3.379', 'num_tokens': '2099', 'mean_token_accuracy': '0.3745', 'epoch': '0.007'}
+ 80%|████████  | 8/10 [02:55<00:42, 21.39s/it]{'loss': '3.764', 'grad_norm': '0.9772', 'learning_rate': '6e-05', 'entropy': '3.51', 'num_tokens': '2406', 'mean_token_accuracy': '0.342', 'epoch': '0.008'}
+ 90%|█████████ | 9/10 [03:16<00:21, 21.28s/it]{'loss': '4.364', 'grad_norm': '1.04', 'learning_rate': '4e-05', 'entropy': '3.766', 'num_tokens': '2648', 'mean_token_accuracy': '0.3187', 'epoch': '0.009'}
+{'loss': '3.695', 'grad_norm': '1.04', 'learning_rate': '2e-05', 'entropy': '3.436', 'num_tokens': '2878', 'mean_token_accuracy': '0.3377', 'epoch': '0.01'}
+100%|██████████| 10/10 [03:37<00:00, 21.74s/it]
+{'train_runtime': '217.4', 'train_samples_per_second': '0.092', 'train_steps_per_second': '0.046', 'train_loss': '3.985', 'epoch': '0.01'}
+Q: 我最近总是感觉头晕，应该怎么办？
+A: 您好！头晕是一种比较常见的症状，可能是由多种因素引起的。头晕的原因可能包括：
+
+1. 脑血管疾病如脑血管病、高血压、高血脂、动脉硬化、高血压、动脉硬化、脑血管病等。
+2. 其他原因如颈椎病、颈椎病、颈椎病、颈椎病、颈椎病等。
+3. 其他原因如消化不良、消化不良、消化不良、消化不良等。
+4. 其他原因如睡眠障碍、睡眠障碍、睡眠障碍、睡眠障碍等。
+
+此外，还有一些其他因素如：
+
+4. 其他因素如：
+
+
+
+Q: 感冒发烧应该吃什么药？
+A: 感冒发烧应该吃什么药？
+感冒发烧是身体的一种正常反应，如果发烧超过38.5℃，或者出现其他不适症状，应该及时就医。
+感冒发烧应该吃什么药？
+感冒发烧是身体的一种正常反应，如果发烧超过38.5℃，或者出现其他不适症状，应该及时就医。
+感冒发烧应该吃什么药？
+感冒发烧是身体的一种正常反应，如果发烧超过38.5℃，或者出现其他不适症状，应该及时就医。
+
+<think>
+Thinking Process:
+
+Q: 高血压患者需要注意什么？
+A: 高血压患者需要注意以下事项：
+1. **控制血压**：高血压患者需要定期监测血压，控制血压水平。
+2. **饮食控制**：高血压患者需要低盐饮食，少吃咸菜、腊肉、香肠等含盐量高的食物，多吃新鲜蔬菜、水果。
+3. **控制血糖**：高血压患者需要控制血糖水平，特别是糖尿病合并高血压患者。
+4. **控制血脂**：高血压患者需要控制血脂水平，特别是合并糖尿病的患者。
+5. **控制心率**：高血压患者
+
+LoRA模型已保存: lora_model_medical
+
+Process finished with exit code 0

@@ -15,7 +15,7 @@ import sys
 MODEL_ID = "Qwen/Qwen3.5-0.8B"
 
 # AutoDL环境
-AUTODL_CACHE_DIR = "/root/autodl-tmp/models"
+AUTODL_CACHE_DIR = "/private/var/ifc/app_data/autodl-tmp/models"
 
 # 本地Windows环境
 LOCAL_CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
@@ -25,7 +25,7 @@ def detect_environment():
     """检测当前运行环境"""
     if sys.platform == "win32":
         return "windows", LOCAL_CACHE_DIR
-    elif os.path.exists("/root/autodl-tmp"):
+    elif os.path.exists("/private/var/ifc/app_data/autodl-tmp"):
         return "autodl", AUTODL_CACHE_DIR
     else:
         return "linux", LOCAL_CACHE_DIR

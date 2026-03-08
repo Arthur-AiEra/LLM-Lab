@@ -12,6 +12,12 @@ import glob
 import torch
 import pandas as pd
 from datasets import Dataset
+import logging
+
+# 简单配置：设置根记录器的级别为 DEBUG
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+#t 108:55 LoRA（Low-Rank Adaptation，低秩微调） https://gemini.google.com/app/dc27954cd53de868
 
 # ========================================
 # 配置
@@ -27,13 +33,12 @@ MEDICAL_PROMPT = """你是一个专业的医疗助手。请根据患者的问题
 
 _DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "【数据集】中文医疗数据")
 _PROCESSED_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "processed_data")
-_LOCAL_MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "models", "Qwen", "Qwen3___5-0___8B")
+_LOCAL_MODEL_DIR = "/private/var/ifc/app_data/autodl-tmp/models/Qwen/Qwen3___5-0___8B"
 if os.path.exists(_LOCAL_MODEL_DIR):
     MODEL_NAME = _LOCAL_MODEL_DIR
 else:
     MODEL_NAME = "Qwen/Qwen3.5-0.8B"
-
+logging.info(f"MODEL_NAME: {MODEL_NAME}")
 
 def read_csv_with_encoding(file_path):
     """尝试使用不同编码读取CSV，gb18030是GBK超集优先尝试"""
@@ -120,7 +125,7 @@ if __name__ == "__main__":
     # 1. 加载模型
     print("CPU模式: float32加载 (约需3.2GB内存)")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
-    model = AutoModelForCausalLM.from_pretrained(
+    model = AutoModelForCausalLM.from_pretrained( # 基础模型
         MODEL_NAME,
         dtype=torch.float32,
         trust_remote_code=True,
@@ -129,13 +134,14 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
 
     # 2. 配置LoRA
-    lora_config = LoraConfig(
-        r=8,
+    lora_config = LoraConfig( # ΔW=BA
+        r=8, # 设置秩 r=8， r=8 意味着这两个小矩阵的中间维度只有 8
         lora_alpha=16,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+        target_modules=["q_proj", "k_proj", "v_proj", "o_proj"], # 指定了 LoRA 只更新注意力机制相关的权重参数 ：Query, Key, Value, Output 投影层
         lora_dropout=0.05,
         task_type="CAUSAL_LM",
     )
+    # 应用配置， PEFT 高效微调
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
 
@@ -157,47 +163,37 @@ if __name__ == "__main__":
     # 4. SFT训练
     train_kwargs = dict(
         per_device_train_batch_size=1,
-        gradient_accumulation_steps=2,
-        max_steps=10,
+        gradient_accumulation_steps=2, # 梯度累积步数2
+        max_steps=10, # 最大训练步数
         learning_rate=2e-4,
         fp16=False,
         bf16=False,
+        # 优化器： 指导模型如何利用刚才算出来的错误（梯度）去更新参数
+        # 它像一个智能指南针，不仅知道该往哪个方向走，还能根据路况（不同参数的特性）自动为你调节步伐大小，防止模型在学习时“走火入魔”（过拟合）
         optim="adamw_torch",
         use_cpu=True,
         output_dir="outputs_medical",
         report_to="none",
         logging_steps=1,
     )
-    try:
-        from trl import SFTConfig
-        sft_config = SFTConfig(
-            **train_kwargs,
-            max_seq_length=512,
-            dataset_text_field="text",
-            dataset_num_proc=1,
-            packing=False,
-        )
-        trainer = SFTTrainer(
-            model=model,
-            processing_class=tokenizer,
-            train_dataset=dataset,
-            args=sft_config,
-        )
-    except (ImportError, TypeError):
-        from transformers import TrainingArguments
-        training_args = TrainingArguments(**train_kwargs)
-        trainer = SFTTrainer(
-            model=model,
-            tokenizer=tokenizer,
-            train_dataset=dataset,
-            dataset_text_field="text",
-            max_seq_length=512,
-            dataset_num_proc=1,
-            packing=False,
-            args=training_args,
-        )
 
-    trainer.train()
+    from trl import SFTConfig
+
+    sft_config = SFTConfig(
+        **train_kwargs,
+        max_length=512,  # <--- 修改处：从 max_seq_length 改为 max_length
+        dataset_text_field="text",
+        dataset_num_proc=1,
+        packing=False,
+    )
+    trainer = SFTTrainer( # SFTTrainer（监督微调训练器）是“老师”
+        model=model, # 基础模型是“学生”
+        processing_class=tokenizer,  # 传译员: 负责把课本翻译成数字，把学生的回答翻译成人类语言
+        train_dataset=dataset, # 数据集是“课本”
+        args=sft_config, # 训练参数，就是老师制定的“教学计划”
+    )
+    # 学习方法 (LoRA)：老师允许学生不用把整本百科全书重抄一遍，只用“贴便利贴”的方式（低秩矩阵）快速记住核心的医学知识
+    trainer.train() # 启动训练
 
     # 5. 测试推理
     test_questions = [
@@ -205,11 +201,13 @@ if __name__ == "__main__":
         "感冒发烧应该吃什么药？",
         "高血压患者需要注意什么？",
     ]
+    # 训练完成后，将模型设为 eval() 模式 => 模型内部层（如 Dropout）的物理行为，确保计算逻辑是针对测试环境的
+    # 1. 关闭 Dropout（随机失活）机制; 2. 冻结 Normalization（归一化）层的统计数据
     model.eval()
     for q in test_questions:
         prompt = MEDICAL_PROMPT.format(q, "")
-        inputs = tokenizer(prompt, return_tensors="pt")
-        with torch.no_grad():
+        inputs = tokenizer(prompt, return_tensors="pt") # 把患者的问题（prompt）扔给分词器，并且要求它直接输出 PyTorch 张量（return_tensors="pt"）
+        with torch.no_grad(): # 改变的是底层引擎的记录行为。它告诉 PyTorch：“现在是测试，不需要通过反向传播更新权重了，请停止记录梯度。” 这样做可以极大地节省显存（或内存）并成倍提升生成速度。
             outputs = model.generate(
                 **inputs,
                 max_new_tokens=128,

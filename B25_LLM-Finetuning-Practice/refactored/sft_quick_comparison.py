@@ -21,8 +21,8 @@ from datasets import Dataset
 HAS_GPU = torch.cuda.is_available()
 
 # 优先使用本地已下载的模型
-_LOCAL_MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "models", "Qwen", "Qwen3___5-0___8B")
+# _LOCAL_MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "Qwen", "Qwen3___5-0___8B")
+_LOCAL_MODEL_DIR = "/private/var/ifc/app_data/autodl-tmp/models/Qwen/Qwen3___5-0___8B"
 if os.path.exists(_LOCAL_MODEL_DIR):
     MODEL_NAME = _LOCAL_MODEL_DIR
 else:
@@ -276,7 +276,7 @@ def train_model(dataset, output_dir, experiment_name="experiment", use_gpu=None)
         from trl import SFTConfig
         sft_config = SFTConfig(
             **train_kwargs,
-            max_seq_length=MAX_SEQ_LENGTH,
+            max_length=MAX_SEQ_LENGTH,
             dataset_text_field="text",
             dataset_num_proc=1,
             packing=False,

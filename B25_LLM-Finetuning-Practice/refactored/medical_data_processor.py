@@ -13,6 +13,7 @@ import pandas as pd
 from collections import Counter, defaultdict
 from datasets import Dataset
 
+#t 82:50
 
 # ========================================
 # 第一步：数据收集 - 多源异构数据整合
@@ -352,7 +353,7 @@ def main():
     alpaca_data = to_alpaca_format(cleaned_data)
     save_dataset(alpaca_data, os.path.join(output_dir, "medical_alpaca_full.jsonl"))
     
-    # 保存Chat格式（完整）
+    # 保存Chat格式（完整）=> 多轮对话
     chat_data = to_chat_format(cleaned_data)
     save_dataset(chat_data, os.path.join(output_dir, "medical_chat_full.jsonl"))
     
