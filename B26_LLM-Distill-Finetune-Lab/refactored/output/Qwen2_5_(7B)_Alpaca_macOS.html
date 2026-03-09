@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen2.5-7B macOS微调代码深度解析</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad: true});</script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        h1 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        h3 { color: #2980b9; }
+        .mermaid-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin: 20px 0;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+        }
+        .card {
+            background: white;
+            border-left: 5px solid #3498db;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        code {
+            background-color: #f1f2f3;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+            color: #c7254e;
+        }
+        .highlight { font-weight: bold; color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+    <h1>Qwen2.5-7B macOS 微调代码深度解析</h1>
+    <p>这份代码是一个专门为 <strong>macOS (Apple Silicon/Metal GPU)</strong> 环境优化的 Qwen2.5-7B 大语言模型微调（SFT）脚本。它使用了 Hugging Face 的 <code>transformers</code> 库和 <code>PEFT</code> (LoRA) 技术，基于 Alpaca 格式的数据集进行指令微调。</p>
+
+    <h2>一、 核心执行流程与函数调用关系图</h2>
+    <div class="mermaid-container">
+        <div class="mermaid">
+        graph TD
+            Start((启动脚本)) --> Env{1. 硬件环境检测<br>MPS / CUDA / CPU}
+            Env --> LoadModel[加载 Tokenizer 与 CausalLM 模型]
+            LoadModel --> LoRA[2. 配置并注入 LoRA 适配器<br>调用 get_peft_model]
+            LoRA --> LoadData[3. 加载 Alpaca 数据集<br>本地加载或 HF 下载]
+
+            LoadData --> MapFormat[Dataset.map 批处理数据格式化]
+            MapFormat -.调用.-> FuncFormat(formatting_prompts_func<br>拼接 Instruction, Input, Output)
+
+            FuncFormat --> MapTokenize[Dataset.map 批处理数据标记化]
+            MapTokenize -.调用.-> FuncTokenize(tokenize_function<br>生成 input_ids 和 labels)
+
+            FuncTokenize --> TrainArgs[4. 训练参数配置<br>macOS 降存调优]
+            TrainArgs --> InitTrainer[实例化 MetalCompatibleTrainer<br>继承并重写 Trainer]
+
+            InitTrainer --> Train[5. 开始训练 trainer.train]
+            Train -.训练步进中频繁调用.-> FuncPrepInputs(MetalCompatibleTrainer._prepare_inputs<br>强制 Tensor 移至 MPS 设备)
+
+            Train --> Eval[6. 推理验证模型<br>model.eval]
+            Eval -.测试时调用.-> FuncGen(generate_response<br>生成测试回答)
+
+            FuncGen --> Save[7. 保存模型<br>仅保存 LoRA 权重与分词器]
+            Save --> End((结束))
+        </div>
+    </div>
+
+    <h2>二、 各部分功能详细解析</h2>
+
+    <div class="card">
+        <h3>Step 1: 环境检测与模型加载</h3>
+        <p><strong>功能：</strong>首先检测运行环境的硬件加速支持情况。代码优先检测 <code>torch.backends.mps.is_available()</code>，这是针对 macOS Apple Silicon (M1/M2/M3 等) 的 Metal Performance Shaders (MPS) 加速后端。如果没有，则降级寻找 CUDA 或 CPU。</p>
+                <p><strong>模型加载：</strong>尝试从本地路径加载 <code>Qwen2.5-7B-Instruct</code> 的模型和分词器。内置了 <code>try-except</code> 容错机制，本地失败会自动从 Hugging Face 仓库下载。加载时禁用了 <code>device_map="auto"</code>，以便后续手动精确控制模型所在的设备，防止 macOS 显存分配策略报错。</p>
+    </div>
+
+    <div class="card">
+        <h3>Step 2: LoRA 适配器配置</h3>
+        <p><strong>功能：</strong>大模型全量微调对显存要求极高（macOS 通常无法承受 7B 模型的全参微调）。这里使用了 PEFT 技术中的 LoRA（低秩自适应）。</p>
+                <p><strong>机制：</strong>冻结了模型的主体权重，只在注意力机制的关键层（如 <code>q_proj</code>, <code>k_proj</code>, <code>v_proj</code> 等）旁路添加少量的可训练参数（秩 <code>r=16</code>）。这极大地减少了内存占用和计算量。</p>
+    </div>
+
+    <div class="card">
+        <h3>Step 3: Alpaca 数据集准备 (涉及两个核心函数)</h3>
+        <p><strong>功能：</strong>加载 Alpaca 格式的指令数据集，并将其转换为模型可以理解的 Token ID。此步骤包含两个核心数据预处理函数：</p>
+        <ul>
+            <li><strong><code>formatting_prompts_func(examples)</code></strong>：将数据集中的 <code>instruction</code>（指令）、<code>input</code>（上下文输入）和 <code>output</code>（期望回答）通过 <code>alpaca_prompt</code> 模板拼接成一段完整的纯文本，并在末尾加上结束符 <code>EOS_TOKEN</code>。</li>
+            <li><strong><code>tokenize_function(examples)</code></strong>：将上一步拼接好的长文本输入给 Tokenizer，转化为数字 ID (<code>input_ids</code>)。<br>
+            <br>
+            <span class="highlight">关键点：</span>对于因果语言模型（Causal LM），训练目标是预测下一个词，因此代码中通过 <code>tokenized["labels"] = tokenized["input_ids"].copy()</code> 将输入直接复制作为标签（Trainer 内部会自动进行 shift 错位操作来计算 Loss）。</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>Step 4 & 5: 训练配置与自定义 Trainer</h3>
+        <p><strong>功能：</strong>配置训练超参数，并执行微调。这里的参数是<strong>专门为 macOS 定制</strong>的。例如：禁用了 <code>bf16</code> 和 <code>fp16</code>（因为 Metal 后端对混合精度支持有局限）；禁用了 <code>dataloader_pin_memory=False</code>；使用了极小的 <code>batch_size=1</code> 并配合 <code>gradient_accumulation_steps=8</code> 来模拟大批次训练以防统一内存溢出 (OOM)。</p>
+        <p><strong>自定义类 <code>MetalCompatibleTrainer(Trainer)</code>：</strong></p>
+        <ul>
+            <li><strong>作用：</strong>继承了原生 <code>Trainer</code> 类，并重写了 <code>_prepare_inputs</code> 方法。</li>
+            <li><strong>原因：</strong>在标准的 Trainer 中，数据移动到设备的逻辑有时无法完美适配 macOS 的 MPS 后端。这个重写方法会在每一步训练前，强制遍历所有的输入数据（如 input_ids, labels），显式调用 <code>.to(device)</code>，确保 CPU 和 MPS 之间的数据流转不出错。</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>Step 6 & 7: 推理验证与模型保存</h3>
+        <p><strong>推理验证：</strong>训练结束后，将模型切换到评估模式 (<code>model.eval()</code>)，调用自定义的 <strong><code>generate_response(instruction, input_text="")</code></strong> 函数。该函数接收用户的指令，套用微调时的模板，token 化后移动到 MPS，调用 <code>model.generate</code> 生成回复，最后解码返回纯文本验证微调效果。</p>
+        <p><strong>模型保存：</strong>最后，将训练好的 LoRA 权重和分词器保存到本地目录。注意，这里保存的<strong>仅仅是几十 MB 的 LoRA 适配器权重文件</strong>，而不是几十 GB 的完整 7B 模型。后续推理时需要结合原版基础模型一起加载。</p>
+    </div>
+
+</body>
+</html>

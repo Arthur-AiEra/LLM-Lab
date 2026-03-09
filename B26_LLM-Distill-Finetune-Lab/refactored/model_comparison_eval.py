@@ -11,6 +11,7 @@ import re
 import time
 import torch
 
+#t 152:10 https://gemini.google.com/app/b0c8e221ea7ba4ac
 
 # ========================================
 # 评估维度定义

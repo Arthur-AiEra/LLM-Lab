@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen2.5 (7B) GRPO 强化学习代码分析报告</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .mermaid-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+        .function-block {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            background-color: #f8fcfd;
+        }
+        code {
+            background-color: #eee;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+            color: #d63384;
+        }
+        pre {
+            background-color: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Qwen2.5 (7B) GRPO 强化学习代码分析报告</h1>
+    <p>本报告分析了基于 Unsloth 和 TRL 框架，使用 GRPO（组内相对策略优化）算法对 Qwen2.5-7B 模型进行推理能力（数学解题）微调的代码逻辑。</p>
+
+    <h2>一、 函数调用关系与执行流程 (Mermaid 流程图)</h2>
+    <div class="mermaid-container">
+        <div class="mermaid">
+        graph TD
+            subgraph main_process [主程序执行流程]
+                A["脚本启动"] --> B("加载预训练模型与Tokenizer <br/> FastLanguageModel.from_pretrained")
+                B --> C("配置 LoRA 参数 <br/> FastLanguageModel.get_peft_model")
+                C --> D("加载并格式化数据集 <br/> get_gsm8k_questions")
+                D --> E("初始化 GRPO 训练器 <br/> GRPOTrainer")
+                E --> F("执行训练 <br/> trainer.train")
+                F --> G("保存与导出模型 <br/> model.save_lora")
+            end
+
+            subgraph reward_system [强化学习打分系统 - 在训练期间被调用]
+                E -.->|生成样本后调用| H{"奖励函数集群"}
+                H --> I["correctness_reward_func <br/> 结果正确性打分"]
+                H --> J["int_reward_func <br/> 整数格式打分"]
+                H --> K["strict_format_reward_func <br/> 严格 XML 格式打分"]
+                H --> L["soft_format_reward_func <br/> 宽松 XML 格式打分"]
+                H --> M["xmlcount_reward_func <br/> XML 标签数量打分"]
+            end
+
+            subgraph utils [辅助工具函数]
+                I -.-> N("extract_xml_answer <br/> 提取模型答案")
+                I -.-> O("extract_hash_answer <br/> 提取标准答案")
+                J -.-> N
+                M -.-> P("count_xml <br/> 统计标签对数")
+            end
+        </div>
+    </div>
+
+    <h2>二、 核心模块与函数详细解析</h2>
+
+    <h3>1. 数据准备模块</h3>
+    <div class="function-block">
+        <h4><code>get_gsm8k_questions(split="train")</code></h4>
+        <p><strong>功能：</strong>加载并预处理 GSM8K 数学应用题数据集。</p>
+        <p><strong>逻辑梳理：</strong>它从 Hugging Face 数据集中心下载 <code>openai/gsm8k</code>。然后通过映射函数，提取每一条数据的 <code>question</code>（问题）和 <code>answer</code>（答案）。最重要的是，它将问题封装进了特定的 <code>SYSTEM_PROMPT</code> 和 <code>XML_COT_FORMAT</code>（即带有 <code>&lt;think&gt;</code> 标签的思维链格式）中，使得模型在输入时就知道需要遵循特定的推理格式。</p>
+    </div>
+
+    <h3>2. 答案提取与解析辅助模块</h3>
+    <div class="function-block">
+        <h4><code>extract_xml_answer(text: str) -> str</code></h4>
+        <p><strong>功能：</strong>从模型生成的长篇文本中，精准提取出位于 <code>&lt;answer&gt;</code> 和 <code>&lt;/answer&gt;</code> 之间的最终计算结果。</p>
+    </div>
+    <div class="function-block">
+        <h4><code>extract_hash_answer(text: str) -> str | None</code></h4>
+        <p><strong>功能：</strong>用于解析原始 GSM8K 数据集中的标准答案。GSM8K 的标准答案通常以 <code>####</code> 作为最终答案的分隔符，此函数通过字符串分割获取准确的数值答案。</p>
+    </div>
+
+    <h3>3. GRPO 奖励函数集群 (Reward Functions)</h3>
+    <p>这些函数构成了 GRPO 算法中的“裁判”，负责对模型生成的回答 <code>completions</code> 进行多维度打分。</p>
+
+    <div class="function-block">
+        <h4><code>correctness_reward_func(prompts, completions, answer, **kwargs)</code></h4>
+        <p><strong>功能：</strong>核心奖励函数，判断模型的最终答案是否与标准答案一致。</p>
+        <p><strong>逻辑梳理：</strong>遍历模型生成的多个回答，提取出 <code>&lt;answer&gt;</code> 标签内的文本，并与数据集中传入的真实 <code>answer</code>（经过 <code>extract_hash_answer</code> 处理）进行严格字符串比对。如果一致，给予高分（2.0），否则给 0 分。</p>
+    </div>
+
+    <div class="function-block">
+        <h4><code>int_reward_func(completions, **kwargs)</code></h4>
+        <p><strong>功能：</strong>类型检查奖励。</p>
+        <p><strong>逻辑梳理：</strong>判断模型给出的答案是否是一个纯数字（整数）。这有助于引导模型不要在最终 <code>&lt;answer&gt;</code> 标签里废话，只输出结果。如果是数字给 0.5 分。</p>
+    </div>
+
+    <div class="function-block">
+        <h4><code>strict_format_reward_func</code> & <code>soft_format_reward_func</code></h4>
+        <p><strong>功能：</strong>规范模型的“思考”格式。</p>
+        <p><strong>逻辑梳理：</strong>严格格式打分（Strict）使用正则表达式检查输出是否完全符合 <code>^&lt;think&gt;...&lt;/think&gt;&lt;answer&gt;...&lt;/answer&gt;$</code> 的正则结构。宽松格式打分（Soft）只检查字符串中是否包含了这些关键的 XML 标签。符合格式即给予奖励分数，促使模型学会“先思考，后作答”的 DeepSeek-R1 模式。</p>
+    </div>
+
+    <div class="function-block">
+        <h4><code>xmlcount_reward_func(completions, **kwargs)</code> 与 <code>count_xml(text)</code></h4>
+        <p><strong>功能：</strong>防止标签滥用或缺失。</p>
+        <p><strong>逻辑梳理：</strong>统计生成的文本中 <code>&lt;think&gt;</code> 等标签的开闭对数。理想情况下，每个回答只应该有一组思考和答案标签。如果刚好是一对，得 0.125 分；数量不对则倒扣分（0.0 分）。</p>
+    </div>
+
+    <h3>4. 核心训练配置与执行模块 (主程序流程)</h3>
+    <div class="function-block">
+        <p><strong>功能：</strong>统筹整个大模型的加载、参数配置与强化学习训练过程。</p>
+        <p><strong>逻辑梳理：</strong></p>
+        <ul>
+            <li><strong>加载阶段：</strong>利用 Unsloth 的 <code>FastLanguageModel</code> 加载 Qwen2.5-7B 模型，并设置序列最大长度和 4-bit 量化（针对显存优化）。</li>
+            <li><strong>LoRA 挂载：</strong>配置 <code>r=16</code>，目标模块覆盖了所有的注意力矩阵和前馈网络层。</li>
+            <li><strong>GRPO 训练配置：</strong>通过 <code>GRPOConfig</code> 配置学习率（1e-5）、批大小等。同时，将上述定义的所有奖励函数以列表形式 <code>reward_funcs=[...]</code> 传递给 <code>GRPOTrainer</code>。</li>
+            <li><strong>模型保存：</strong>训练完成后，支持将 LoRA 权重保存到本地或推送到 Hugging Face Hub，同时支持导出为 16-bit 格式或 GGUF 格式。</li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

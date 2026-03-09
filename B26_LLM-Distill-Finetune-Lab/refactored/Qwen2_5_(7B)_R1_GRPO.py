@@ -1,48 +1,91 @@
 # -*- coding: utf-8 -*-
 """
-Qwen2.5-7B GRPO强化学习训练R1模型
+Qwen2.5-7B GRPO强化学习训练R1模型 - macOS 兼容版本
 课程：LLM模型蒸馏与微调实操
 功能：使用GRPO（Group Relative Policy Optimization）训练Qwen2.5-7B的推理能力
-环境：AutoDL GPU实例，建议 A100/A800 40GB+
-依赖：pip install unsloth vllm
+环境：macOS with Metal GPU 加速（或 CPU）
+依赖：pip install transformers peft trl datasets
 """
 
+#t 107:32 https://gemini.google.com/app/b0c8e221ea7ba4ac
+
 # ========================================
-# Step 1: 模型加载（启用vLLM快速推理）
+# Step 1: 模型加载
 # ========================================
 
-import unsloth
-from unsloth import FastLanguageModel
 import torch
+import warnings
+warnings.filterwarnings("ignore")
+
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import LoraConfig, get_peft_model
 
 max_seq_length = 1024  # 可以增加以获得更长的推理轨迹
 lora_rank = 32  # 更大的rank让模型更智能，但训练更慢
 
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name="/root/autodl-tmp/models/Qwen/Qwen2___5-7B-Instruct",
-    max_seq_length=max_seq_length,
-    load_in_4bit=True,
-    fast_inference=True,  # 启用vLLM快速推理
-    max_lora_rank=lora_rank,
-    gpu_memory_utilization=0.6,  # 显存不足时可降低
-)
+# 检测设备
+if torch.backends.mps.is_available():
+    device = "mps"
+    print("✓ Using Metal GPU (MPS) acceleration")
+    dtype = torch.float16
+elif torch.cuda.is_available():
+    device = "cuda"
+    print("✓ Using CUDA GPU")
+    dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.get_device_capability(0)[0] >= 8 else torch.float16
+else:
+    device = "cpu"
+    print("⚠ Using CPU (training will be slow)")
+    dtype = torch.float32
 
+print(f"Device: {device}, Dtype: {dtype}")
+
+# 模型路径
+model_path = "/private/var/ifc/app_data/autodl-tmp/models/Qwen/Qwen2___5-7B-Instruct"
+
+try:
+    print(f"Loading model from {model_path}...")
+    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+    
+    model = AutoModelForCausalLM.from_pretrained(
+        model_path,
+        torch_dtype=dtype,
+        device_map="auto" if device != "cpu" else None,
+        trust_remote_code=True,
+    )
+    
+    if device == "cpu":
+        model = model.to(device)
+    
+    print("✓ Model loaded successfully")
+    
+except Exception as e:
+    print(f"✗ Failed to load model: {e}")
+    exit(1)
 
 # ========================================
 # Step 2: LoRA配置
 # ========================================
 
-model = FastLanguageModel.get_peft_model(
-    model,
+# LoRA配置
+lora_config = LoraConfig(
     r=lora_rank,
+    lora_alpha=lora_rank,
     target_modules=[
         "q_proj", "k_proj", "v_proj", "o_proj",
         "gate_proj", "up_proj", "down_proj",
     ],
-    lora_alpha=lora_rank,
-    use_gradient_checkpointing="unsloth",
-    random_state=3407,
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
 )
+
+# 应用LoRA
+model = get_peft_model(model, lora_config)
+print("✓ LoRA applied to model")
+
+# 添加TRL需要的属性
+if not hasattr(model, 'warnings_issued'):
+    model.warnings_issued = {}
 
 
 # ========================================
@@ -89,7 +132,7 @@ def extract_hash_answer(text: str) -> str | None:
 
 def get_gsm8k_questions(split="train") -> Dataset:
     """加载GSM8K数据集"""
-    data = load_dataset('/root/autodl-tmp/datasets/gsm8k', 'main')[split]
+    data = load_dataset('/private/var/www/github/Arthur-AiEra/LLM-Lab/B26_LLM-Distill-Finetune-Lab/refactored/【数据集】gsm8k', 'main')[split]
     data = data.map(lambda x: {
         'prompt': [
             {'role': 'system', 'content': SYSTEM_PROMPT},
@@ -171,24 +214,27 @@ max_prompt_length = 256
 from trl import GRPOConfig, GRPOTrainer
 
 training_args = GRPOConfig(
-    learning_rate=5e-6,
+    learning_rate=5e-6, # 比SFT低一个数量级，强化学习需稳定
     adam_beta1=0.9,
     adam_beta2=0.99,
     weight_decay=0.1,
     warmup_ratio=0.1,
     lr_scheduler_type="cosine",
-    optim="paged_adamw_8bit",
+    optim="adamw_torch",  # 使用标准AdamW
     logging_steps=1,
-    per_device_train_batch_size=1,
+    per_device_train_batch_size=2,  # 增加batch size以满足generation_batch_size要求
     gradient_accumulation_steps=1,
-    num_generations=6,  # 每个问题生成6个候选答案
+    num_generations=2,  # 每个问题生成2个候选答案（GRPO需要至少2个）
     max_prompt_length=max_prompt_length,
     max_completion_length=max_seq_length - max_prompt_length,
-    max_steps=250,
-    save_steps=250,
+    max_steps=10,
+    save_steps=10,
     max_grad_norm=0.1,
     report_to="none",
     output_dir="outputs",
+    use_vllm=False,  # 禁用vLLM以避免兼容性问题
+    # MPS兼容性设置
+    dataloader_pin_memory=False,  # MPS不支持pin_memory
 )
 
 trainer = GRPOTrainer(
@@ -214,39 +260,53 @@ trainer.train()
 # ========================================
 
 # 保存LoRA参数
-model.save_lora("grpo_saved_lora")
+model.save_pretrained("grpo_saved_lora")
+tokenizer.save_pretrained("grpo_saved_lora")
+print("✓ LoRA adapters saved to 'grpo_saved_lora'")
 
 # 测试模型推理
+# 1. 关闭梯度检查点（把模型从“省显存训练状态”解放出来）
+model.gradient_checkpointing_disable()
+
+# 2. 将模型切换到评估/推理模式（关闭 Dropout 等训练专属层）
+model.eval()
+
 text = tokenizer.apply_chat_template([
     {"role": "system", "content": SYSTEM_PROMPT},
     {"role": "user", "content": "Calculate pi."},
 ], tokenize=False, add_generation_prompt=True)
 
-from vllm import SamplingParams
-sampling_params = SamplingParams(
-    temperature=0.8,
-    top_p=0.95,
-    max_tokens=2048,
-)
+inputs = tokenizer(text, return_tensors="pt").to(device)
 
-output = model.fast_generate(
-    text,
-    sampling_params=sampling_params,
-    lora_request=model.load_lora("grpo_saved_lora"),
-)[0].outputs[0].text
+with torch.no_grad():
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=2048,
+        temperature=0.8,
+        top_p=0.95,
+        do_sample=True,
+        use_cache = True, # 在调用 model.generate() 生成文本时，大模型极其依赖 KV Cache（键值缓存）  来记住它上一秒刚说过的话
+        pad_token_id=tokenizer.eos_token_id,
+    )
 
-print(output)
+generated_text = tokenizer.decode(outputs[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
+print("Generated response(Calculate pi):")
+print(generated_text)
 
 
 # ========================================
 # 模型导出选项（按需取消注释）
 # ========================================
 
-# 保存为16bit浮点
-# model.save_pretrained_merged("model", tokenizer, save_method="merged_16bit")
+# 保存为16bit浮点合并模型
+# from peft import merge_and_unload
+# merged_model = merge_and_unload(model, model.base_model)
+# merged_model.save_pretrained("model_merged", safe_serialization=True)
+# tokenizer.save_pretrained("model_merged")
 
-# 保存为4bit整数
-# model.save_pretrained_merged("model", tokenizer, save_method="merged_4bit")
+# 保存为4bit量化模型（需要bitsandbytes）
+# model.save_pretrained("model_4bit", safe_serialization=True)
+# tokenizer.save_pretrained("model_4bit")
 
 # 仅保存LoRA适配器
 # model.save_pretrained_merged("model", tokenizer, save_method="lora")

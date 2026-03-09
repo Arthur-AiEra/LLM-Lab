@@ -6,6 +6,8 @@ Qwen2-VL 3B 视觉模型微调 - 汽车保险承保专家
 环境：AutoDL GPU实例
 """
 
+#t 140:15 https://gemini.google.com/app/b0c8e221ea7ba4ac
+
 # ========================================
 # Step 1: 模型加载
 # ========================================
@@ -16,10 +18,24 @@ from PIL import Image
 from unsloth import FastVisionModel
 import torch
 
+# 模型路径（请根据实际路径修改）
+model_path = "/private/var/ifc/app_data/autodl-tmp/models/Qwen/Qwen2___5-VL-3B-Instruct"
+
+
 print("正在加载Qwen2.5-VL-3B模型...")
-model, tokenizer = FastVisionModel.from_pretrained(
-    "/root/autodl-tmp/models/Qwen/Qwen2.5-VL-3B-Instruct",
-    use_gradient_checkpointing="unsloth",
+# Unsloth 写法:
+# model, tokenizer = FastVisionModel.from_pretrained(
+#     "/private/var/ifc/app_data/autodl-tmp/models/Qwen/Qwen2___5-VL-3B-Instruct",
+#     use_gradient_checkpointing="unsloth",
+# )
+
+# 原生 Mac 兼容写法:
+from transformers import Qwen2VLForConditionalGeneration, AutoProcessor
+processor = AutoProcessor.from_pretrained(model_path)
+model = Qwen2VLForConditionalGeneration.from_pretrained(
+    model_path,
+    torch_dtype=torch.float16,
+    device_map="mps"  # 核心：调用 Mac 的 GPU
 )
 
 print("配置LoRA参数...")

@@ -6,6 +6,8 @@ Qwen2.5-7B SFT微调（Alpaca数据集）
 环境：AutoDL GPU实例，建议 A100/3090
 """
 
+#t 81:20 https://gemini.google.com/app/b0c8e221ea7ba4ac
+
 # ========================================
 # Step 1: 模型加载与4bit量化
 # ========================================
@@ -19,7 +21,7 @@ load_in_4bit = True  # 4bit量化减少显存
 
 # 加载预训练模型
 model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name="/root/autodl-tmp/models/Qwen/Qwen2___5-7B-Instruct",
+    model_name="/private/var/ifc/app_data/autodl-tmp/models/Qwen/Qwen2___5-7B-Instruct",
     max_seq_length=max_seq_length,
     dtype=dtype,
     load_in_4bit=load_in_4bit,
@@ -190,7 +192,7 @@ if True:
     inputs = tokenizer(
         [alpaca_prompt.format("What is a famous tall tower in Paris?", "", "")],
         return_tensors="pt"
-    ).to("cuda")
+    )# .to("cuda")
     
     text_streamer = TextStreamer(tokenizer)
     _ = model.generate(**inputs, streamer=text_streamer, max_new_tokens=128)

@@ -12,7 +12,7 @@ import sys
 # 配置区域（根据环境修改）
 # ========================================
 
-MODEL_ID = "Qwen/Qwen3.5-0.8B"
+MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct" # Qwen2.5-7B-Instruct, Qwen2.5-VL-3B-Instruct
 
 # AutoDL环境
 AUTODL_CACHE_DIR = "/private/var/ifc/app_data/autodl-tmp/models"

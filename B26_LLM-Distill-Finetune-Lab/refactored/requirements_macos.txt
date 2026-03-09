@@ -1,0 +1,38 @@
+# LLM 模型蒸馏与微调实操 - macOS 兼容环境依赖
+# 安装方式: pip install -r requirements_macos.txt
+
+# 基础深度学习框架（macOS 原生支持）
+torch
+torchvision
+
+# Transformers - Hugging Face 模型库
+transformers
+
+# LoRA 微调
+peft
+
+# 强化学习训练
+trl
+
+# 数据处理
+datasets
+pandas
+openpyxl
+
+# 训练和评估
+tqdm
+
+# 图像处理（VL 微调需要）
+Pillow
+
+# 模型下载
+modelscope
+huggingface-hub
+
+# 评估工具
+jieba
+nltk
+
+# 可选：用于高级功能的库
+accelerate
+bitsandbytes-npu  # macOS 替代品（如果需要 8-bit 优化）

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen-VL 车险理赔多模态微调 (macOS 版) 代码分析报告</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f6f9;
+        }
+        h1, h2, h3 { color: #2c3e50; }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .mermaid-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+        }
+        .function-block {
+            margin-bottom: 25px;
+            padding: 15px 20px;
+            border-left: 5px solid #007aff;
+            background-color: #f8fbff;
+            border-radius: 0 8px 8px 0;
+        }
+        code {
+            background-color: #eef1f5;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            color: #d73a49;
+            font-size: 0.9em;
+        }
+        .highlight { color: #005cc5; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Qwen-VL (Vision) 车险理赔微调代码分析</h1>
+    <p>本报告详解了在脱离 Unsloth 框架后，如何在 macOS (MPS 后端) 上使用原生 Hugging Face 生态对 Qwen2-VL 模型进行“车险受损图片定损”的多模态监督微调 (SFT)。</p>
+
+    <h2>一、 函数调用关系与执行流程 (Mermaid 流程图)</h2>
+    <div class="mermaid-container">
+        <div class="mermaid">
+        graph TD
+            subgraph main_process ["主程序执行流程 (Mac 原生版)"]
+                A["脚本启动 main()"] --> B("加载模型与视觉处理器 <br/> load_model_and_processor")
+                B --> C("配置多模态 LoRA 参数 <br/> setup_peft_lora")
+                C --> D("加载车险图文数据集 <br/> load_car_insurance_data")
+                D --> E("多模态数据对齐与批处理 <br/> DataCollatorForQwenVL")
+                E --> F("初始化训练器 <br/> Trainer")
+                F --> G("执行微调训练 <br/> trainer.train")
+                G --> H("保存 LoRA 适配器 <br/> save_pretrained")
+            end
+
+            subgraph data_processing ["视觉-语言联合处理流"]
+                E -.-> I("读取车损图片 (PIL.Image)")
+                E -.-> J("提取定损文本描述")
+                I -.-> K{"AutoProcessor"}
+                J -.-> K
+                K -.-> L("生成 pixel_values (图像特征)")
+                K -.-> M("生成 input_ids (文本 Token)")
+            end
+
+            style main_process fill:#f0f7ff,stroke:#007aff,stroke-width:2px
+            style data_processing fill:#fff5f5,stroke:#ff6b6b,stroke-width:2px
+        </div>
+    </div>
+
+    <h2>二、 核心模块与功能详细解析</h2>
+
+    <h3>1. 模型与处理器初始化</h3>
+    <div class="function-block">
+        <h4><code>load_model_and_processor(model_path)</code></h4>
+        <p><strong>功能：</strong>取代 Unsloth 的 <code>FastVisionModel</code>，将 Qwen-VL 原生加载到 Mac 的统一内存中。</p>
+        <p><strong>底层逻辑：</strong></p>
+        <ul>
+            <li>使用 <code>AutoProcessor.from_pretrained()</code> 加载处理器。VLM 的 Processor 是一个组合体，内部包含了处理图像的 <code>ImageProcessor</code> 和处理文本的 <code>Tokenizer</code>。</li>
+            <li>使用 <code>Qwen2VLForConditionalGeneration</code> 加载模型本体。为适配 Mac，必须显式指定 <code class="highlight">device_map="mps"</code> 和 <code class="highlight">torch_dtype=torch.float16</code>。</li>
+        </ul>
+    </div>
+
+    <h3>2. 多模态 LoRA 配置</h3>
+    <div class="function-block">
+        <h4><code>setup_peft_lora(model)</code></h4>
+        <p><strong>功能：</strong>使用 Hugging Face 的 PEFT 库配置低秩微调，大幅降低 Mac 显存消耗。</p>
+        <p><strong>底层逻辑：</strong>与纯文本模型不同，视觉模型的线性层更复杂。这里不仅配置了语言模块的注意力机制（如 <code>q_proj</code>, <code>v_proj</code>），可能还会根据需要冻结视觉编码器（Vision Encoder），仅微调语言层和跨模态映射层（Projector），以保证模型原本的视觉特征提取能力不被破坏。</p>
+    </div>
+
+    <h3>3. 车险多模态数据处理 (最容易报错的一环)</h3>
+    <div class="function-block">
+        <h4><code>DataCollatorForQwenVL(features)</code> / <code>prepare_dataset()</code></h4>
+        <p><strong>功能：</strong>将“受损车辆照片”与“人工理赔定损单（文本）”组合成模型可读的张量格式。</p>
+        <p><strong>底层逻辑：</strong></p>
+        <ul>
+            <li>将数据集中的图片路径读取为 <code>PIL.Image</code> 对象。</li>
+            <li>将对话文本转换为包含 <code>&lt;|image_pad|&gt;</code> 特殊占位符的序列。</li>
+            <li>交给 Processor，输出 <code>pixel_values</code>（图像被切块后的像素矩阵）和 <code>input_ids</code>（文本标识符）。由于图像分辨率不同，此函数还需负责将不同尺寸的特征补齐（Padding）到相同的 Batch Size 中。</li>
+        </ul>
+    </div>
+
+    <h3>4. 训练执行器</h3>
+    <div class="function-block">
+        <h4><code>Trainer / SFTTrainer</code></h4>
+        <p><strong>功能：</strong>统筹反向传播和梯度更新。</p>
+        <p><strong>Mac 特供优化：</strong>在 <code>TrainingArguments</code> 中，必须设置极小的 <code>per_device_train_batch_size=1</code>，并开启 <code>gradient_checkpointing=True</code>（用计算时间换取显存空间），否则在处理高分辨率车险图片时，Mac 的统一内存会瞬间 OOM（内存溢出）。</p>
+    </div>
+</div>
+
+</body>
+</html>

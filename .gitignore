@@ -184,3 +184,9 @@ cython_debug/
 **/outputs_clean_data/
 **/outputs_medical/
 **/outputs_raw_data/
+
+**/grpo_saved_lora/
+**/lora_model_macos/
+**/car_insurance_lora_model_macos/
+**/outputs/
+**/.vscode/
