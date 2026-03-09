@@ -180,3 +180,7 @@ cython_debug/
 
 .DS_Store
 **/.DS_Store
+**/lora_model_medical/
+**/outputs_clean_data/
+**/outputs_medical/
+**/outputs_raw_data/

@@ -1,0 +1,33 @@
+# LLM模型蒸馏与微调实操 - 环境依赖
+# 安装方式: pip install -r requirements.txt
+
+# Unsloth - 高效LLM微调框架
+unsloth
+
+# Transformers - Hugging Face模型库
+transformers
+
+# TRL - Transformer强化学习库（包含SFTTrainer, GRPOTrainer）
+trl
+
+# vLLM - 高性能推理引擎（GRPO训练需要）
+vllm
+
+# 数据处理
+datasets
+pandas
+openpyxl
+
+# 图像处理（VL微调需要）
+Pillow
+
+# 深度学习框架
+torch
+torchvision
+
+# 模型下载
+modelscope
+
+# 评估工具
+jieba
+nltk
