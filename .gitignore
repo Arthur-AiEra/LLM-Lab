@@ -190,3 +190,6 @@ cython_debug/
 **/car_insurance_lora_model_macos/
 **/outputs/
 **/.vscode/
+
+**/modelscope_models/
+**/output/三国演义/

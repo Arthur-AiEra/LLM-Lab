@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>视觉大模型与多模态理解 - 核心复习笔记</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: { primaryColor: '#f4f4f4', primaryTextColor: '#000', lineColor: '#333', fontSize: '12px' },
+    flowchart: { nodeSpacing: 15, rankSpacing: 30 }
+  });
+</script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.3; margin: 0 auto; max-width: 1100px; padding: 10px; color: #111; font-size: 13px; }
+  h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 4px; margin: 10px 0; }
+  h2 { font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin: 10px 0 5px; color: #222; }
+  .mermaid-container { text-align: center; margin: 10px 0; background: #fafafa; border: 1px solid #eee; padding: 5px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  ul { padding-left: 18px; margin: 4px 0; }
+  li { margin-bottom: 2px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 5px; }
+  th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
+  th { background: #eaeaea; font-weight: bold; }
+  .qa-item { background: #f8f9fa; border-left: 3px solid #0056b3; padding: 6px 10px; margin-bottom: 6px; }
+  .qa-q { font-weight: bold; color: #0056b3; margin-bottom: 2px; }
+  .qa-a { margin: 0; color: #333; }
+</style>
+</head>
+<body>
+
+<h1>视觉大模型与多模态理解 - 核心复习笔记</h1>
+
+<div class="mermaid-container">
+<div class="mermaid">
+graph LR
+  Root[多模态与视觉大模型]
+  Root --> VLM[VLM行业应用]
+  VLM --> VLM1[医疗: 多语言病历抽取]
+  VLM --> VLM2[车险: 里程/行为/车损/事故要素]
+  Root --> Video[视频模型 InternVideo2]
+  Video --> V1[渐进式3阶段训练]
+  Video --> V2[VidCap 多模态标注]
+  Root --> Doc[文档解析 MinerU]
+  Doc --> D1[多模态PDF转Markdown/JSON]
+  Doc --> D2[LayoutLMv3 + YOLOv8 + OCR]
+  Root --> Compare[YOLO vs VLM]
+  Compare --> C1[YOLO: 实时/精确定位]
+  Compare --> C2[VLM: 零样本/自然语言理解]
+</div>
+</div>
+
+<div class="grid-2">
+  <div>
+    <h2>1. VLM 在行业中的应用</h2>
+    <ul>
+      <li><strong>医疗病历抽取：</strong>能够提取跨语种（中文、日文、法文、德文、韩文）的患者基本信息、临床诊断和影像学表现 [cite: 1258, 1303, 1321, 1417, 1485]。</li>
+      <li><strong>车险场景识别：</strong>
+        <ul>
+          <li><strong>里程表识别：</strong>提取总里程、速度、温度及挡位以评估风险 [cite: 1560]。</li>
+          <li><strong>承保与监控：</strong>通过车辆外观判断使用环境 [cite: 1637]；识别车内驾驶员玩手机等危险行为 [cite: 1673]。</li>
+          <li><strong>损失与要素提取：</strong>评估保险杠、尾灯受损程度 [cite: 1698]；提取道路状况、天气、照明等事故要素为 JSON 格式 [cite: 1722]。</li>
+          <li><strong>防欺诈校验：</strong>对比事故前后的车型与车漆颜色，判断是否为同一辆车 [cite: 1754]。</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>2. 视频基础模型 (InternVideo2)</h2>
+    <ul>
+      <li><strong>核心定位：</strong>在视频识别、视频文本和对话任务中取得 SOTA 的新型视频基础模型 (ViFM) [cite: 1834]。</li>
+      <li><strong>渐进式训练 (三阶段)：</strong>(1) 未掩蔽重建捕获时空结构；(2) 与其他模态进行语义对齐；(3) 下一个 token 预测增强开放式对话能力 [cite: 1852]。</li>
+      <li><strong>VidCap 标注框架：</strong>分离视频、音频、语音字幕生成器，最后通过 LLM (Crossmodal CapFusion) 融合成综合描述 [cite: 1916, 1929]。</li>
+      <li><strong>任务表现：</strong>不仅在 Action Recognition (如 Kinetics-400) 表现优异，还能准确处理视频对象时间识别、意外动作识别及视觉语言导航任务 [cite: 1894, 1934, 1978, 2001, 2013]。</li>
+    </ul>
+  </div>
+
+  <div>
+    <h2>3. 高效文档解析 (MinerU)</h2>
+    <ul>
+      <li><strong>核心功能：</strong>将复杂的 PDF、网页、电子书精准转换为 Markdown 或 JSON 格式 [cite: 2138, 2141]。</li>
+      <li><strong>底层技术栈：</strong>
+        <ul>
+          <li><strong>布局检测：</strong>基于 LayoutLMv3 微调 [cite: 2150]。</li>
+          <li><strong>公式识别：</strong>使用 YOLOv8 检测，UniMERNet 转换 LaTeX [cite: 2151]。</li>
+          <li><strong>文本增强：</strong>使用 PaddleOCR 提升84种语言的识别准确率 [cite: 2147, 2152]。</li>
+        </ul>
+      </li>
+      <li><strong>特性：</strong>并非生成式 AI，而是布局排版+OCR的文本识别模型 [cite: 1248]；支持 CPU/GPU 本地化私有部署，优化显存使用 [cite: 2157, 2358]。</li>
+    </ul>
+
+    <h2>4. YOLO 与 VLM 的技术选型</h2>
+    <ul>
+      <li><strong>YOLO 演进：</strong>从 v1 (划分 S×S 网格直接回归) 开启实时检测时代 [cite: 2457, 2464]；v4/v5 达到工业落地标杆 [cite: 2464]；v12 首次在保持实时性的前提下引入全局注意力机制 [cite: 2464]。</li>
+      <li><strong>选型对比：</strong></li>
+    </ul>
+    <table>
+      <tr><th>维度</th><th>YOLO (专用目标检测)</th><th>VLM (视觉大模型)</th></tr>
+      <tr><td><strong>输出与精度</strong></td><td>像素级 bbox 定位 + 类别 [cite: 2477]</td><td>自然语言描述，无/粗略 bbox [cite: 2477]</td></tr>
+      <tr><td><strong>速度与部署</strong></td><td>极快 (~10ms/张)，完全离线 [cite: 2477]</td><td>较慢 (~2-5s/张)，需大显存或 API [cite: 2477]</td></tr>
+      <tr><td><strong>数据与泛化</strong></td><td>需大量标注数据，新增类别需重训 [cite: 2477]</td><td>零样本，改 Prompt 即可适应新类别 [cite: 2477]</td></tr>
+      <tr><td><strong>最佳场景</strong></td><td>产线实时检测、需要精确定位 [cite: 2480]</td><td>新缺陷快速验证、辅助生成分析报告 [cite: 2482]</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2>5. 核心 Q&A 精华</h2>
+<div class="grid-2">
+  <div>
+    <div class="qa-item">
+      <div class="qa-q">Q: 大模型文件较多，如何有效下载？</div>
+      <div class="qa-a">A: 可以在模型库（如 ModelScope）选中后打包下载，或通过 `snapshot_download` 命令直接拉取到服务器目录 [cite: 1245, 2050]。</div>
+    </div>
+    <div class="qa-item">
+      <div class="qa-q">Q: 预算有限且需针对特定地域方言习惯做优化，如何处理？</div>
+      <div class="qa-a">A: 无法单独部署微调大模型时，可以通过 RAG（检索增强生成）技术来提供补充上下文以解决此问题 [cite: 1245, 1249]。</div>
+    </div>
+    <div class="qa-item">
+      <div class="qa-q">Q: 蒸馏、GRPO 与教师模型在流程中是如何协作的？</div>
+      <div class="qa-a">A: 教师模型主要用于前置的数据集生成（梳理撰写出质量较高的 <code>&lt;query, answer&gt;</code> 训练集）。数据准备好后，再利用这些数据进行模型微调、知识蒸馏或 GRPO [cite: 1245]。</div>
+    </div>
+    <div class="qa-item">
+      <div class="qa-q">Q: 多模态模型如何处理图像与文本的联合输入？</div>
+      <div class="qa-a">A: 图像和文本最终都为了“信息表达的统一”。图像会被转换为 image token，文本转为 text token。它们一起送入 Embedder 映射到统一的维度（如 1024 维）进行语义相关性计算和统一编码 [cite: 1245, 1249]。</div>
+    </div>
+  </div>
+  <div>
+    <div class="qa-item">
+      <div class="qa-q">Q: Agent 架构中，单 Agent 与多 Agent 如何选择？</div>
+      <div class="qa-a">A: 单 Agent + Skills 是目前的主流。单 Agent 如果承担过多功能可能会导致注意力分散，但多专业 Agent 协作在实际调度中也存在复杂性问题 [cite: 1245]。</div>
+    </div>
+    <div class="qa-item">
+      <div class="qa-q">Q: InternVideo2 处理视频时，是输入原始 MP4 还是抽帧图片？</div>
+      <div class="qa-a">A: 直接输入原始 MP4 文件即可 [cite: 1247]。</div>
+    </div>
+    <div class="qa-item">
+      <div class="qa-q">Q: 现阶段多模态图像理解不成熟，如何构建和优化垂直业务能力（如承保专家）？</div>
+      <div class="qa-a">A: 需要大量业务数据标注。步骤为：1) 整理 <code>&lt;query, image =&gt; answer&gt;</code> 测试集。2) 人工审核发现缺失的能力。3) 用更高阶的模型（如 Gemini）初步标注，人工修正后作为冷启动种子数据。4) 转换为对话模式结构，使用工具进行模型微调（如 Qwen-VL） [cite: 1245, 1247]。</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
