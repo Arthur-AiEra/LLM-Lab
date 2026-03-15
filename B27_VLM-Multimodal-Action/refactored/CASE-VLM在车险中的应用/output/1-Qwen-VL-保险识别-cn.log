@@ -1,0 +1,39 @@
+/usr/local/bin/python3.12 /private/var/www/github/Arthur-AiEra/LLM-Lab/B27_VLM-Multimodal-Action/refactored/CASE-VLM在车险中的应用/1-Qwen-VL-保险识别-cn.py
+messages prepared for: ['./1-vehicle-odometer-reading.jpg']
+✅ 成功 | 1 | 你是一名汽车保险承保专家。这里有一张车辆里程表的图片。请从中提取关键信息。 | ./1-vehicle-odometer-reading.jpg
+1 你是一名汽车保险承保专家。这里有一张车辆里程表的图片。请从中提取关键信息。 ./1-vehicle-odometer-reading.jpg
+messages prepared for: ['./2-vehicle-odometer-reading.jpg']
+✅ 成功 | 2 | 你是一名汽车保险承保专家。这里有一张车辆里程表的图片。请从中提取关键信息。 | ./2-vehicle-odometer-reading.jpg
+2 你是一名汽车保险承保专家。这里有一张车辆里程表的图片。请从中提取关键信息。 ./2-vehicle-odometer-reading.jpg
+messages prepared for: ['./3-vehicle-underwriting-1.jpg', './3-vehicle-underwriting-2.jpg', './3-vehicle-underwriting-3.jpg', './3-vehicle-underwriting-4.jpg', './3-vehicle-underwriting-5.jpg']
+✅ 成功 | 3 | 你是一名汽车保险承保专家。这里有一组多角度拍摄的车辆照片，请根据这些照片分析关键的承保信息。 | [./3-vehicle-underwriting-1.jpg, ./3-vehicle-underwriting-2.jpg, ./3-vehicle-underwriting-3.jpg, ./3-vehicle-underwriting-4.jpg, ./3-vehicle-underwriting-5.jpg]
+3 你是一名汽车保险承保专家。这里有一组多角度拍摄的车辆照片，请根据这些照片分析关键的承保信息。 [./3-vehicle-underwriting-1.jpg, ./3-vehicle-underwriting-2.jpg, ./3-vehicle-underwriting-3.jpg, ./3-vehicle-underwriting-4.jpg, ./3-vehicle-underwriting-5.jpg]
+messages prepared for: ['./4-Dangerous-driving-behavior-detection.jpg']
+✅ 成功 | 4 | 你是一名汽车保险的风险监控专家。这里有一张车内摄像头的照片，请判断是否有危险行为。 | ./4-Dangerous-driving-behavior-detection.jpg
+4 你是一名汽车保险的风险监控专家。这里有一张车内摄像头的照片，请判断是否有危险行为。 ./4-Dangerous-driving-behavior-detection.jpg
+messages prepared for: ['./5-Dangerous-driving-behavior-detection.jpg']
+✅ 成功 | 5 | 你是一名汽车保险的风险监控专家。这里有一段来自行车记录仪的视频片段，请简要分析配备此行车记录仪的车辆是否存在任何危险或鲁莽驾驶行为。 | ./5-Dangerous-driving-behavior-detection.jpg
+5 你是一名汽车保险的风险监控专家。这里有一段来自行车记录仪的视频片段，请简要分析配备此行车记录仪的车辆是否存在任何危险或鲁莽驾驶行为。 ./5-Dangerous-driving-behavior-detection.jpg
+messages prepared for: ['./6-Dangerous-driving-behavior-detection-1.jpg', './6-Dangerous-driving-behavior-detection-2.jpg', './6-Dangerous-driving-behavior-detection-3.jpg', './6-Dangerous-driving-behavior-detection-4.jpg', './6-Dangerous-driving-behavior-detection-5.jpg']
+✅ 成功 | 6 | 你是一名汽车保险的风险监控专家。这里有一段来自行车记录仪的视频片段，请简要分析配备此行车记录仪的车辆是否存在任何危险或鲁莽驾驶行为。 | [./6-Dangerous-driving-behavior-detection-1.jpg, ./6-Dangerous-driving-behavior-detection-2.jpg, ./6-Dangerous-driving-behavior-detection-3.jpg, ./6-Dangerous-driving-behavior-detection-4.jpg, ./6-Dangerous-driving-behavior-detection-5.jpg]
+6 你是一名汽车保险的风险监控专家。这里有一段来自行车记录仪的视频片段，请简要分析配备此行车记录仪的车辆是否存在任何危险或鲁莽驾驶行为。 [./6-Dangerous-driving-behavior-detection-1.jpg, ./6-Dangerous-driving-behavior-detection-2.jpg, ./6-Dangerous-driving-behavior-detection-3.jpg, ./6-Dangerous-driving-behavior-detection-4.jpg, ./6-Dangerous-driving-behavior-detection-5.jpg]
+messages prepared for: ['./7-vehicle-damage-evaluation.jpg']
+✅ 成功 | 7 | 您是一名汽车保险理赔处理专家。这里有一张车祸现场的照片，请简要评估损坏情况。 | ./7-vehicle-damage-evaluation.jpg
+7 您是一名汽车保险理赔处理专家。这里有一张车祸现场的照片，请简要评估损坏情况。 ./7-vehicle-damage-evaluation.jpg
+messages prepared for: ['./8-vehicle-damage-evaluation.jpg']
+✅ 成功 | 8 | 您是一名汽车保险理赔处理专家。这里有一张车祸现场的照片，请简要评估损坏情况。 | ./8-vehicle-damage-evaluation.jpg
+8 您是一名汽车保险理赔处理专家。这里有一张车祸现场的照片，请简要评估损坏情况。 ./8-vehicle-damage-evaluation.jpg
+messages prepared for: ['./9-extraction-of-auto-accident-elements.jpg']
+✅ 成功 | 9 | 你是一名汽车保险理赔处理专家。这里有一张车祸现场的照片。请以JSON格式提取以下信息：道路状况、天气状况、照明条件、事故估计原因、受损部位（前部、后部、背部）、车辆品牌型号、损害程度（轻微、中等、严重）、损害分类（保险杠凹陷、车门凹陷、玻璃破碎、大灯破损、尾灯破损、刮痕、撞击等）、预估费用。如果无法提取，请使用N/A。 | ./9-extraction-of-auto-accident-elements.jpg
+9 你是一名汽车保险理赔处理专家。这里有一张车祸现场的照片。请以JSON格式提取以下信息：道路状况、天气状况、照明条件、事故估计原因、受损部位（前部、后部、背部）、车辆品牌型号、损害程度（轻微、中等、严重）、损害分类（保险杠凹陷、车门凹陷、玻璃破碎、大灯破损、尾灯破损、刮痕、撞击等）、预估费用。如果无法提取，请使用N/A。 ./9-extraction-of-auto-accident-elements.jpg
+messages prepared for: ['./10-extraction-of-auto-accident-elements.jpg']
+✅ 成功 | 10 | 你是一名汽车保险理赔处理专家。这里有一张车祸现场的照片。请以JSON格式提取以下信息：道路状况、天气状况、照明条件、事故估计原因、受损部位（前部、后部、背部）、车辆品牌型号、损害程度（轻微、中等、严重）、损害分类（保险杠凹陷、车门凹陷、玻璃破碎、大灯破损、尾灯破损、刮痕、撞击等）、预估费用。如果无法提取，请使用N/A。 | ./10-extraction-of-auto-accident-elements.jpg
+10 你是一名汽车保险理赔处理专家。这里有一张车祸现场的照片。请以JSON格式提取以下信息：道路状况、天气状况、照明条件、事故估计原因、受损部位（前部、后部、背部）、车辆品牌型号、损害程度（轻微、中等、严重）、损害分类（保险杠凹陷、车门凹陷、玻璃破碎、大灯破损、尾灯破损、刮痕、撞击等）、预估费用。如果无法提取，请使用N/A。 ./10-extraction-of-auto-accident-elements.jpg
+messages prepared for: ['./11-vehicle-identity-verification-1.jpg', './11-vehicle-identity-verification-2.jpg']
+✅ 成功 | 11 | 你是一名汽车保险欺诈检测专家。这里有两张图片，一张是在事故发生后的车辆，另一张是在事故发生前的车辆。请确定它们是否为同一辆车。 | [./11-vehicle-identity-verification-1.jpg, ./11-vehicle-identity-verification-2.jpg]
+11 你是一名汽车保险欺诈检测专家。这里有两张图片，一张是在事故发生后的车辆，另一张是在事故发生前的车辆。请确定它们是否为同一辆车。 [./11-vehicle-identity-verification-1.jpg, ./11-vehicle-identity-verification-2.jpg]
+messages prepared for: ['./12-vehicle-identity-verification-1.jpg', './12-vehicle-identity-verification-2.jpg']
+✅ 成功 | 12 | 你是一名汽车保险欺诈检测专家。这里有两张图片，一张是在事故发生后的车辆，另一张是在事故发生前的车辆。请确定它们是否为同一辆车。 | [./12-vehicle-identity-verification-1.jpg, ./12-vehicle-identity-verification-2.jpg]
+12 你是一名汽车保险欺诈检测专家。这里有两张图片，一张是在事故发生后的车辆，另一张是在事故发生前的车辆。请确定它们是否为同一辆车。 [./12-vehicle-identity-verification-1.jpg, ./12-vehicle-identity-verification-2.jpg]
+
+Process finished with exit code 0

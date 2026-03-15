@@ -12,7 +12,9 @@ import sys
 # 配置区域（根据环境修改）
 # ========================================
 
-MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct" # Qwen2.5-7B-Instruct, Qwen2.5-VL-3B-Instruct
+MODEL_ID = "OpenGVLab/InternVideo2_5_Chat_8B"
+# Qwen2.5-7B-Instruct, Qwen2.5-VL-3B-Instruct
+# 20260314: OpenGVLab/InternVideo2_5_Chat_8B, https://www.modelscope.cn/models/OpenGVLab/InternVideo2_5_Chat_8B
 
 # AutoDL环境
 AUTODL_CACHE_DIR = "/private/var/ifc/app_data/autodl-tmp/models"

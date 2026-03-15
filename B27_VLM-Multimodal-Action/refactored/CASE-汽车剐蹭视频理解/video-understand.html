@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InternVideo2.5 视频理解代码结构分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                fontSize: '16px',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            },
+            flowchart: {
+                useMaxWidth: true,  /* 核心修改1：开启最大宽度自适应，允许图表按比例缩小 */
+                htmlLabels: true,
+                curve: 'basis',
+                nodeSpacing: 30,    /* 稍微缩小节点间距，防止图表过度宽泛 */
+                rankSpacing: 40
+            }
+        });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f7f6;
+        }
+        h1 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; border-left: 4px solid #3498db; padding-left: 10px; }
+        .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        /* ---------------- 核心修复区域：自适应防溢出布局 ---------------- */
+        .mermaid-wrapper {
+            margin: 30px 0;
+            background: #fafafa;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            justify-content: center; /* 居中显示 */
+            width: 100%;
+            box-sizing: border-box;  /* 确保 padding 不会撑破容器 */
+        }
+        .mermaid {
+            width: 100%;             /* 限制 mermaid 容器最大宽度为 100% */
+            display: flex;
+            justify-content: center;
+        }
+        .mermaid svg {
+            max-width: 100% !important; /* 核心修改2：强制 SVG 不得超出父容器 */
+            height: auto !important;    /* 保持宽高比自适应缩小 */
+        }
+        /* ----------------------------------------------------------- */
+
+        .function-card { background: #fdfdfd; border: 1px solid #ecf0f1; border-radius: 6px; padding: 15px 20px; margin-bottom: 15px; border-left: 4px solid #2ecc71; }
+        .function-name { font-family: monospace; font-size: 1.1em; font-weight: bold; color: #e74c3c; margin-bottom: 8px; }
+        .main-flow { border-left-color: #9b59b6; }
+        code { background-color: #f1f2f3; padding: 2px 4px; border-radius: 4px; color: #d35400; font-family: Consolas, monospace; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>InternVideo2.5 视频理解代码逻辑梳理</h1>
+
+    <p>该脚本的主要功能是利用 <code>OpenGVLab/InternVideo2_5_Chat_8B</code> 多模态大模型，对本地 MP4 视频（如汽车剐蹭视频）进行逐帧解析，并通过多轮自然语言对话（英文和中文）向模型提取视频细节、场景人数以及车辆受损情况。</p>
+
+    <h2>一、 函数调用关系图</h2>
+    <p>下图展示了主程序（Main）是如何调度底层预处理函数，将视频转化为模型可理解的特征张量的：</p>
+
+    <div class="mermaid-wrapper">
+        <div class="mermaid">
+        graph TD
+            Main[主程序执行逻辑] -->|1. 设定参数与问题| LoadVid[load_video<br/>读取与处理视频]
+            Main -->|2. 拼接 Prompt| ModelChat[model.chat<br/>与大模型进行推理问答]
+
+            LoadVid -->|获取视频元数据| CV2[cv2.VideoCapture]
+            LoadVid -->|可选: 根据时长算帧数| GetDur[get_num_frames_by_duration]
+            LoadVid -->|计算需抽取的帧号| GetIdx[get_index]
+            LoadVid -->|逐帧截取并转换格式| BuildTrans[build_transform]
+            LoadVid -->|对单帧画面切块处理| DynPre[dynamic_preprocess]
+
+            DynPre -->|计算最佳切块比例| FindAR[find_closest_aspect_ratio]
+
+            classDef mainBox fill:#f9e79f,stroke:#f39c12,stroke-width:2px,color:#000,font-weight:bold;
+            classDef funcBox fill:#d4e6f1,stroke:#2980b9,stroke-width:2px,color:#000,font-weight:bold;
+            classDef subFuncBox fill:#d5f5e3,stroke:#27ae60,stroke-width:1px,color:#000;
+
+            class Main,ModelChat mainBox;
+            class LoadVid funcBox;
+            class CV2,GetDur,GetIdx,BuildTrans,DynPre,FindAR subFuncBox;
+        </div>
+    </div>
+
+    <h2>二、 核心函数详细解析</h2>
+
+    <div class="function-card">
+        <div class="function-name">1. build_transform(input_size)</div>
+        <p><strong>功能：</strong>构建图像的标准化转换流水线 (Pipeline)。</p>
+        <p><strong>逻辑：</strong>利用 <code>torchvision.transforms</code> 将原始图像强制转换为 RGB 模式，缩放至指定分辨率（默认448x448），将其转化为 Tensor 张量，并使用 ImageNet 的标准均值和方差进行归一化处理。这是输入到视觉编码器前的必备步骤。</p>
+    </div>
+
+    <div class="function-card">
+        <div class="function-name">2. find_closest_aspect_ratio(aspect_ratio, target_ratios, width, height, image_size)</div>
+        <p><strong>功能：</strong>动态分辨率处理辅助函数，寻找最贴合原图比例的切分网格。</p>
+        <p><strong>逻辑：</strong>视觉大模型为了看清细节，通常会将高清大图切分为多个固定大小（如448x448）的小图块（Patch）。此函数通过比较原图的宽高比，从预设的网格组合（如 1x2, 2x2, 3x1）中选出浪费像素最少、最合理的切分比例方案。</p>
+    </div>
+
+    <div class="function-card">
+        <div class="function-name">3. dynamic_preprocess(image, min_num, max_num, image_size, use_thumbnail)</div>
+        <p><strong>功能：</strong>执行动态图像切块预处理。</p>
+        <p><strong>逻辑：</strong>调用 <code>find_closest_aspect_ratio</code> 拿到最佳切分比例后，将原图按该比例切割成多个小图块。如果 <code>use_thumbnail=True</code>，它还会将整张原图缩放成一张全局缩略图追加到列表末尾，从而让模型既能看清局部细节，又能把握全局上下文。</p>
+    </div>
+
+    <div class="function-card">
+        <div class="function-name">4. get_num_frames_by_duration(duration)</div>
+        <p><strong>功能：</strong>根据视频的总时长动态决定需要抽取的帧数。</p>
+        <p><strong>逻辑：</strong>提供了一种启发式的抽帧策略，时长越长，抽取的帧数越多，但强制限制在最小 128 帧和最大 512 帧之间，防止显存溢出 (OOM)。</p>
+    </div>
+
+    <div class="function-card">
+        <div class="function-name">5. get_index(bound, fps, max_frame, first_idx, num_segments)</div>
+        <p><strong>功能：</strong>计算均匀抽样的具体帧索引。</p>
+        <p><strong>逻辑：</strong>将视频总长度划分为 <code>num_segments</code> 个均等的段落，然后从每个段落的中间位置提取一帧。这保证了提取出的画面能均匀覆盖整个视频的时间轴，不会错过关键事件。</p>
+    </div>
+
+    <div class="function-card main-flow">
+        <div class="function-name">6. load_video(video_path, ...) [核心调度函数]</div>
+        <p><strong>功能：</strong>使用 OpenCV 加载视频并输出最终的张量特征。</p>
+        <p><strong>逻辑：</strong>
+            <br>1. 通过 <code>cv2.VideoCapture</code> 打开视频，获取总帧数和 FPS。
+            <br>2. 调用 <code>get_index</code> 获取需要抽取的帧号列表。
+            <br>3. 遍历帧号，使用 OpenCV 读取每一帧画面，并将色彩空间从 BGR 转为 RGB。
+            <br>4. 将每一帧画面送入 <code>dynamic_preprocess</code> 进行切块，再送入 <code>build_transform</code> 进行张量化。
+            <br>5. 最终拼接返回 <code>pixel_values</code>（所有帧的模型输入张量）和 <code>num_patches_list</code>（记录每帧被切成了多少块）。
+        </p>
+    </div>
+
+    <h2>三、 主程序执行逻辑 (Main Flow)</h2>
+    <p>代码最后的 <code>with torch.no_grad():</code> 块是整个脚本的大脑：</p>
+    <ol>
+        <li><strong>加载视频：</strong>指定抽取 128 帧画面，调用 <code>load_video</code> 将视频转化为 <code>bfloat16</code> 精度的张量送入显存。</li>
+        <li><strong>构造 Prompt 前缀：</strong>根据提取的帧数，动态生成 <code>"Frame1: &lt;image&gt;\n Frame2: &lt;image&gt;..."</code> 的特殊标签前缀，告诉模型这些张量对应的时间顺序。</li>
+        <li><strong>第一轮问答 (英文单轮)：</strong>询问 <code>"Describe this video in detail."</code>。模型首次观察视频并输出全局描述。</li>
+        <li><strong>第二轮问答 (英文多轮)：</strong>携带 <code>chat_history</code> 询问人数 <code>"How many people appear..."</code>，测试模型的历史上下文关联能力。</li>
+        <li><strong>第三/四轮问答 (中文多轮)：</strong>在另一个独立的作用域中，使用中文针对具体的“车辆损失检测”业务进行提问，例如 <em>“车的哪个部位损伤了？”</em> 以及 <em>“车撞到哪里了？”</em>，充分验证 InternVideo2 在中文语境下的细粒度动作与视觉推理能力。</li>
+    </ol>
+</div>
+
+</body>
+</html>

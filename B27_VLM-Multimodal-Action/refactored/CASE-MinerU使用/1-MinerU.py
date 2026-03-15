@@ -3,19 +3,19 @@
 
 # In[1]:
 
+#t 124:09 https://gemini.google.com/app/dd349d5c0630a591, https://gemini.google.com/app/a2010c5d9a45156a
 
 import os
-import json
 from pathlib import Path
 
+from magic_pdf.config.enums import SupportedPdfParseMethod
 # 使用magic-pdf本地处理文件
 from magic_pdf.data.data_reader_writer import FileBasedDataWriter, FileBasedDataReader
 from magic_pdf.data.dataset import PymuDocDataset
 from magic_pdf.model.doc_analyze_by_custom_model import doc_analyze
-from magic_pdf.config.enums import SupportedPdfParseMethod
 
 # 参数设置
-pdf_file_path = 'INTERNVIDEO2.5.pdf'  # 要处理的PDF文件路径
+pdf_file_path = 'Qwen3-tech_report.pdf'  # 要处理的PDF文件路径
 name_without_suff = Path(pdf_file_path).stem  # 去除文件扩展名
 
 # 确保文件存在
@@ -55,7 +55,7 @@ print("开始推理分析...")
 if doc_type == SupportedPdfParseMethod.OCR:
     # 如果是OCR类型的PDF（扫描件/图片型PDF）
     print("使用OCR模式进行分析...")
-    infer_result = ds.apply(doc_analyze, ocr=True)  # 应用OCR模式的分析
+    infer_result = ds.apply(doc_analyze, ocr=True, lang="ch")  # 应用OCR模式的分析
 
     ## 处理管道
     print("处理OCR结果...")
@@ -64,7 +64,7 @@ if doc_type == SupportedPdfParseMethod.OCR:
 else:
     # 如果是文本型PDF
     print("使用文本模式进行分析...")
-    infer_result = ds.apply(doc_analyze, ocr=False)  # 应用普通文本模式的分析
+    infer_result = ds.apply(doc_analyze, ocr=False, lang="ch")  # 应用普通文本模式的分析
 
     ## 处理管道
     print("处理文本结果...")

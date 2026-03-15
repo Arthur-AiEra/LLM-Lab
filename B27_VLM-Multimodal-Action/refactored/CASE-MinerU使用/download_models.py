@@ -15,9 +15,14 @@ def download_json(url):
 
 def download_and_modify_json(url, local_filename, modifications):
     if os.path.exists(local_filename):
-        data = json.load(open(local_filename))
+        try:
+            data = json.load(open(local_filename))
+        except (json.JSONDecodeError, FileNotFoundError):
+            data = download_json(url)
+
         config_version = data.get('config_version', '0.0.0')
-        if config_version < '1.2.0':
+        # 如果版本过低，则重新下载最新模板
+        if config_version < '1.3.1':
             data = download_json(url)
     else:
         data = download_json(url)
@@ -41,27 +46,35 @@ if __name__ == '__main__':
         # "models/TabRec/TableMaster/*",
         # "models/TabRec/StructEqTable/*",
     ]
-    # 指定模型保存目录为当前目录下的 'modelscope_models' 文件夹，避免保存到 C 盘
-    local_model_dir = os.path.join(os.getcwd(), 'modelscope_models')
-    model_dir = snapshot_download('opendatalab/PDF-Extract-Kit-1.0', allow_patterns=mineru_patterns, local_dir=local_model_dir)
+    # 指定模型保存目录
+    local_model_dir = "/private/var/ifc/app_data/autodl-tmp/models/modelscope_models"
+
+    # 确保目录存在
+    if not os.path.exists(local_model_dir):
+        os.makedirs(local_model_dir, exist_ok=True)
+
+    model_dir = snapshot_download('OpenDataLab/PDF-Extract-Kit-1.0', allow_patterns=mineru_patterns, local_dir=local_model_dir)
     layoutreader_model_dir = snapshot_download('ppaanngggg/layoutreader', local_dir=local_model_dir)
-    model_dir = model_dir + '/models'
-    print(f'model_dir is: {model_dir}')
+
+    # 根据 MinerU 结构调整 model_dir
+    # 注意：PDF-Extract-Kit-1.0 仓库内包含 models 文件夹
+    model_dir_with_models = os.path.join(model_dir, 'models')
+    print(f'model_dir is: {model_dir_with_models}')
     print(f'layoutreader_model_dir is: {layoutreader_model_dir}')
 
-    # paddleocr_model_dir = model_dir + '/OCR/paddleocr'
-    # user_paddleocr_dir = os.path.expanduser('~/.paddleocr')
-    # if os.path.exists(user_paddleocr_dir):
-    #     shutil.rmtree(user_paddleocr_dir)
-    # shutil.copytree(paddleocr_model_dir, user_paddleocr_dir)
-
-    json_url = 'https://gcore.jsdelivr.net/gh/opendatalab/MinerU@master/magic-pdf.template.json'
+    # 更新为最新的 MinerU 模板 URL 和配置文件名
+    # 原 magic-pdf.template.json 已更名为 mineru.template.json
+    json_url = 'https://raw.githubusercontent.com/opendatalab/MinerU/master/mineru.template.json'
     config_file_name = 'magic-pdf.json'
     home_dir = os.path.expanduser('~')
     config_file = os.path.join(home_dir, config_file_name)
 
+    # 适配新的配置结构 (models-dir 现在是字典)
     json_mods = {
-        'models-dir': model_dir,
+        'models-dir': {
+            'pipeline': model_dir_with_models,
+            'vlm': model_dir_with_models
+        },
         'layoutreader-model-dir': layoutreader_model_dir,
     }
 

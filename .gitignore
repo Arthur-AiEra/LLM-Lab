@@ -193,3 +193,5 @@ cython_debug/
 
 **/modelscope_models/
 **/output/三国演义/
+
+**/mineru_env/
