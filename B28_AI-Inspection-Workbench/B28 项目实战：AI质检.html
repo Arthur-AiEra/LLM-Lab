@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AI质检核心底层技术笔记 (V3 终极版)</title>
+    <style>
+        :root { --bg: #f5f7fa; --card-bg: #ffffff; --border: #e4e7ed; --primary: #1f2d3d; --accent: #409eff; --text-main: #303133; --text-sub: #606266; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 10px; font-size: 12px; line-height: 1.35; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 1200px; }
+        h1 { font-size: 15px; color: var(--primary); margin: 0 0 8px 0; border-bottom: 2px solid var(--primary); padding-bottom: 4px; font-weight: 700; }
+        h2 { font-size: 13px; color: #fff; background: var(--primary); padding: 3px 6px; margin: 8px 0 4px 0; border-radius: 3px; border-left: 4px solid var(--accent); }
+        h3 { font-size: 12px; font-weight: 700; margin: 4px 0 2px 0; color: #111; }
+        ul, ol { margin: 2px 0; padding-left: 18px; color: var(--text-sub); }
+        li { margin-bottom: 3px; }
+        strong { color: var(--text-main); }
+        code { background: #f0f2f5; padding: 1px 3px; border-radius: 2px; font-family: monospace; font-size: 11px; color: #c0392b; }
+        .mermaid-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 4px; padding: 5px; margin-bottom: 10px; display: flex; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(48%, 1fr)); gap: 10px; align-items: start; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .qa-box { background: #ecf5ff; border: 1px solid #b3d8ff; border-left: 4px solid var(--accent); padding: 8px; margin-top: 10px; border-radius: 4px; }
+        .highlight { font-weight: 700; color: #d35400; }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, securityLevel: 'loose' });
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <div class="mermaid-box">
+        <div class="mermaid">
+        %%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#fff', 'primaryBorderColor': '#1f2d3d', 'textColor': '#000', 'lineColor': '#1f2d3d'}, 'flowchart': {'nodeSpacing': 12, 'rankSpacing': 25, 'padding': 4}}}%%
+        graph LR
+            A[AI质检系统] --> B(✅ 项目实战)
+            B --> B1[技术栈: YOLOv12 + Qwen-VL + Gradio]
+            B --> B2[EDA与增强: 几何/色彩/高级/离线]
+            B --> B3[YOLO 训练调优: 6大策略 & 召回率指标]
+            B --> B4[VLM方案: 零样本检测 & 引擎封装]
+            A --> C(✅ 质检工作台)
+            C --> C1[5Tab界面与SQLite记录审核]
+            C --> C2[持续改进: BadCase 收集/重标/迭代闭环]
+            C --> C3[AI助理: OpenClaw + SKILL调度]
+        </div>
+    </div>
+
+    <div class="grid">
+        
+        <div class="card">
+            <h1>✅ 项目实战：AI质检</h1>
+            
+            <h2>需求定义、项目背景、技术栈</h2>
+            <ul>
+                <li><strong>背景痛点：</strong>传统人工检测存在速度慢、主观标准不一、易受疲劳影响（导致漏检上升）等问题。AI检测具备 24h 稳定运行、10ms级高并发响应（YOLO）的优势。</li>
+                <li><strong>技术栈：</strong>目标检测底座 <strong>YOLOv12</strong>，多模态零样本分析 <strong>Qwen-VL</strong>，Web前端工作台 <strong>Gradio</strong>，数据库 <strong>SQLite</strong>，数据分析 <strong>numpy+matplotlib</strong>。</li>
+                <li><strong>硬件闭环：</strong>工业级产线需结合工控机（端侧部署）、高清摄像头、特定打光光源与传送带协作。</li>
+            </ul>
+
+            <h2>EDA数据分析、数据增强</h2>
+            <ul>
+                <li><strong>EDA分析：</strong>探查类别分布（若最大/最小类 > 5:1 需引入 Focal Loss/过采样），并计算缺陷标注框的长宽比以指导 Anchor 配置。</li>
+                <li><strong>4级增强策略：</strong>
+                    <ol style="margin:2px 0; padding-left: 18px;">
+                        <li><strong>几何变换：</strong>旋转(degrees)、翻转(flip)，应对类内形状差异。</li>
+                        <li><strong>颜色变换：</strong>HSV调整、对比度增强，解决光照不均与类间相似问题。</li>
+                        <li><strong>高级增强(YOLO内置)：</strong><code>Mosaic</code>(4图拼接提振小目标)、<code>MixUp</code>(图层混合)、Copy-Paste、随机擦除。</li>
+                        <li><strong>离线增强：</strong>利用 <code>Albumentations</code> 库进行物理级数据扩充（如 CLAHE 自适应均衡化）。</li>
+                    </ol>
+                </li>
+            </ul>
+
+            <h2>YOLO 模型训练与调优</h2>
+            <ul>
+                <li><strong>数据集配置与基线训练：</strong>编写 <code>dataset.yaml</code> 映射图像与6类缺陷标签。环境自适应：CPU 跑 1 epoch 验证流水线，GPU 执行完整 100 epochs 训练。标注需刚好包裹缺陷，单类数据 100-200 张起步，>1000张最佳。</li>
+                <li><strong>6大渐进式调优策略：</strong>
+                    1. 默认基线验证流程 -> 2. 结合缺陷特征配置内置增强(Mosaic/HSV) -> 3. 扩大模型体积(<code>yolo12s</code>)与提升分辨率(<code>imgsz=1280</code>)保留细节 -> 4. 融合离线增强数据 -> 5. 开启推理期 <strong>TTA(测试时增强)</strong> 免训提分 -> 6. 细致穷举并微调 <code>conf</code> 置信度阈值。
+                </li>
+                <li><strong>核心评估指标：</strong>工业场景将 <span class="highlight">Recall(召回率)</span> 视为生命线（宁可误报复审，不可漏检放行）。框定位准度依赖 <strong>mAP50</strong>（IoU>0.5重合过半即算对，工业主力指标）和 mAP50-95（严苛的像素级对齐，多用于竞赛）。</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>VLM多模态方案</h2>
+            <ul>
+                <li><strong>VLM零样本缺陷检测：</strong>突破 YOLO 依赖重度标注的限制，通过构建系统级 Prompt 强制输出 JSON 格式（含 <code>bbox_2d</code>、英文名、特征描述），即可对全新缺陷进行 Zero-shot 识别，并附带自然语言解释。</li>
+                <li><strong>坐标系解析痛点：</strong>各类大模型底层坐标系不一。代码中需特殊处理：<strong>Qwen3-VL</strong> 返回的是 0-1000 归一化坐标，需执行 <code>(coord/1000)*尺寸</code> 转换为绝对像素；<strong>Qwen2.5-VL</strong> 则直接返回绝对像素。</li>
+                <li><strong>检测引擎统一封装：</strong>建立中间层 <code>detection_engine.py</code>，统一输出 <code>DetectionResult</code> 结构。产线应用逻辑为：YOLO 扛并发做实时主力，异常低置信度(边缘Case)样本异步投递给 VLM 耗时复审。</li>
+            </ul>
+
+            <h1>✅ 搭建AI 质检工作台</h1>
+            
+            <h2>搭建界面、人工审核、检测记录、统计分析</h2>
+            <ul>
+                <li><strong>Gradio 5Tab界面：</strong>集成 缺陷检测、检测记录(查询)、统计分析(准确率)、数据导出(Bad Case重训包)、竞赛评估(submission生成)。</li>
+                <li><strong>全数据落库：</strong>无论双引擎检测结果如何，全量存入 <code>SQLite</code>。</li>
+                <li><strong>人工介入审核：</strong>质检员对存疑记录执行标记：<code>正确(correct)</code>、<code>误检(wrong)</code> 或 <code>漏检(missed)</code>。系统基于标记状态生成动态统计报表。</li>
+            </ul>
+
+            <h2>持续改进闭环</h2>
+            <ul>
+                <li><strong>工业场景核心痛点：</strong>受设备老化、光照漂移影响，静止的模型必然衰减，产生大量不可预期的边缘 Case。</li>
+                <li><strong>Bad Case 驱动全流程：</strong>自动捞取标记为 wrong/missed 的样本及原图 -> 导出重训包 -> 使用 LabelImg 人工校正标签 -> <strong>合并入原始训练集</strong> -> 启动 GPU 更新模型权重 -> 部署替换。</li>
+                <li><strong>模型迭代频率指引：</strong>
+                    <ul style="margin:2px 0; padding-left: 18px;">
+                        <li><strong>产线初期：</strong>数据异构大，每 1-2 周迭代一次（阈值：累积 > 50张 Bad Case）。</li>
+                        <li><strong>稳定运行期：</strong>模型收敛，每 1-3 个月迭代一次（阈值：累积 > 200张 或漏检率波动）。</li>
+                        <li><strong>新缺陷突发：</strong>一旦出现未见过的底层缺陷，<span class="highlight">立即触发</span>补充与重训。</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h2>搭建你的AI检测助理</h2>
+            <ul>
+                <li><strong>OpenClaw 架构：</strong>基于 Node.js 驱动，配置 <code>openclaw.json</code> 绑定云端 LLM (DashScope) 与 Agent 身份。</li>
+                <li><strong>SKILL 调度机制：</strong>为 YOLO 和 VLM 各自创建 <code>SKILL.md</code>。其 <code>description</code> 充当大模型调度的 System Prompt；大模型理解用户意图后，借助 <code>exec</code> 权限组装命令行参数，静默执行底层的 <code>detect.py</code> 推理脚本并吐出 JSON 结果。</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="qa-box">
+        <h3>💡 底层技术原理剖析</h3>
+        <ul style="margin: 0; padding-left: 15px; column-count: 2; column-gap: 20px;">
+            <li><strong>环境隔离与依赖死锁：</strong>OpenClaw 具备系统级文件写与 <code>exec</code> 权限，务必沙箱隔离。采用 Node.js(调度层)分离 Python(模型层)能缓解浅层冲突，但在底层 CUDA 算子与深度学习库耦合极深时，依然依赖虚拟环境彻底解耦。</li>
+            <li><strong>多模态基座对齐逻辑：</strong>视觉模型(VLM)能理解图像的本质，在于 Embedding 层预先将图像张量切片并转化为序列化的“图像 Token”，从而突破模态壁垒，直接进入大语言模型的统一向量空间参与自注意力计算。</li>
+            <li><strong>模型知识蒸馏 (Distillation)：</strong>工业级降本提效手段。由高算力云端大模型（如 VLM）处理复杂数据池，清洗并标记出 S1 级别高质量伪标签；随后用这些“标准答案”引导低参数端侧小模型（如 YOLO-Nano）进行轻量化拟合。</li>
+            <li><strong>API Token 调度消耗：</strong>即使 Agent 调度框架（OpenClaw）完全私有化本地部署，由于其路由分发、意图拆解依赖大模型思考过程（Chain-of-Thought），每次自然语言交互依然会向底座大模型（如 Qwen-Max）发送上下文，产生 Token 消耗。</li>
+            <li><strong>后端数据基建演进：</strong>SQLite 仅作为本地文件级存储，支撑单机状态留存；工业流水线面临高频并发插入(毫秒级探伤记录)时，必须平滑迁移至强事务机制的 MySQL；若涉及海量批次质量回溯与 OLAP 分析，则需升级至 PostgreSQL。</li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

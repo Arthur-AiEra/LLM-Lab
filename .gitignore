@@ -195,3 +195,5 @@ cython_debug/
 **/output/三国演义/
 
 **/mineru_env/
+
+**/CASE-AI质检/yolo-cases/steel_data/steel_data.zip
