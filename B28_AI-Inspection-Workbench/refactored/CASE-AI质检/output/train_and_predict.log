@@ -1,0 +1,125 @@
+/usr/local/bin/python3.12 /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/train_and_predict.py
+objc[29849]: Class AVFFrameReceiver is implemented in both /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1065443a8) and /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/av/.dylibs/libavdevice.62.1.100.dylib (0x1164d83a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[29849]: Class AVFAudioReceiver is implemented in both /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1065443f8) and /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/av/.dylibs/libavdevice.62.1.100.dylib (0x1164d83f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[!] 未检测到GPU, 将使用CPU训练 (速度较慢)
+[OK] 数据集配置已生成: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/dataset_local.yaml
+     数据集路径: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/yolo-cases/steel_data
+
+============================================================
+YOLOv12 钢铁缺陷检测 - 开始训练
+============================================================
+  设备: cpu
+  模型: yolov12n (从 yolov12.yaml 配置创建)
+  轮数: 1
+  批次: 4
+  输入尺寸: 640
+  增强模式: 基线版
+  [CPU模式] 仅训练1轮验证流程, 正式训练请使用GPU
+
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+New https://pypi.org/project/ultralytics/8.4.26 available 😃 Update with 'pip install -U ultralytics'
+Ultralytics 8.4.15 🚀 Python-3.12.9 torch-2.8.0 CPU (Apple M4 Max)
+engine/trainer: agnostic_nms=False, amp=True, angle=1.0, augment=False, auto_augment=randaugment, batch=4, bgr=0.0, box=7.5, cache=False, cfg=None, classes=None, close_mosaic=10, cls=0.5, compile=False, conf=None, copy_paste=0.1, copy_paste_mode=flip, cos_lr=False, cutmix=0.0, data=/private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/dataset_local.yaml, degrees=0.0, deterministic=True, device=cpu, dfl=1.5, dnn=False, dropout=0.0, dynamic=False, embed=None, end2end=None, epochs=1, erasing=0.4, exist_ok=True, fliplr=0.5, flipud=0.0, format=torchscript, fraction=1.0, freeze=None, half=False, hsv_h=0.015, hsv_s=0.7, hsv_v=0.4, imgsz=640, int8=False, iou=0.7, keras=False, kobj=1.0, line_width=None, lr0=0.01, lrf=0.01, mask_ratio=4, max_det=300, mixup=0.1, mode=train, model=/private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/yolo-cases/yolov12.yaml, momentum=0.937, mosaic=1.0, multi_scale=0.0, name=steel_train, nbs=64, nms=False, opset=None, optimize=False, optimizer=auto, overlap_mask=True, patience=1, perspective=0.0, plots=False, pose=12.0, pretrained=False, profile=False, project=/private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/runs, rect=False, resume=False, retina_masks=False, rle=1.0, save=True, save_conf=False, save_crop=False, save_dir=/private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/runs/steel_train, save_frames=False, save_json=False, save_period=-1, save_txt=False, scale=0.5, seed=0, shear=0.0, show=False, show_boxes=True, show_conf=True, show_labels=True, simplify=True, single_cls=False, source=None, split=val, stream_buffer=False, task=detect, time=None, tracker=botsort.yaml, translate=0.1, val=True, verbose=True, vid_stride=1, visualize=False, warmup_bias_lr=0.1, warmup_epochs=3.0, warmup_momentum=0.8, weight_decay=0.0005, workers=0, workspace=None
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+
+                   from  n    params  module                                       arguments
+  0                  -1  1       464  ultralytics.nn.modules.conv.Conv             [3, 16, 3, 2]
+  1                  -1  1      2368  ultralytics.nn.modules.conv.Conv             [16, 32, 3, 2, 1, 2]
+  2                  -1  1      6640  ultralytics.nn.modules.block.C3k2            [32, 64, 1, False, 0.25]
+  3                  -1  1      9344  ultralytics.nn.modules.conv.Conv             [64, 64, 3, 2, 1, 4]
+  4                  -1  1     26080  ultralytics.nn.modules.block.C3k2            [64, 128, 1, False, 0.25]
+  5                  -1  1    147712  ultralytics.nn.modules.conv.Conv             [128, 128, 3, 2]
+  6                  -1  2    180864  ultralytics.nn.modules.block.A2C2f           [128, 128, 2, True, 4]
+  7                  -1  1    295424  ultralytics.nn.modules.conv.Conv             [128, 256, 3, 2]
+  8                  -1  2    689408  ultralytics.nn.modules.block.A2C2f           [256, 256, 2, True, 1]
+  9                  -1  1         0  torch.nn.modules.upsampling.Upsample         [None, 2, 'nearest']
+ 10             [-1, 6]  1         0  ultralytics.nn.modules.conv.Concat           [1]
+ 11                  -1  1     86912  ultralytics.nn.modules.block.A2C2f           [384, 128, 1, False, -1]
+ 12                  -1  1         0  torch.nn.modules.upsampling.Upsample         [None, 2, 'nearest']
+ 13             [-1, 4]  1         0  ultralytics.nn.modules.conv.Concat           [1]
+ 14                  -1  1     24000  ultralytics.nn.modules.block.A2C2f           [256, 64, 1, False, -1]
+ 15                  -1  1     36992  ultralytics.nn.modules.conv.Conv             [64, 64, 3, 2]
+ 16            [-1, 11]  1         0  ultralytics.nn.modules.conv.Concat           [1]
+ 17                  -1  1     74624  ultralytics.nn.modules.block.A2C2f           [192, 128, 1, False, -1]
+ 18                  -1  1    147712  ultralytics.nn.modules.conv.Conv             [128, 128, 3, 2]
+ 19             [-1, 8]  1         0  ultralytics.nn.modules.conv.Concat           [1]
+ 20                  -1  1    378880  ultralytics.nn.modules.block.C3k2            [384, 256, 1, True]
+ 21        [14, 17, 20]  1    431842  ultralytics.nn.modules.head.Detect           [6, 16, None, [64, 128, 256]]
+YOLOv12 summary: 272 layers, 2,539,266 parameters, 2,539,250 gradients, 6.0 GFLOPs
+
+Freezing layer 'model.21.dfl.conv.weight'
+train: Fast image access ✅ (ping: 0.0±0.0 ms, read: 58.4±30.7 MB/s, size: 9.9 KB)
+train: Scanning /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/yolo-cases/steel_data/train/labels... 1260 images, 0 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 1260/1260 4.7Kit/s 0.3s
+train: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/yolo-cases/steel_data/train/images/74.jpg: 1 duplicate labels removed
+train: New cache created: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/yolo-cases/steel_data/train/labels.cache
+albumentations: Blur(p=0.01, blur_limit=(3, 7)), MedianBlur(p=0.01, blur_limit=(3, 7)), ToGray(p=0.01, method='weighted_average', num_output_channels=3), CLAHE(p=0.01, clip_limit=(1.0, 4.0), tile_grid_size=(8, 8))
+val: Fast image access ✅ (ping: 0.0±0.0 ms, read: 89.7±33.6 MB/s, size: 14.5 KB)
+val: Scanning /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/yolo-cases/steel_data/train/labels... 14 images, 0 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 14/14 4.5Kit/s 0.0s
+val: New cache created: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/yolo-cases/steel_data/train/labels.cache
+optimizer: 'optimizer=auto' found, ignoring 'lr0=0.01' and 'momentum=0.937' and determining best 'optimizer', 'lr0' and 'momentum' automatically...
+optimizer: AdamW(lr=0.001, momentum=0.9) with parameter groups 113 weight(decay=0.0), 120 weight(decay=0.0005), 119 bias(decay=0.0)
+Image sizes 640 train, 640 val
+Using 0 dataloader workers
+Logging results to /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/runs/steel_train
+Starting training for 1 epochs...
+
+      Epoch    GPU_mem   box_loss   cls_loss   dfl_loss  Instances       Size
+        1/1         0G      3.535      4.422      4.137         17        640: 100% ━━━━━━━━━━━━ 315/315 1.3it/s 4:05
+                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 2/2 1.5it/s 1.4s
+                   all         14         39   0.000605     0.0469   0.000435   0.000131
+
+1 epochs completed in 0.069 hours.
+Optimizer stripped from /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/runs/steel_train/weights/last.pt, 5.5MB
+Optimizer stripped from /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/runs/steel_train/weights/best.pt, 5.5MB
+
+Validating /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/runs/steel_train/weights/best.pt...
+Ultralytics 8.4.15 🚀 Python-3.12.9 torch-2.8.0 CPU (Apple M4 Max)
+YOLOv12 summary (fused): 159 layers, 2,527,946 parameters, 0 gradients, 5.9 GFLOPs
+                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 2/2 1.6it/s 1.2s
+                   all         14         39   0.000599     0.0469   0.000415   0.000124
+             inclusion          7         15          0          0          0          0
+             scratches          2          5          0          0          0          0
+               patches          6         16     0.0024      0.188    0.00166   0.000498
+       rolled-in_scale          2          3          0          0          0          0
+Speed: 0.3ms preprocess, 80.3ms inference, 0.0ms loss, 5.4ms postprocess per image
+
+============================================================
+训练完成!
+============================================================
+  最佳模型: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/runs/steel_train/weights/best.pt
+
+
+============================================================
+批量预测测试集, 生成 submission.csv
+============================================================
+  模型: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/runs/steel_train/weights/best.pt
+  测试图片: 400 张
+  conf=0.25, iou=0.45, TTA=False
+
+  进度: 50/400  检测框: 290  耗时: 4.3s
+  进度: 100/400  检测框: 313  耗时: 8.6s
+  进度: 150/400  检测框: 366  耗时: 12.9s
+  进度: 200/400  检测框: 379  耗时: 17.0s
+  进度: 250/400  检测框: 649  耗时: 21.3s
+  进度: 300/400  检测框: 791  耗时: 25.6s
+  进度: 350/400  检测框: 1085  耗时: 29.9s
+  进度: 400/400  检测框: 1146  耗时: 33.5s
+
+============================================================
+预测完成!
+============================================================
+  总耗时: 33.5s
+  检测框总数: 1146
+  平均每张图: 2.9 个框
+  输出文件: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/submission.csv
+
+  各类别检测数量:
+    patches: 746
+    inclusion: 157
+    pitted_surface: 148
+    scratches: 86
+    crazing: 9
+
+  --> 提交文件: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/submission.csv
+
+Process finished with exit code 0

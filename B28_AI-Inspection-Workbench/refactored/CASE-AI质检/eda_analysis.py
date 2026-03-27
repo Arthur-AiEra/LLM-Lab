@@ -11,7 +11,11 @@ import matplotlib.pyplot as plt
 from collections import Counter, defaultdict
 from PIL import Image
 
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei']
+#t 55:01 https://gemini.google.com/app/90dab9a694c04a78
+
+
+# 将原本针对 Windows 的字体替换为 Mac 自带字体
+plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'PingFang SC', 'Heiti TC']
 plt.rcParams['axes.unicode_minus'] = False
 
 # ========== 配置 ==========

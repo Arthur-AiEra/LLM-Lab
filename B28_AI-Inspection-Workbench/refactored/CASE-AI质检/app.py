@@ -23,6 +23,9 @@ from detection_engine import (
 from db_manager import InspectionDB
 from data_export import export_bad_cases, export_for_retraining
 
+
+#t 02:24:09 https://gemini.google.com/app/90dab9a694c04a78
+
 # ========== 全局配置 ==========
 BASE_DIR = os.path.dirname(__file__)
 # 模型查找顺序: models/best.pt (GPU训练导出) > runs/steel_train (本地训练) > 旧模型
@@ -500,17 +503,18 @@ def build_app():
                         with gr.Accordion("VLM API配置", open=False):
                             vlm_api_key = gr.Textbox(
                                 label="API Key",
-                                value=os.environ.get("DASHSCOPE_API_KEY", ""),
+                                # value=os.environ.get("DASHSCOPE_API_KEY", ""),
+                                value="ollama",
                                 placeholder="未设置DASHSCOPE_API_KEY环境变量, 请手动填入",
                                 type="password",
                             )
                             vlm_base_url = gr.Textbox(
                                 label="API Base URL",
-                                value="https://dashscope.aliyuncs.com/compatible-mode/v1",
+                                value="http://localhost:11434/v1",
                             )
                             vlm_model_name = gr.Textbox(
                                 label="模型名称",
-                                value="qwen3-vl-plus",
+                                value="qwen3-vl:8b",
                             )
 
                         detect_btn = gr.Button("开始检测", variant="primary", size="lg")

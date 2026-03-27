@@ -14,6 +14,8 @@ import argparse
 import numpy as np
 from pathlib import Path
 
+#t 01:32:42 https://gemini.google.com/app/90dab9a694c04a78
+
 # ========== 配置 ==========
 BASE_DIR = os.path.dirname(__file__)
 STEEL_DATA_DIR = os.path.join(BASE_DIR, "yolo-cases", "steel_data")

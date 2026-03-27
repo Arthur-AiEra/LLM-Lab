@@ -1,0 +1,41 @@
+/usr/local/bin/python3.12 /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/eda_analysis.py
+Matplotlib is building the font cache; this may take a moment.
+加载标注数据...
+============================================================
+类别分布统计
+============================================================
+  crazing (龟裂)                   |   537 ( 16.5%) ################
+  inclusion (夹杂)                 |   788 ( 24.2%) ########################
+  pitted_surface (点蚀)            |   339 ( 10.4%) ##########
+  scratches (划痕)                 |   420 ( 12.9%) ############
+  patches (斑块)                   |   679 ( 20.9%) ####################
+  rolled-in_scale (氧化铁皮压入)       |   493 ( 15.1%) ###############
+  总计                             |  3256
+
+图片数量: 1400
+每张图的标注框数: 最少1, 最多9, 平均2.3
+
+============================================================
+标注框尺寸分析 (归一化坐标)
+============================================================
+  宽度: 最小0.040, 最大0.995, 平均0.357
+  高度: 最小0.045, 最大0.995, 平均0.474
+  面积: 最小0.0027, 最大0.9900, 平均0.1746
+
+============================================================
+类别不均衡评估
+============================================================
+  最多类别数量: 788
+  最少类别数量: 339
+  不均衡比例: 2.3:1
+  [!] 存在一定的类别不均衡, 建议关注少数类别的召回率
+
+生成可视化图表...
+[OK] 类别分布图 -> /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/eda_output/class_distribution.png
+[OK] 标注框分析图 -> /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/eda_output/box_analysis.png
+[OK] 样本展示图 -> /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/eda_output/sample_images.png
+[OK] 类别面积分布图 -> /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/eda_output/class_area_distribution.png
+
+所有EDA分析结果已保存到: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/eda_output
+
+Process finished with exit code 0

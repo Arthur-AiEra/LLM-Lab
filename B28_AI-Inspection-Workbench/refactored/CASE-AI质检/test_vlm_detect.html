@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 质检引擎代码分析报告</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js"></script>
+    <style>
+        :root { --bg: #f8f9fa; --card-bg: #ffffff; --border: #e9ecef; --primary: #2c3e50; --accent: #3498db; --text-main: #333; --text-sub: #666; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h1 { color: var(--primary); text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 15px; margin-bottom: 30px; }
+        h2 { color: var(--primary); border-left: 4px solid var(--accent); padding-left: 10px; margin-top: 30px; background: #f1f4f8; padding: 5px 10px; border-radius: 0 4px 4px 0; }
+        h3 { color: #2980b9; margin-top: 20px; }
+        ul { padding-left: 20px; color: var(--text-sub); }
+        li { margin-bottom: 8px; }
+        strong { color: var(--text-main); }
+        code { background: #f0f2f5; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.9em; color: #d35400; }
+
+        /* 优化流程图容器，允许横向滚动，防止强制缩放导致字体变小 */
+        .mermaid-container { background: #fff; padding: 20px; border: 1px solid var(--border); border-radius: 8px; margin: 20px 0; overflow-x: auto; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
+        .mermaid { min-width: 900px; display: flex; justify-content: center; }
+        .mermaid svg { max-width: none !important; }
+
+        .card { border: 1px solid var(--border); border-radius: 6px; padding: 15px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AI 质检引擎代码分析报告</h1>
+    <p>本报告分析了 <code>test_vlm_detect.py</code>（测试脚本）和 <code>detection_engine.py</code>（核心检测引擎封装）两个文件的功能与交互逻辑。该引擎统一封装了 YOLO 专用目标检测和 Qwen-VL 多模态大模型零样本检测两种实现方式。</p>
+
+    <h2>1. 核心调用关系流程图 (Mermaid)</h2>
+    <p>下图展示了主测试脚本如何调用视觉大模型检测器（VLMDetector），以及检测器内部的数据流转和解析过程。（支持左右滑动查看大图）</p>
+
+    <div class="mermaid-container">
+        <pre class="mermaid">
+        %%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#ecf0f1', 'primaryBorderColor': '#bdc3c7', 'lineColor': '#34495e', 'textColor': '#2c3e50', 'fontSize': '16px'}, 'flowchart': {'nodeSpacing': 50, 'rankSpacing': 60}}}%%
+        graph TD
+            A["test_vlm_detect.py<br/>(主程序 main)"] -->|"1. 解析命令行参数并读取图片"| B["实例化 VLMDetector"]
+            A -->|"2. 传入图片路径"| C["调用 detector.detect()"]
+
+            subgraph VLMDetector_Class [VLMDetector 类核心逻辑]
+                B --> B1["_init_client():<br/>初始化 OpenAI 兼容客户端"]
+                C --> C1["_encode_image():<br/>图片转 Base64 编码"]
+                C --> C2["调用大模型 API 获取 reply (推理)"]
+                C2 --> C3["_parse_bbox_response():<br/>解析返回内容"]
+
+                C3 --> C3a["_extract_json():<br/>提取 Markdown 中的 JSON"]
+                C3 --> C3b["_convert_bbox():<br/>模型坐标转换为绝对像素坐标"]
+
+                C3 --> C4["组装 DetectionBox 列表与摘要文本"]
+                C4 --> C5["_draw_boxes():<br/>在原图绘制红色边界框与标签"]
+                C5 --> C6["生成完整的 DetectionResult 对象"]
+            end
+
+            C6 -->|"3. 返回检测结果"| A
+            A --> D["控制台打印结果 &<br/>保存标注后的图片"]
+
+            subgraph YOLODetector_Class [YOLODetector 类逻辑_备用引擎]
+                Y1["实例化 YOLODetector"] --> Y2["加载 ultralytics YOLO 模型"]
+                Y3["调用 detect()"] --> Y4["model.predict() 获取推理坐标"]
+                Y4 --> Y5["_draw_boxes(): 绘制检测框"]
+            end
+
+            subgraph Global_Functions [全局工厂与辅助方法]
+                F1["create_detector(model_type)"] -. "返回" .-> B
+                F1 -. "返回" .-> Y1
+                F2["_patch_aattn_forward()"] -->|"兼容性修复"| F3["修补 YOLOv12 注意力机制"]
+            end
+        </pre>
+    </div>
+
+    <h2>2. 文件与函数功能详解</h2>
+
+    <h3>📄 文件 1：<code>test_vlm_detect.py</code> (独立测试脚本)</h3>
+    <div class="card">
+        <p><strong>功能：</strong> 该脚本是一个独立的命令行工具，用于快速测试单张图片的 VLM（视觉大模型）缺陷检测效果。</p>
+        <ul>
+            <li><strong><code>main()</code> 函数：</strong>
+                <ul>
+                    <li><strong>参数解析：</strong> 使用 <code>argparse</code> 解析 <code>--image</code> (图片路径)、<code>--model</code> (模型名称)、<code>--save</code> (保存路径)。</li>
+                    <li><strong>前置检查：</strong> 验证图片文件是否存在，并使用 <code>PIL.Image</code> 读取打印尺寸信息。</li>
+                    <li><strong>实例化引擎：</strong> 直接实例化 <code>VLMDetector(model_name=args.model)</code>。</li>
+                    <li><strong>执行检测：</strong> 调用 <code>detector.detect(args.image)</code> 执行完整的推理链路，获取 <code>result</code> 对象。</li>
+                    <li><strong>结果输出：</strong> 在控制台打印推理耗时、检测到的缺陷坐标及模型分析摘要，并将带有标注框的图片保存到本地（如 <code>vlm_result_0.jpg</code>）。</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <h3>📄 文件 2：<code>detection_engine.py</code> (检测引擎核心封装)</h3>
+    <div class="card">
+        <p><strong>全局配置与兼容性补丁：</strong></p>
+        <ul>
+            <li><strong><code>_patch_aattn_forward()</code>：</strong> 解决不同版本的 <code>ultralytics</code> 库中 YOLOv12 注意力机制（AAttn）权重加载格式不兼容（<code>qkv</code> 聚合格式 vs <code>qk+v</code> 分离格式）的问题，确保模型正常正向传播。</li>
+            <li><strong>全局常量：</strong> 定义了 <code>CLASS_NAMES</code> (英文类名)、<code>CLASS_NAMES_CN</code> (中文类名映射)、<code>CLASS_COLORS</code> (绘制检测框的预设颜色)。</li>
+            <li><strong>数据类 (DataClass)：</strong>
+                <ul>
+                    <li><code>DetectionBox</code>：封装单个缺陷的检测结果，包含类别 ID、类名、置信度以及绝对像素坐标 (x1, y1, x2, y2)。</li>
+                    <li><code>DetectionResult</code>：封装单张图片的完整检测报告，包含引擎类型、图片路径、检测框列表、VLM 文本摘要、推理耗时以及绘制好标注框的 <code>numpy</code> 图像数组。</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <p><strong>核心类：<code>VLMDetector</code> (多模态大模型检测器)</strong></p>
+        <ul>
+            <li><strong><code>__init__(api_key, base_url, model_name)</code>：</strong> 初始化检测器。优先读取传入参数，否则通过环境变量（如 <code>OPENAI_API_KEY</code>）加载。并打印调试日志，方便核对当前使用的代理接口与模型。</li>
+            <li><strong><code>_init_client()</code>：</strong> 初始化兼容 OpenAI 格式的客户端（<code>openai.OpenAI</code>），支持对接本地 Ollama/vLLM 或云端 DashScope 等接口。</li>
+            <li><strong><code>_encode_image(image_path)</code>：</strong> 将本地图像文件读取并转化为 Base64 字符串，以便通过 API 传输给视觉模型。</li>
+            <li><strong><code>_extract_json(text)</code>：</strong> 从大模型返回的自然语言中“剥离”出 JSON 结构，通过正则去除 <code>&lt;think&gt;</code> 思考标签并清理 Markdown 的 <code>```json</code> 代码块包裹。</li>
+            <li><strong><code>_convert_bbox(bbox_2d, img_width, img_height)</code>：</strong> 关键坐标转换函数。针对 Qwen3-VL 返回的 [0-1000] 归一化坐标系，执行 <code>(coord/1000) * img_size</code> 转换为绝对像素坐标；针对 Qwen2.5-VL 则直接透传。</li>
+            <li><strong><code>_parse_bbox_response(reply, img_width, img_height)</code>：</strong> 反序列化提取出的 JSON，遍历每个预测目标，转换为 <code>DetectionBox</code> 对象列表，并生成一段汇总检测报告文本（包含缺陷中英文对照与特征描述）。</li>
+            <li><strong><code>detect(image_path, prompt)</code>：</strong> <strong>主控方法。</strong> 组装默认的 Prompt（要求模型输出固定 JSON 格式），发起请求，记录耗时，包含完整的 <code>try-except</code> 堆栈捕获机制。若请求成功，调用解析函数和绘图函数，最后组装并返回 <code>DetectionResult</code> 对象。</li>
+            <li><strong><code>_draw_boxes(image_path, boxes)</code>：</strong> 利用 <code>PIL.ImageDraw</code> 根据像素坐标在原图上画矩形框，并打上带有背景色的文字标签。</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <p><strong>核心类：<code>YOLODetector</code> (专用目标检测器)</strong></p>
+        <ul>
+            <li><strong><code>__init__(model_path)</code>：</strong> 使用 <code>ultralytics.YOLO</code> 加载指定路径的 `.pt` 权重文件。</li>
+            <li><strong><code>detect(image_path, conf, iou)</code>：</strong> 执行模型预测 (<code>predict()</code>)，提取返回的张量（xyxy 坐标、置信度、类别），转为 <code>DetectionBox</code> 格式，并调用自身的 <code>_draw_boxes()</code> 绘制标注图像。</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <p><strong>工厂函数：<code>create_detector(model_type, **kwargs)</code></strong></p>
+        <ul>
+            <li><strong>功能：</strong> 提供统一入口，根据传入的 <code>model_type</code>（"yolo" 或 "vlm"），动态分发实例化相应的检测器类，实现上层业务逻辑与底层模型框架的解耦。</li>
+        </ul>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        mermaid.initialize({ startOnLoad: true });
+    });
+</script>
+</body>
+</html>

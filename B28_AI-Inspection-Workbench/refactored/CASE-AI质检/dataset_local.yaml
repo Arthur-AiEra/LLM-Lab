@@ -1,0 +1,11 @@
+names:
+  0: crazing
+  1: inclusion
+  2: pitted_surface
+  3: scratches
+  4: patches
+  5: rolled-in_scale
+path: /private/var/www/github/Arthur-AiEra/LLM-Lab/B28_AI-Inspection-Workbench/refactored/CASE-AI质检/yolo-cases/steel_data
+test: train/test.txt
+train: train/train.txt
+val: train/val.txt

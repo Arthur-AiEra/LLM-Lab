@@ -16,6 +16,7 @@ import sys
 from detection_engine import VLMDetector, CLASS_NAMES_CN
 from PIL import Image
 
+#t 02:17:35 https://gemini.google.com/app/90dab9a694c04a78
 
 def main():
     parser = argparse.ArgumentParser(description="VLM缺陷检测独立测试")

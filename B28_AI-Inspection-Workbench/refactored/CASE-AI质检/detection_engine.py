@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
+import traceback  # 新增: 用于打印详细异常堆栈
 
 
 # ========================================================================
@@ -261,12 +262,12 @@ class VLMDetector:
                 - DashScope: qwen-vl-max / qwen2.5-vl-72b-instruct
                 - 本地: 取决于部署的模型
         """
-        self.api_key = api_key or os.environ.get("DASHSCOPE_API_KEY", "")
+        self.api_key = api_key or "ollama"
         self.base_url = base_url or os.environ.get(
-            "VLM_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
+            "VLM_BASE_URL", "http://localhost:11434/v1" # DevAGI能支持的模型：https://docs.devcto.com/models
         )
         self.model_name = model_name or os.environ.get(
-            "VLM_MODEL_NAME", "qwen3-vl-plus"
+            "VLM_MODEL_NAME", "qwen3-vl:8b"
         )
         self.client = None
         self._init_client()
@@ -396,13 +397,33 @@ class VLMDetector:
                         ],
                     }
                 ],
-                max_tokens=1024,
+                max_tokens=4096, # 从1024增大到4096， 防止模型没有生成完毕，达到设定的最大长度限制被强行截断
                 temperature=0.1,
             )
             elapsed = time.time() - start_time
+            print(f"[DEBUG] API 请求成功返回，耗时: {elapsed:.2f} 秒")
+
+            # 打印返回对象的原始结构类型，帮助排查代理返回格式不对的问题
+            print(f"[DEBUG] API Response 对象类型: {type(response)}")
+
+            # --- 新增：强制打印代理服务器返回的原始裸数据 ---
+            print(f"[DEBUG] API 原始裸返回数据: {response}")
+
+            # --- 新增：安全校验，防止崩溃 ---
+            if not response.choices:
+                raise ValueError(f"代理接口返回异常，没有标准的 choices 字段！请检查上方的原始裸数据。")
+
             reply = response.choices[0].message.content.strip()
         except Exception as e:
             elapsed = time.time() - start_time
+            print(f"\n[ERROR] ================= API 调用异常 ==================")
+            print(f"[ERROR] 耗时: {elapsed:.2f} 秒")
+            print(f"[ERROR] 异常类型: {type(e).__name__}")
+            print(f"[ERROR] 异常详情: {str(e)}")
+            print(f"[ERROR] 完整堆栈追踪:\n")
+            traceback.print_exc()  # 打印完整的错误堆栈，精准定位出错行
+            print(f"[ERROR] ==================================================\n")
+
             return DetectionResult(
                 model_type="vlm",
                 image_path=image_path,
