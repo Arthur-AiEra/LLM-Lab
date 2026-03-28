@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大模型底层技术与微调核心架构笔记</title>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#f4f6f9',
+      primaryTextColor: '#000000',
+      primaryBorderColor: '#cbd5e1',
+      lineColor: '#64748b',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    },
+    flowchart: {
+      nodeSpacing: 10,
+      rankSpacing: 25,
+      padding: 5
+    }
+  });
+</script>
+<style>
+  :root { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #e2e8f0; --accent: #0284c7; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 12px; line-height: 1.4; color: var(--text); background: var(--bg); margin: 0; padding: 10px; }
+  .container { max-width: 1400px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; color: #0f172a; border-bottom: 2px solid var(--accent); padding-bottom: 4px; margin: 0 0 10px 0; text-align: center; }
+  h2 { font-size: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 3px; margin: 8px 0 4px 0; font-weight: 600; }
+  ul { padding-left: 16px; margin: 4px 0; }
+  li { margin-bottom: 3px; }
+  .mermaid-box { border: 1px solid var(--border); border-radius: 6px; padding: 8px; margin-bottom: 10px; overflow-x: auto; background: var(--card); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 10px; align-items: start; }
+  .card { border: 1px solid var(--border); border-radius: 6px; padding: 10px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .highlight { font-weight: bold; color: #dc2626; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>模型训练、微调与多模态核心技术笔记</h1>
+
+  <div class="mermaid-box">
+    <div class="mermaid">
+      graph LR
+        Root(AI核心技术架构) --> A[应用对齐与架构范式]
+        Root --> B[PEFT底层机制]
+        Root --> C[视觉多模态 VLM]
+        Root --> D[语料工程与自动化评估]
+        Root --> E[底层算法 SVD矩阵分解]
+        Root --> F[工程化落地架构]
+        
+        A --> A1(选型策略: Prompt / RAG / 微调)
+        A --> A2(对齐演进: SFT -> RLHF -> GRPO)
+        A --> A3(知识蒸馏: 软标签概率分布 + 温度T)
+        
+        B --> B1(LoRA数学本质: 冻结W, 构造低秩旁路A/B)
+        B --> B2(显存估算: 权重 + 状态 + 梯度 + 激活)
+        B --> B3(量化降本: 4-bit QLoRA)
+        
+        C --> C1(互补范式: YOLO极致定位 vs VLM深度分析)
+        C --> C2(工业指标: Recall漏检容忍度绝对优先)
+        C --> C3(Qwen3.5特性: 原生早期融合跨模态)
+        
+        D --> D1(黄金准则: 质量远胜数量)
+        D --> D2(字面评估: BLEU精确率 vs ROUGE召回率)
+        D --> D3(权威Benchmark: MMLU / GSM8K / GPQA)
+        
+        E --> E1(核心思想: R=U*Sigma*V^T 降维去噪)
+        E --> E2(金融量化: 奇异值发现系统隐因子)
+        E --> E3(Alpha挖掘: 剥离Beta分析特异残差e)
+
+        F --> F1(工作流Pipeline: 采集->分析->决策->风控->执行)
+        F --> F2(Agent编排: LLM -> Skill匹配 -> API JSON -> 执行)
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>1. 提示工程、RAG 和 微调的实际选型</h2>
+      <ul>
+        <li><strong>提示工程</strong>：适用于没问清楚的情况，通过优化问题的上下文和指令格式来引导模型输出 [cite: 22]。</li>
+        <li><strong>RAG (检索增强生成)</strong>：适用于缺乏背景知识的情况，特别是面对私有数据或需要强实时性的知识时 [cite: 24]。结合微调与 RAG 双管齐下可以有效降低幻觉 [cite: 885]。</li>
+        <li><strong>微调 (Fine-tuning)</strong>：适用于能力不足的情况，例如需要模型学习特定的输出格式、垂直领域的深度推理策略，或将复杂能力注入较小的开源模型中 [cite: 26, 27]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>2. 预训练与微调的理解</h2>
+      <ul>
+        <li><strong>预训练</strong>：让模型具备通用的语言能力 [cite: 43]。通常使用海量通用数据（万亿token），计算成本极高，本质是让模型学习语言本身的规律 [cite: 43]。</li>
+        <li><strong>微调</strong>：让模型掌握垂直领域知识或私域能力 [cite: 45]。规模较小，仅需使用高质量的指令数据（1k-1M条）即可在短时间内完成 [cite: 46]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>3. 什么是全参数微调？为什么需要PEFT？</h2>
+      <ul>
+        <li><strong>全参数微调</strong>：直接微调大模型中所有的参数权重，这种方式需要巨大的计算资源和存储空间，成本极高 [cite: 337, 338]。</li>
+        <li><strong>需要 PEFT 的原因</strong>：PEFT（如 LoRA）通过只训练极少比例的模型参数（通常 <10%），大幅降低了硬件需求，使得在消费级显卡上微调大模型成为可能 [cite: 341, 342]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>4. LoRA 微调原理及大幅降低显存的原因</h2>
+      <ul>
+        <li><strong>数学原理</strong>：预训练模型在微调过程中的权重更新量具有“内在的低秩特性” [cite: 345]。LoRA 冻结原始巨大的预训练权重矩阵 W，在旁边增加一个小旁路矩阵 A（负责降维）和矩阵 B（负责升维） [cite: 346, 347]。前向传播公式变为 $h=Wx+BAx$ [cite: 347]。</li>
+        <li><strong>降低显存消耗</strong>：通过极大减少可训练参数量（1%~10%），把优化器状态和梯度带来的显存占用降到了极低 [cite: 350]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>5. 知识蒸馏中的软/硬标签与温度系数</h2>
+      <ul>
+        <li><strong>硬标签</strong>：标准的 one-hot 编码，直接给出标准答案 [cite: 570]。</li>
+        <li><strong>软标签</strong>：教师模型输出的概率分布，包含了类别间的相似度关系（暗知识），信息量远大于硬标签 [cite: 571, 572]。</li>
+        <li><strong>温度系数 (T)</strong>：是控制概率分布尖锐度的调节器 [cite: 574]。训练时提高温度，可以平滑概率分布，让教师模型暴露更多暗知识；推理阶段需回归 T=1 以保证确信度 [cite: 574, 575]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>6. SFT、RLHF 和 GRPO 的区别及优势</h2>
+      <ul>
+        <li><strong>SFT (监督微调)</strong>：提供明确的指令-标准答案对，模型直接记忆输出映射，学习固定格式和基础知识 [cite: 585]。</li>
+        <li><strong>RLHF</strong>：需要训练额外的奖励模型 (Reward Model) 来学习人类偏好，成本极高 [cite: 587]。</li>
+        <li><strong>GRPO</strong>：DeepSeek-R1 的核心方法 [cite: 589]。无需独立的价值网络，直接针对同一问题生成多组回答，通过比较组内表现计算相对优势 [cite: 589]。</li>
+        <li><strong>为何适合推理</strong>：极大地降低了显存占用和计算开销，通过特定的奖励函数能有效引导模型生成结构化的思考过程，彻底激发大模型的深层推理能力 [cite: 590]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>7. 微调数据的数量与质量原则</h2>
+      <ul>
+        <li><strong>核心原则</strong>：质量绝对优先，1000条完美数据远胜于10万条杂乱数据 [cite: 643, 644]。</li>
+        <li><strong>准备策略</strong>：需要保证一致性（格式/风格统一）、准确性（防止错误数据污染）和多样性（覆盖边界情况） [cite: 647, 649, 651]。采用 Alpaca 格式包含 instruction、input 和 output 字段 [cite: 656, 657, 658]。通过数据工程 Pipeline 清洗空值、过滤无效文本并基于 MD5 去重 [cite: 671]。需要对长串自然语言通过 Tokenizer（大模型内部的字典）映射为向量 Token ID [cite: 885]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>8. 评估微调效果与 BLEU/ROUGE 的局限</h2>
+      <ul>
+        <li><strong>自动化评估</strong>：BLEU 核心衡量 N-gram 的精确率并有短句惩罚 [cite: 686, 688]；ROUGE 侧重召回率和最长公共子序列 [cite: 708, 710]。</li>
+        <li><strong>局限性</strong>：仅能衡量字面匹配度，无法衡量事实准确性（如医疗场景中 N-gram 相似但语义相反） [cite: 681, 730, 731]。</li>
+        <li><strong>多维评估</strong>：需结合人工评估作为黄金标准 [cite: 736]，同时参考权威 Benchmark 测试，如测试综合智力的 MMLU、小学多步推理的 GSM8K、测试代码生成的 HumanEval，以及反映人类偏好的 LMSYS Arena 等 [cite: 742, 743, 745, 756, 885]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>9. 工业质检中 YOLO 与 VLM 的选型</h2>
+      <ul>
+        <li><strong>YOLO (如 YOLOv12)</strong>：作为主力检测，产线要求极高实时性，YOLO 单图推理仅需约 10ms，能精准定位像素级区域且完全离线运行 [cite: 766, 767]。</li>
+        <li><strong>VLM (视觉大模型)</strong>：作为辅助分析，虽然推理较慢（2-5秒），但具备强大的零样本能力和可解释性 [cite: 770]。适合应对缺乏标注数据的新产品或复审复杂疑难样本 [cite: 771]。CV 模型的本质通常是 CNN 充当特征提取器，随后接入 MLP 进行分类映射 [cite: 885]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>10. YOLO 数据集的标注与准备</h2>
+      <ul>
+        <li><strong>工具与规范</strong>：使用 labelImg 等工具，矩形方框必须刚好包裹住目标物体，且涵盖多角度以增强泛化能力 [cite: 774, 775]。</li>
+        <li><strong>文件格式</strong>：构建包含类别映射的 `dataset.yaml`，标注结果保存为包含类别 ID 和归一化中心坐标、宽高的 `.txt` 文件 [cite: 776]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>11. 缺陷检测中的少样本数据增强</h2>
+      <ul>
+        <li><strong>类内差异大</strong>：使用几何变换（如水平/垂直翻转、随机旋转、平移缩放） [cite: 781]。</li>
+        <li><strong>受光照影响大</strong>：使用颜色与图像变换（对比度增强、高斯噪声模拟） [cite: 783]。</li>
+        <li><strong>极度缺乏数据</strong>：深度使用 YOLO 核心技术如 Mosaic（4图拼接增加小目标识别）和 MixUp，并结合 Albumentations 进行离线扩充 [cite: 784, 785]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>12. 工业质检中 Precision 与 Recall 优先级</h2>
+      <ul>
+        <li><strong>Recall 绝对优先</strong>：在工业场景中，宁可多检，不可漏检 [cite: 789, 790]。漏检会导致整批产品报废或索赔，而误报仅需人工复看 [cite: 791]。</li>
+        <li><strong>迭代闭环</strong>：通过收集误检/漏检的 Bad Case，进行人工重新标注并入训练集重训部署，实现模型的持续演进 [cite: 795, 796]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>13. 微调大模型时的显存 (VRAM) 估算</h2>
+      <ul>
+        <li><strong>估算公式</strong>：总显存 = 模型权重 + 优化器状态 + 梯度 + 激活值 [cite: 800]。</li>
+        <li><strong>估算实例</strong>：以 7B 模型为例，FP16 权重约 14GB，若使用 LoRA 则优化器与梯度仅占约 0.7GB，加上激活值总共需 19GB 左右 [cite: 801, 802, 803]。</li>
+        <li><strong>显存不足方案</strong>：采用 QLoRA 将权重量化为 4-bit，权重显存减半（约 3.5GB），整体微调仅需 6-8GB [cite: 804]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>14. Unsloth 框架及 CPU/GPU 微调差异</h2>
+      <ul>
+        <li><strong>Unsloth 优势</strong>：专注加速 LLM 微调，速度提升 2-5 倍，内存减少 50-80%，支持极低显存设备 [cite: 808, 809]。</li>
+        <li><strong>底层硬件差异</strong>：CPU 不支持 4-bit 量化和半精度（fp16/bf16），仅限 float32 加载模型，内存占用大 [cite: 813]。受限于内存，CPU 通常采用较小的秩 (r) 且仅针对注意力层应用 LoRA，并使用标准 adamw 优化器 [cite: 814, 815]。GPU 可支持 8-bit 优化器并覆盖 MLP 层 [cite: 814, 815]。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>15. 大模型推理能力的迁移策略</h2>
+      <ul>
+        <li><strong>API 蒸馏策略</strong>：利用强大的教师模型生成包含完整思维链 (Reasoning path) 的高质量样本，用于小模型的 SFT 监督微调 [cite: 819, 820]。</li>
+        <li><strong>测试时扩展 (Test-time Scaling)</strong>：运用预算强制 (Budget Forcing) 技术，动态控制模型的计算资源 [cite: 821, 822]。可强行插入特殊 token 停止思考生成答案，或追加字符串引导模型继续深入评估 [cite: 823, 824]。</li>
+      </ul>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1;">
+      <h2>16. 核心业务场景落地实践 (Pipeline 架构编排)</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px;">
+        <div>
+          <ul>
+            <li><strong>医疗垂直领域大模型 Pipeline</strong>：基于 Qwen3.5 构建，通过 MD5 去重与评分卡清洗数据，利用 Unsloth 结合 4-bit 量化与 LoRA 完成高效微调，辅以 BLEU 与人工审查评估输出质量 [cite: 856, 858, 859, 860]。</li>
+            <li><strong>Agent 编排与函数调用</strong>：Agent 逻辑涉及 LLM 解析用户意图并匹配 Skills 元数据，随后调用底层 Script 执行任务并向用户返回 JSON 结果 [cite: 885]。工作流 Pipeline 涵盖了从数据采集、分析、决策、风控到执行的完整链路 [cite: 885]。</li>
+          </ul>
+        </div>
+        <div>
+          <ul>
+            <li><strong>车险理赔 VLM 系统</strong>：配置 FastVisionModel 并联合微调视觉编码器与文本解码器 [cite: 863, 865]。业务数据被转化为嵌套 Message 结构，结合专用的 Vision DataCollator 批处理，实现图表关键字段与 JSON 结构化提取 [cite: 866, 867]。</li>
+            <li><strong>工业 AI 双引擎质检</strong>：产线部署 YOLOv12 实现毫秒级缺陷定位，利用 Qwen-VL 进行零样本特征分析，结合 Gradio 与 SQLite 构建闭环系统导出 Bad Case 实现持续演进 [cite: 870, 871, 873, 874]。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

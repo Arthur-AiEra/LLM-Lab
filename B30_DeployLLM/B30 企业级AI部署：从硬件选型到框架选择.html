@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>企业级AI部署核心笔记</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        :root { --border: #cbd5e1; --bg: #f8fafc; --theme: #0f172a; --accent: #1d4ed8; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 12px; line-height: 1.3; margin: 0 auto; padding: 8px; max-width: 1400px; background: var(--bg); color: var(--theme); }
+        h1 { font-size: 15px; text-align: center; border-bottom: 2px solid var(--theme); margin: 0 0 8px 0; padding-bottom: 4px; }
+        h2 { font-size: 13px; color: var(--accent); border-bottom: 1px solid var(--border); margin: 6px 0 4px 0; padding-bottom: 2px; }
+        h3 { font-size: 12px; color: #b91c1c; margin: 4px 0 2px 0; }
+        p, ul { margin: 2px 0; }
+        ul { padding-left: 16px; }
+        li { margin-bottom: 2px; }
+        table { width: 100%; border-collapse: collapse; margin: 4px 0; font-size: 11px; table-layout: fixed; }
+        th, td { border: 1px solid var(--border); padding: 2px 4px; text-align: left; }
+        th { background: #e2e8f0; }
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: start; }
+        .mermaid-container { text-align: center; margin-bottom: 8px; background: #fff; border: 1px solid var(--border); padding: 4px; border-radius: 4px; }
+        .box { background: #fff; border: 1px solid var(--border); padding: 6px; border-radius: 4px; }
+        .code { background: #f1f5f9; padding: 1px 3px; font-family: monospace; color: #047857; font-weight: bold; border-radius: 2px; }
+        .cite { color: #64748b; font-size: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 企业级AI部署与底层技术速查表</h1>
+
+    <div class="mermaid-container">
+        <div class="mermaid">
+            %%{init: {'themeVariables': { 'primaryTextColor': '#000', 'lineColor': '#333' }, 'flowchart': { 'nodeSpacing': 15, 'rankSpacing': 30 }}}%%
+            graph LR
+            A[AI部署架构] --> B(✅ 硬件选型)
+            B --> B1[CPU vs GPU]
+            B --> B2[LLM矩阵运算]
+            B --> B3[推理数据搬运 SRAM/HBM]
+            B --> B4[选型建议与资源配比]
+            A --> C(✅ 部署框架)
+            C --> C1[请求级 -> Token级调度]
+            C --> C2[Ollama: 本地极简]
+            C --> C3[vLLM: 高并发生产基石]
+            C --> C4[SGLang: RadixAttention极致吞吐]
+            A --> D(⚙️ 结构化 & Q&A)
+            D --> D1[Outlines 状态机约束]
+            D --> D2[课堂精华调优经验]
+        </div>
+    </div>
+
+    <div class="grid-container">
+        <div class="column">
+            <div class="box">
+                <h2>✅ 企业级AI硬件选型</h2>
+                
+                <h3>1. CPU vs. GPU</h3>
+                <ul>
+                    <li>**CPU**: 擅长复杂逻辑控制与顺序指令（数十核心单核强），在推理中负责并发请求调度、Tokenization、正则过滤等前后处理 <span class="cite">[cite: 26, 115]</span>。</li>
+                    <li>**GPU**: 专为并行矩阵运算设计（数千核心），如 H100 拥有 **16896** 个 CUDA 核心，能同时执行大量简单运算 <span class="cite">[cite: 28, 29]</span>。</li>
+                </ul>
+
+                <h3>2. LLM 的矩阵运算</h3>
+                <ul>
+                    <li>**机制**: 文本转为高维向量，输入句子堆叠成矩阵（如 100个Token 形成 $100 \times 4096$ 的矩阵）。注意力机制本质是 Query矩阵 $\times$ Key矩阵 <span class="cite">[cite: 36, 38, 39]</span>。</li>
+                    <li>**Embedding**: 本质是 `LLM + 池化层(Pooling)`。提取 Token 矩阵特征并压缩为单个句向量（用于语义检索） <span class="cite">[cite: 51, 55, 56]</span>。</li>
+                </ul>
+
+                <h3>3. LLM 推理中的数据搬运 (内存墙)</h3>
+                <p>大模型推理 **90%** 的时间在等待数据搬运，而非计算。2026年选型逻辑已转为<span class="code">带宽优先+容量优先</span> <span class="cite">[cite: 69, 70]</span>。</p>
+                <ul>
+                    <li>**SRAM (芯片内)**: 聚合带宽 **40TB/s**，极快但极小，用于线程间数据复用（Tiling）和共享 <span class="cite">[cite: 65, 76]</span>。</li>
+                    <li>**HBM (芯片外显存)**: 容量大，主流带宽 **4.8TB/s - 8TB/s**。参数必须反复从 HBM 搬运到 SRAM 参与计算 <span class="cite">[cite: 67, 89]</span>。</li>
+                </ul>
+
+                <h3>4. 选型建议</h3>
+                <table>
+                    <tr><th>场景</th><th>推荐型号</th><th>核心优势</th></tr>
+                    <tr><td>**7B-70B 训练/推理**</td><td>H100 (80GB)</td><td>中流砥柱，FP8生态最成熟 <span class="cite">[cite: 94, 100]</span></td></tr>
+                    <tr><td>**70B+ / 长上下文**</td><td>H200 (141GB)</td><td>显存大，单卡运行70B免通信开销 <span class="cite">[cite: 101]</span></td></tr>
+                    <tr><td>**>70B / MoE 架构**</td><td>B200 (192GB)</td><td>FP4低精度推理，1.8TB/s NVLink 带宽 <span class="cite">[cite: 102, 109, 110]</span></td></tr>
+                    <tr><td>**<7B / 原型验证**</td><td>L40S / 4090</td><td>性价比高，4090 (24GB) 适合本地调试 <span class="cite">[cite: 94, 99]</span></td></tr>
+                </table>
+
+                <h3>5. 资源配比</h3>
+                <ul>
+                    <li>**隐形瓶颈**: 并发量大时，CPU负载过高或系统内存不足会导致 GPU 陷入饥饿 <span class="cite">[cite: 117]</span>。</li>
+                    <li>**黄金比例**: 每 **1** 张 GPU 需配比 **16-32核 CPU** + **512GB-1TB 系统内存 (DRAM)** <span class="cite">[cite: 118]</span>。</li>
+                </ul>
+            </div>
+
+            <div class="box" style="margin-top: 8px;">
+                <h2>💡 课堂精华 Q&A</h2>
+                <ul>
+                    <li>**微调与蒸馏**: 知识蒸馏是大模型生成 `<query, answer>` 喂给小模型学习，其本质执行过程也是模型微调，两者不冲突 <span class="cite">[cite: 1]</span>。</li>
+                    <li>**RAG 性能优化**: 当 RAG 向量超 **500万** 导致检索变慢时，部署分布式 RAG（增配节点并发检索）是有效方案。Embedding 模型选择可参考 ModelScope 榜单 <span class="cite">[cite: 1, 2]</span>。</li>
+                    <li>**Agent 调优**: 优化智能体能力需定义好 Skills、Rules，并建立测试集进行评估。复杂电脑控制/视频生成任务推荐 API（如 qwen3.5-plus）或本地 `9B` 参数模型 <span class="cite">[cite: 1, 2]</span>。</li>
+                    <li>**输出前端抖动**: LLM 生成超链接时 Markdown 渲染易抖动，建议先输出占位符（如 a1, a2），再单独生成链接注入 <span class="cite">[cite: 2]</span>。</li>
+                    <li>**老旧硬件潜力**: 租用 A800 (**80G** 显存) 可以跑得动 `122B-Int4` 量化模型 <span class="cite">[cite: 2]</span>。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="box">
+                <h2>✅ 主流部署框架</h2>
+
+                <h3>1. 从请求级调度到 Token级调度</h3>
+                <ul>
+                    <li>早期框架采用请求级调度，等待整批处理完成，算力浪费严重 <span class="cite">[cite: 137]</span>。</li>
+                    <li>现代引擎核心创新：<span class="code">Continuous Batching (连续批处理)</span>。细化到 Token 级别，请求B完成后，新请求E可立即无缝插入，极大提升 GPU 利用率 <span class="cite">[cite: 138, 288, 304]</span>。</li>
+                </ul>
+
+                <h3>2. CASE：Ollama 本地部署大模型</h3>
+                <ul>
+                    <li>**双层架构**: Go 语言层管 API 与并发调度，C++ 层（`llama.cpp`）管底层矩阵算力 <span class="cite">[cite: 281, 282]</span>。</li>
+                    <li>**特性**: 零依赖、跨平台，支持 GGUF 格式（4/8bit量化），适合快速验证与 CPU 边缘推理 <span class="cite">[cite: 275, 276]</span>。</li>
+                    <li>**局限**: 缺乏 Continuous Batching，仅适合单用户调试，并发能力差 <span class="cite">[cite: 286, 310]</span>。</li>
+                </ul>
+
+                <h3>3. CASE：vLLM 高效部署</h3>
+                <p>生产环境通用标杆，引入 **PagedAttention (页式 KV Cache)** 管理内存，支持千级并发 <span class="cite">[cite: 315, 564]</span>。</p>
+                <ul>
+                    <li>**核心启动参数**:
+                        <br><span class="code">--tensor-parallel-size</span>: 分布式张量并行数 <span class="cite">[cite: 317]</span>。
+                        <br><span class="code">--gpu-memory-utilization 0.9</span>: 显存分配比例 <span class="cite">[cite: 389, 392]</span>。
+                        <br><span class="code">--enforce-eager</span>: 必须加，禁用 CUDA Graph 编译优化，避免 FakeTensorMode 报错 <span class="cite">[cite: 388, 391]</span>。
+                    </li>
+                    <li>**工程隔离**: 建议在挂载盘通过 `python -m venv` 创建虚拟环境进行依赖隔离 <span class="cite">[cite: 342, 343]</span>。</li>
+                </ul>
+
+                <h3>4. SGLang 推理框架</h3>
+                <p>定位为更快的 vLLM，PyTorch 官方生态项目。引入 <span class="code">RadixAttention (前缀树KV复用)</span> <span class="cite">[cite: 536, 537, 572]</span>。</p>
+                <ul>
+                    <li>**性能**: 多轮对话、Agent 场景下前缀缓存命中率达 **75-95%**，长上下文吞吐量是 vLLM 的 **2-5倍** <span class="cite">[cite: 550, 572]</span>。</li>
+                    <li>**优势**: JSON 结构化输出速度比 vLLM 快 **10倍**，百万日活下大幅节省 GPU 成本 <span class="cite">[cite: 541, 547]</span>。</li>
+                </ul>
+            </div>
+
+            <div class="box" style="margin-top: 8px;">
+                <h2>⚙️ 结构化信息 (Outlines) & 格式约束</h2>
+                <p>自由生成格式不稳定，Outlines库与vLLM内置机制可实现 **100%** 合法的结构化输出 <span class="cite">[cite: 604, 605, 887, 888]</span>。</p>
+                <ul>
+                    <li>**技术链路**: Pydantic 模型 $\rightarrow$ JSON Schema $\rightarrow$ 正则表达式 $\rightarrow$ **有限状态机 (FSM)** $\rightarrow$ 状态合并简化（跳过必然转移节点以节省采样算力） $\rightarrow$ Token 级匹配 <span class="cite">[cite: 633, 646, 654, 699, 758]</span>。</li>
+                    <li>**vLLM 内置约束**:
+                        <br>1. <span class="code">response_format</span> 传 JSON Schema 约束结构 <span class="cite">[cite: 918]</span>。
+                        <br>2. <span class="code">structured_outputs</span> 传 Regex (如IP正则) 或 Choice 选项 <span class="cite">[cite: 957, 979]</span>。
+                    </li>
+                    <li>**核心避坑**: 
+                        <br>⚠️ 结构化仅保证**格式/字段合法**，不保证内部数值计算的绝对准确（需业务层二次核算） <span class="cite">[cite: 969, 1042]</span>。
+                        <br>⚠️ Qwen3 默认开启思考模式（输出 `<think>`），会破坏 JSON 结构，必须通过 API 参数 `enable_thinking: False` 或 prompt 尾部加 `/no_think` 关闭 <span class="cite">[cite: 897, 899, 903]</span>。
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+<script> // 自动清除所有的 和 标记 
+document.body.innerHTML = document.body.innerHTML.replace(/\[cite.*?\]/g, '').replace(/\[cite_start\]/g, ''); </script>
+</body>
+</html>

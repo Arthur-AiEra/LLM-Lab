@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI服务核心：高并发原理与性能调优</title>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ 
+    startOnLoad: true, 
+    theme: 'base', 
+    themeVariables: { 
+      primaryTextColor: '#000', 
+      lineColor: '#000', 
+      primaryColor: '#f8fafc', 
+      fontSize: '18px', /* 字号已调大 */
+      fontFamily: 'sans-serif'
+    },
+    flowchart: { nodeSpacing: 20, rankSpacing: 40, padding: 10 } 
+  });
+</script>
+<style>
+  :root { --bg: #fff; --text: #111827; --border: #cbd5e1; --heading: #1e293b; --hl: #e0f2fe; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.35; color: var(--text); margin: 0; padding: 12px; font-size: 13px; background: #f1f5f9; }
+  .container { max-width: 1400px; margin: 0 auto; }
+  h1 { font-size: 18px; text-align: center; border-bottom: 2px solid var(--heading); padding-bottom: 6px; margin: 0 0 12px 0; color: var(--heading); }
+  h2 { font-size: 14px; background: var(--heading); color: #fff; padding: 4px 10px; margin: 0 0 8px 0; border-radius: 4px; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+  h3 { font-size: 13px; font-weight: 700; margin: 6px 0 4px 0; color: #0f172a; border-left: 3px solid #3b82f6; padding-left: 6px; }
+  p { margin: 4px 0; }
+  ul { margin: 4px 0; padding-left: 20px; }
+  li { margin-bottom: 4px; }
+  mark { background-color: var(--hl); color: #0369a1; padding: 0 4px; border-radius: 2px; font-weight: bold; }
+  code { font-family: monospace; background: #f1f5f9; padding: 1px 4px; border-radius: 2px; color: #d97706; }
+  
+  /* Mermaid 容器自适应并允许横向滚动 */
+  .mermaid-wrapper { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 15px; overflow-x: auto; display: flex; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  
+  /* 紧凑型瀑布流卡片布局 */
+  .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; align-items: stretch; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .span-2 { grid-column: span 2; }
+  
+  /* 专门针对推测解码和Q&A的内部切分 */
+  .inner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 768px) { .span-2 { grid-column: span 1; } .inner-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🚀 AI服务核心：高并发原理与性能监控调优</h1>
+
+  <div class="mermaid-wrapper">
+    <div class="mermaid">
+      graph LR
+        A[AI高并发服务核心] --> B(内存瓶颈与<br>PagedAttention)
+        B --> B1[KV Cache: 动态长度致显存<br>碎片与浪费]
+        B --> B2[PagedAttention: 虚拟内存<br>映射按需分配]
+        A --> C(vLLM架构<br>实现详解)
+        C --> C1[Continuous Batching:<br>动态填充 零等待]
+        C --> C2[Iteration-level Scheduling:<br>细粒度Token级调度]
+        A --> D(推测解码<br>加速推理)
+        D --> D1[MEDUSA: 原模型加<br>多解码头/树状验证]
+        D --> D2[EAGLE: 特征级自回归/<br>动态草稿树]
+        A --> E(监控调优<br>与实战)
+        E --> E1[核心指标: TTFT / TPOT<br>及监控工具应用]
+        E --> E2[场景调优: Chunked Prefill<br>与 Prefix Caching]
+    </div>
+  </div>
+
+  <div class="grid-container">
+    <div class="card">
+      <h2>✅ 1. 高并发 AI 服务的内存瓶颈</h2>
+      <h3>什么是 KV Cache？</h3>
+      <p>自回归生成中，为避免重复计算，将每一层已计算的Key和Value张量缓存。高并发下，如200GB+的KV Cache远超A100显存，成为<strong>显存杀手</strong>。</p>
+      
+      <h3>KV Cache 的三大瓶颈</h3>
+      <ul>
+        <li><mark>内部/外部碎片</mark>：传统按最大长度预分配，实际回复极短时浪费严重，利用率常低于30%。</li>
+        <li><mark>动态长度浪费</mark>：不同请求长度不一，空闲显存块不连续导致无法分配给新请求。</li>
+        <li><mark>Copy-on-Decoding</mark>：并行采样/Beam Search需复制整个前缀Cache，显存爆炸。</li>
+      </ul>
+
+      <h3>PagedAttention 机制</h3>
+      <p>引入OS的<strong>虚拟内存</strong>思想，通过 <code>Block Table</code> 维护逻辑与物理地址映射。</p>
+      <ul>
+        <li><strong>按需分配</strong>：16 tokens为一Block，用满再申请物理空间，消除内部碎片。</li>
+        <li><strong>写时复制 (COW)</strong>：多请求共享Prompt物理Block，遇分歧点再开辟私有空间，极大节省显存。</li>
+        <li><strong>动态重排</strong>：无需找连续大块显存，收集分散空闲Block即可，为 Continuous Batching 奠定基础。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>✅ 2. vLLM架构实现详解</h2>
+      <h3>Batch 概念与困境</h3>
+      <p>将多个请求打包送入GPU进行单次前向传播。传统<strong>静态 Batch</strong> 必须同步等待最长请求完成，导致GPU产生大量空转耗时。</p>
+
+      <h3>静态 Batch vs Continuous Batching</h3>
+      <ul>
+        <li><strong>Continuous Batching (动态批处理)</strong>：完成一个请求立即腾出位置，<mark>动态填入新请求</mark>。GPU始终满负荷，吞吐量提升2倍以上。</li>
+      </ul>
+
+      <h3>vLLM 的 Iteration-level Scheduling</h3>
+      <p>细粒度到<strong>单次 Token 迭代</strong>的调度。每生成1个Token即处理新请求的Prefill、执行Forward并移除完成请求，彻底消灭同步等待死区。</p>
+
+      <h3>PagedAttention 在 vLLM 中的实现</h3>
+      <p>底层通过自定义CUDA Kernel，使得GPU多线程能并行读取分散在物理显存中的Block，高效合并内存访问请求。</p>
+    </div>
+
+    <div class="card span-2">
+      <h2>✅ 3. 推测解码 (Speculative Decoding)</h2>
+      <div class="inner-grid">
+        <div>
+          <h3>推测解码算法基础</h3>
+          <ul>
+            <li><strong>核心逻辑</strong>：小模型(Draft)快速"猜"出多个候选Token -> 大模型(Target)一次性"验证"并修正，保证输出质量无损。</li>
+            <li><strong>Typical Acceptance</strong>：过滤掉大模型生成概率低但合理的词。基于信息熵判断，接受信息量贴近分布熵的Token。</li>
+          </ul>
+        </div>
+        <div>
+          <h3>MEDUSA 推理框架</h3>
+          <ul>
+            <li><strong>无独立小模型</strong>：在原LLM后冻结主干，追加多个 <mark>Medusa Heads</mark> 并行预测未来Token。</li>
+            <li><strong>Tree Attention</strong>：生成树状候选结构，利用特殊Mask在单次前向传播中验证所有路径。</li>
+          </ul>
+        </div>
+        <div class="span-2">
+          <h3>EAGLE 推理框架 (底层突破)</h3>
+          <ul>
+            <li><strong>特征级自回归</strong>：由于Token级预测不确定性高，EAGLE改在<mark>倒数第二层特征(Feature)</mark>上进行自回归，特征连续且极易预测。</li>
+            <li><strong>动态草稿树 (EAGLE-2)</strong>：摒弃静态树，根据上下文置信度动态剪枝和扩展分支，算力集中于高概率路径。</li>
+            <li><strong>突破大Batch衰减 (EAGLE-3)</strong>：独创 <code>Training-time Test</code> 模拟推理误差。在Batch=64的高并发场景下仍保持1.38x加速，打破了传统推测解码“高并发失效”的魔咒。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✅ 4. vLLM 性能监控与调优</h2>
+      <h3>核心评估指标与监控工具</h3>
+      <ul>
+        <li><strong>TTFT (Time To First Token)</strong>: 首字延迟，受长Prompt(Prefill阶段)影响最大。</li>
+        <li><strong>TPOT (Time Per Output Token)</strong>: 生成延迟，受显存带宽、Batch大小影响。</li>
+        <li><strong>监控工具</strong>：vLLM内置 <code>Prometheus Metrics</code> (关注 <code>num_requests_running</code>, <code>gpu_kv_cache_usage</code> 等)；深入底层可使用 <code>Nsight Systems</code> 进行 Kernel 分析。</li>
+      </ul>
+      <h3>核心调优参数与策略</h3>
+      <ul>
+        <li><strong>提升吞吐</strong>：拉高 <code>max-num-seqs</code> 与批处理tokens；启用 <code>fp8</code> KV Cache量化。</li>
+        <li><strong>降首字延迟</strong>：开启 <mark>Chunked Prefill</mark>，将长Prompt拆分交错执行，避免阻塞。</li>
+        <li><strong>多轮对话优化</strong>：开启 <code>enable-prefix-caching</code> 复用历史会话显存。</li>
+        <li><strong>节省显存</strong>：限制 <code>max-model-len</code>，使用 FP8 精度存放 KV Cache。</li>
+        <li><strong>大Batch推测解码失效应对</strong>：当GPU接近Compute-Bound时，推测解码开销变大，此时可引入 <mark>PD分离 (Prefill / Decode 单独部署)</mark> 架构。</li>
+      </ul>
+    </div>
+
+    <div class="card span-2">
+      <h2>✅ 5. 课堂精华 Q&A</h2>
+      <div class="inner-grid">
+        <div>
+          <ul style="padding-left: 15px;">
+            <li><strong>Q: 如何评估LLM并发数上限与优化？</strong><br>
+            A: 通过阶梯并发(8/16/32/128)压测，监控吞吐量与TPOT的性能衰减拐点；优化需结合 Continuous Batching 与显存调配。</li>
+            <li><strong>Q: 企业内部vLLM部署还需要哪些技术栈？</strong><br>
+            A: vLLM仅作为底层推理的 API Endpoint。上层业务应用需结合 Agent 开发框架（如 LangChain / Qwen-Agent / LlamaIndex）来实现。</li>
+            <li><strong>Q: 部署300B超大模型可行吗？</strong><br>
+            A: 可以。单卡显存不足，需采用多卡（如8张A100）结合张量并行(TP)与流水线并行(PP)进行分布式部署。</li>
+          </ul>
+        </div>
+        <div>
+          <ul style="padding-left: 15px;">
+            <li><strong>Q: 知识库处理 Excel 和 PDF 的 Chunk 方案？</strong><br>
+            A: PDF通常走 <code>切片 -> Embedding相似度检索</code>；Excel等结构化数据强烈建议采用 <code>文本转SQL (Text-to-SQL)</code> 进行精确查询。</li>
+            <li><strong>Q: PDF中的表格如何提取更好？</strong><br>
+            A: 推荐使用专用的解析工具（如 <mark>MinerU</mark>），将表格精准解析还原为 HTML 或 Markdown 格式，以保留原有的结构信息。</li>
+            <li><strong>Q: 模型参数量与生成速度的关系？</strong><br>
+            A: 强相关。在相同的部署环境下，模型参数量越小，单次前向传播的计算量就越低，生成速度自然越快。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
