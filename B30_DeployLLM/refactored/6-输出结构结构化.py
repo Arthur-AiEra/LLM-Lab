@@ -3,6 +3,8 @@ import json
 from pydantic import BaseModel
 from openai import OpenAI
 
+#t 150:14 https://gemini.google.com/app/054ebed098f1b878
+
 class Step(BaseModel):
     explanation: str
     output: str
@@ -14,8 +16,8 @@ class MathResponse(BaseModel):
 
 # 创建DashScope客户端(兼容OpenAI协议)
 client = OpenAI(
-    api_key=os.getenv("DASHSCOPE_API_KEY"),
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    api_key=os.getenv('OPENAI_API_KEY'),
+    base_url="https://api.fe8.cn/v1"
 )
 
 # 在system prompt中描述JSON格式，配合response_format=json_object使用

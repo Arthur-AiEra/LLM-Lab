@@ -127,7 +127,7 @@ response = client.chat.completions.create(
         }
     ],
     max_tokens=512,
-    response_format={
+    response_format={ # 能保证格式提取正确，无幻觉
         "type": "json_schema",
         "json_schema": {
             "name": "order-info",
@@ -144,4 +144,4 @@ order = OrderInfo.model_validate_json(raw_output)
 print(f"客户: {order.customer_name}")
 for item in order.items:
     print(f"  商品: {item.product_name}, 数量: {item.quantity}, 单价: {item.unit_price}")
-print(f"总价: {order.total_price}")
+print(f"总价: {order.total_price}") # llm 不能保证计算结果正确，可以利用llm提取出来的Input通过程序计算正确的total_price并跟 llm 输出做比较

@@ -2,13 +2,14 @@ import json
 import os
 from openai import OpenAI
 
+#t 44:30 https://gemini.google.com/app/9e92b8346a57a584
 # 注意: 不同地域的 base_url 不通用，请按需选择
 # 华北2（北京）: https://dashscope.aliyuncs.com/compatible-mode/v1
 # 美国（弗吉尼亚）: https://dashscope-us.aliyuncs.com/compatible-mode/v1
 # 新加坡: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
 client = OpenAI(
-    api_key=os.getenv("DASHSCOPE_API_KEY"),
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    api_key=os.getenv('OPENAI_API_KEY'),
+    base_url="https://api.fe8.cn/v1"
 )
 
 # 封装模型响应函数

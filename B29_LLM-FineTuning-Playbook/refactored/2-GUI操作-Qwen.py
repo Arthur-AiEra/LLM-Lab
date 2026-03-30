@@ -2,6 +2,8 @@ import os
 import base64
 from openai import OpenAI
 
+#t 49:37 https://gemini.google.com/app/9e92b8346a57a584
+
 # 读取本地图片并转换为base64格式
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
@@ -24,8 +26,8 @@ messages = [
 
 client = OpenAI(
     # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
-    api_key=os.getenv("DASHSCOPE_API_KEY"),
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    api_key=os.getenv('OPENAI_API_KEY'),
+    base_url="https://api.fe8.cn/v1"
 )
 
 completion = client.chat.completions.create(

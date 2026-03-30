@@ -5,6 +5,8 @@ from pydantic import BaseModel
 import openai
 from openai import OpenAI
 
+#t 146:03 https://gemini.google.com/app/054ebed098f1b878
+
 # 定义数据库表的枚举类型
 class Table(str, Enum):
     orders = "orders"  # 订单表
@@ -50,8 +52,8 @@ class Query(BaseModel):
 
 # 创建DashScope客户端(兼容OpenAI协议)
 client = OpenAI(
-    api_key=os.getenv("DASHSCOPE_API_KEY"),
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    api_key=os.getenv('OPENAI_API_KEY'),
+    base_url = "https://api.fe8.cn/v1"
 )
 
 # 通过Function Calling进行结构化输出

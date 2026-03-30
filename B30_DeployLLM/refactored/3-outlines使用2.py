@@ -1,7 +1,13 @@
 import os
-import tiktoken
+
 import outlines
-import outlines.models as models
+import tiktoken
+from openai import OpenAI
+
+#t 128:15 https://gemini.google.com/app/054ebed098f1b878
+# 如果你使用 vLLM，你可以直接通过 API 参数（如 response_format 或 structured_outputs）白嫖它内置的结构化约束能力 。
+# 如果你使用 Ollama，你需要自己在 Python 代码里 pip install outlines，然后把它作为一个外部的库，配合 Ollama/llama.cpp 的模型实例来控制结构化输出
+
 
 # outlines内部使用tiktoken获取tokenizer，需要为qwen模型注册兼容的编码器
 tiktoken.model.MODEL_TO_ENCODING["qwen-max"] = "cl100k_base"
@@ -55,12 +61,16 @@ prompt = answer_with_code_prompt(question, examples)
 
 # 使用DashScope API(兼容OpenAI协议)
 model_name = "qwen-max"
-api_key = os.getenv("DASHSCOPE_API_KEY")
-base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+api_key = os.getenv('OPENAI_API_KEY')
+base_url = "https://api.fe8.cn/v1"
 
-model = models.openai(model_name, api_key=api_key, base_url=base_url)
+# 1. 先创建标准的 OpenAI 客户端实例
+client = OpenAI(api_key=api_key, base_url=base_url)
 
-answer = outlines.generate.text(model)(prompt)
+# 2. 调用 outlines.models.openai 模块下的 OpenAI 类，并将 client 传入
+model = outlines.models.openai.OpenAI(client, model_name)
+
+answer = model(prompt)
 print('answer=', answer)
 code = extract_code(answer)
 print('code=', code)
