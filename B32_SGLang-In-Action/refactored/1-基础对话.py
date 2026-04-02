@@ -6,9 +6,11 @@
 
 from openai import OpenAI
 
+#t 139:13 https://gemini.google.com/app/370cf5a979b5bee6
+
 # 只需要改 base_url，其他代码完全不变
 client = OpenAI(
-    base_url="http://localhost:8001/v1",
+    base_url="http://localhost:8001/v1", # sglang 必须依赖gpu
     api_key="not-needed"  # 本地部署不需要 key
 )
 
