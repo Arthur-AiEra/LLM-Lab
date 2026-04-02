@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>企业级AI硬件选型与部署框架全景笔记</title>
+    <style>
+        :root { --primary: #0f172a; --secondary: #0284c7; --bg: #f8fafc; --text: #1e293b; --border: #cbd5e1; --box: #ffffff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.25; color: var(--text); background: var(--bg); margin: 0; padding: 6px; font-size: 11.5px; }
+        .container { max-width: 1200px; margin: 0 auto; background: var(--box); padding: 8px 12px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        h1 { font-size: 1.3rem; color: var(--primary); text-align: center; margin: 0 0 6px 0; border-bottom: 2px solid var(--secondary); padding-bottom: 4px; }
+        h2 { font-size: 1.1rem; color: var(--primary); margin: 8px 0 4px; border-left: 4px solid var(--secondary); padding-left: 6px; background: #f0f9ff; padding-top: 2px; padding-bottom: 2px; }
+        h3 { font-size: 0.95rem; color: #0369a1; margin: 6px 0 2px; font-weight: 600; }
+        p, li { margin-bottom: 2px; margin-top: 0; }
+        ul { padding-left: 16px; margin: 2px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 4px 0; font-size: 11px; }
+        th, td { border: 1px solid var(--border); padding: 3px 5px; text-align: left; }
+        th { background: #f1f5f9; color: var(--primary); }
+        .mermaid { text-align: center; margin: 6px 0; padding: 4px; background: #f8fafc; border: 1px solid var(--border); }
+        code { background: #e2e8f0; padding: 0 3px; border-radius: 2px; color: #b91c1c; font-family: monospace; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .qa-box { background: #fefce8; border-left: 3px solid #eab308; padding: 4px 6px; margin-bottom: 4px; }
+        .qa-q { font-weight: 700; color: #854d0e; margin-bottom: 1px; }
+        .qa-a { color: #3f3f46; }
+        .highlight { font-weight: bold; color: #0284c7; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, theme: 'base',
+            themeVariables: { primaryTextColor: '#000', lineColor: '#333', primaryColor: '#e0f2fe', primaryBorderColor: '#0284c7', fontSize: '11px' },
+            flowchart: { nodeSpacing: 10, rankSpacing: 20 }
+        });
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <h1>企业级AI硬件选型与部署框架复习笔记</h1>
+
+    <div class="mermaid">
+        graph LR
+        A[企业级AI部署] --> B(硬件选型)
+        B --> B1[算力特征: GPU海量并行矩阵运算]
+        B --> B2[性能瓶颈: Prefill拼算力 vs Decode拼显存]
+        B --> B3[PD分离架构: 计算节点与显存节点解耦]
+        A --> C(主流部署框架)
+        C --> C1[演进: 请求级调度 --> Token级连续批处理]
+        C --> C2[Ollama: 极简端侧/GGUF/混合推理]
+        C --> C3[vLLM: 通用高吞吐引擎/PagedAttention]
+        C --> C4[SGLang: 复杂业务提速/Radix缓存复用]
+    </div>
+
+    <div class="grid-2">
+        <div>
+            <h2>✅ 企业级AI硬件选型</h2>
+            <h3>1. CPU vs. GPU</h3>
+            <ul>
+                <li><strong>CPU</strong>：少量强悍核心，擅长串行逻辑与上下文切换 [cite: 3252]。</li>
+                <li><strong>GPU</strong>：海量轻量级核心，专精大规模并发（SIMD），契合深度学习张量需求 [cite: 3252]。</li>
+            </ul>
+
+            <h3>2. LLM的矩阵运算 & 数据搬运 (性能瓶颈)</h3>
+            <p>LLM 推理分为两个核心阶段，产生严重的资源互斥 [cite: 1682, 1683]：</p>
+            <table>
+                <tr><th>阶段</th><th>Prefill (预填充)</th><th>Decode (解码)</th></tr>
+                <tr><td><strong>机制</strong></td><td>一次性处理 Prompt 全序列计算 KV Cache [cite: 1668]</td><td>基于历史缓存，逐字自回归生成 [cite: 1676]</td></tr>
+                <tr><td><strong>瓶颈</strong></td><td><strong>计算密集型</strong> (算力墙) [cite: 1669]</td><td><strong>显存带宽密集型</strong> (内存墙) [cite: 1677]</td></tr>
+                <tr><td><strong>指标</strong></td><td>TTFT (首Token延迟) [cite: 1670]</td><td>TPOT (Token间延迟) [cite: 1678]</td></tr>
+                <tr><td><strong>策略</strong></td><td>高算力 GPU + <span class="highlight">小 Batch</span> [cite: 1715]</td><td>大显存 GPU + <span class="highlight">大 Batch</span> [cite: 1718]</td></tr>
+            </table>
+
+            <h3>3. 选型建议与资源配比</h3>
+            <ul>
+                <li><strong>选型建议</strong>：私企多用 RTX/L/A/H 系列（如 A100 重显存，H100 重算力）；国企多用华为昇腾 [cite: 3252]。</li>
+                <li><strong>PD 分离架构</strong>：将 Prefill 和 Decode 隔离到不同 GPU，通过高速互联（如 NVLink）传输 KV Cache，打破资源争抢 [cite: 1744]。</li>
+            </ul>
+            
+            <h2>✅ 主流部署框架 (上)</h2>
+            <h3>1. 从请求级调度 到 Token级调度</h3>
+            <ul>
+                <li><strong>静态调度</strong>：短序列干等长序列完成，GPU 严重空转。</li>
+                <li><strong>Token 级连续调度 (Continuous Batching)</strong>：细化至 Token 级，生成一词调度一次，空位立即插入新请求，指数级提升吞吐 [cite: 1654, 1766]。</li>
+            </ul>
+
+            <h3>2. CASE：Ollama本地部署大模型</h3>
+            <p>开箱即用，高度适配 <code>GGUF</code> 量化格式，支持 CPU/GPU 混合推理，是 Mac/Win 端侧部署首选。</p>
+
+            <h3>3. CASE：vLLM高效部署</h3>
+            <p>定位为通用推理引擎（让模型跑得快） [cite: 1656]。核心为 <strong>PagedAttention</strong>：将 KV Cache 分块存放于非连续显存中，消灭碎片 [cite: 1653]；并支持 <strong>推测解码</strong> (Eagle/Medusa) 提升解码速度 [cite: 1772]。</p>
+        </div>
+
+        <div>
+            <h2>✅ 主流部署框架 (下)：SGLang 推理框架</h2>
+            <p><strong>定位</strong>：复杂 LLM 程序运行时，专攻业务逻辑提速（多轮对话、Agent、JSON生成），吞吐及 QPS 可达 vLLM 的 <span class="highlight">3.5倍</span> [cite: 1660, 3211]。</p>
+            
+            <h3>1. 核心优化技术</h3>
+            <ul>
+                <li><strong>RadixAttention (基数树缓存)</strong>：利用前缀树自动识别并跨请求复用 Prompt 相同前缀（如 System Prompt）的 KV Cache，消除重复计算 [cite: 2002]。</li>
+                <li><strong>LRU 淘汰策略</strong>：显存满时，精准淘汰“最久未使用”的叶子节点，保留公共前缀祖先 [cite: 2003]。</li>
+                <li><strong>缓存感知调度</strong>：打破先到先服务，重排队列，将共享长前缀的请求连续处理，根治缓存抖动，命中率可达 80-95% [cite: 2683, 3163]。</li>
+                <li><strong>约束解码 (Compressed FSM)</strong>：底层运行压缩的有限状态机。将正则表达式转为边压缩状态机，<span class="highlight">100%保证输出合法 JSON</span>，且能一次解码多 Token [cite: 2710]。</li>
+                <li><strong>API 推测执行</strong>：针对商用闭源 API（如 GPT-4），预测生成额外字段缓存，减少 API 调用次数 [cite: 2759]。</li>
+            </ul>
+
+            <h3>2. 部署参数与排错指南</h3>
+            <p>环境强依赖 <strong>CUDA 12.4</strong>（CUDA 11.8 会报错） [cite: 2936]。</p>
+            <table>
+                <tr><th>常用启动参数</th><th>说明</th></tr>
+                <tr><td><code>--mem-fraction-static 0.6</code></td><td>GPU显存静态占比 (OOM时降至0.4-0.5) [cite: 2909, 2927]</td></tr>
+                <tr><td><code>--context-length 4096</code></td><td>最大上下文长度 (越短越省显存) [cite: 2910, 2927]</td></tr>
+                <tr><td><code>--chunked-prefill-size 2048</code></td><td>分块预填充大小 (降低首Token延迟) [cite: 2911, 2927]</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <h2>✅ 课堂精华 Q&A</h2>
+    <div class="grid-2">
+        <div class="qa-box">
+            <div class="qa-q">Q: 企业里一般用什么型号显卡部署大模型？跟真实场景差距大吗？</div>
+            <div class="qa-a">国企/央企偏向华为昇腾芯片；私企常用 RTX, L, A, H 系列。真实场景由于显存和成本限制，通常需要经过多轮性能压测与 PD 架构调优 [cite: 3252]。</div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: 既然 vLLM 吞吐量大，为什么还要用 Ollama？</div>
+            <div class="qa-a">定位不同。vLLM 专为数据中心高并发设计，不支持 GGUF 极端量化且依赖 Linux/CUDA。Ollama 牺牲并发吞吐，换取了跨平台兼容、低学习成本及端侧低配硬件支持。</div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: 到底什么是 Token 级连续批处理 (Continuous Batching)？</div>
+            <div class="qa-a">想象一家餐厅（GPU），“请求级调度”是一桌全吃完才安排下一桌。“Token级调度”是“回转寿司”模式，只要有座位空出（遇到停止符），新客人立刻坐下，极大填补空闲算力。</div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: Eagle 和 Medusa 是 vLLM 内部模块吗？跟 PagedAttention 啥关系？</div>
+            <div class="qa-a">Eagle/Medusa 是推测解码算法，用小模型/外挂头加速大模型预测。PagedAttention 是管理 KV Cache 显存分配的底层基建，贯穿始终。推测解码主要在 Decode 阶段发力 [cite: 1778, 3252]。</div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: 算力指标 FLOPs 和显存带宽在模型不同阶段的影响？</div>
+            <div class="qa-a">Prefill 阶段是一次性大矩阵乘法，极度吃 FLOPs（浮点运算算力）；Decode 阶段逐字生成，计算量小但需全量读取历史缓存参数，极度吃显存带宽 (GB/s)。</div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: 为什么 LLM 推理越到后面生成越慢？如何通过硬件解决？</div>
+            <div class="qa-a">因为自回归生成累积的 KV Cache 越来越大。每生成新词需从显存搬运更多历史数据参与计算，触发“内存墙”。需采购高带宽显存（HBM）硬件或用 vLLM/SGLang 优化读写。</div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: Prefill 集群需要生成 Token 吗？</div>
+            <div class="qa-a">不需要。Prefill 主要对长 Prompt 进行全序列注意力计算提炼 KV Cache。真正的逐字自回归生成是在 Decode 集群完成的 [cite: 1668, 1676, 3252]。</div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: 复用 KV Cache 会导致不同用户会话串台吗？</div>
+            <div class="qa-a">不会。系统为不同用户独有内容生成独立的分支节点。只复用相同的 Prompt 前缀（如系统设定词），新增内容在 Radix 树中独立隔离 [cite: 3252]。</div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: LRU 淘汰策略具体怎么知道淘汰谁？</div>
+            <div class="qa-a">通过维护记录节点刷新时间的队列。每次复用节点会更新其时间戳。显存满时，算法扫描并淘汰时间戳最老（最久未访问）的叶子节点腾出空间 [cite: 2003, 3252]。</div>
+        </div>
+        <div class="qa-box">
+            <div class="qa-q">Q: 约束解码 (Constraint Decoding) 为什么比 Prompt 工程稳定？</div>
+            <div class="qa-a">Prompt 依赖概率生成，极小概率丢标点导致 JSON 崩溃。SGLang 压缩有限状态机在底层限制仅允许生成符合正则的 Token，实现 100% 格式物理保证 [cite: 3105, 3253]。</div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
