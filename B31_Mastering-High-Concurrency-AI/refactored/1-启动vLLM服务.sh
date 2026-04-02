@@ -5,13 +5,17 @@
 # 模型: Qwen3-0.6B
 # =============================================================================
 
-MODEL_NAME="/root/autodl-tmp/models/qwen/Qwen3-0.6B"
+#t 140:15 https://gemini.google.com/app/21d39e366127ce06
+# bash 1-启动vLLM服务.sh basic => 需要gpu环境，auto dl(https://autodl.com/home)
+
+
+MODEL_NAME="/private/var/ifc/app_data/autodl-tmp/models/Qwen/Qwen3.5-0.8B"
 PORT=8000
 
 # ---- 场景A: 基础版 (验证环境可用) ----
 # 最简配置，用于快速验证模型加载和推理是否正常
 start_basic() {
-    python -m vllm.entrypoints.openai.api_server \
+    /usr/local/bin/python3.12 -m vllm.entrypoints.openai.api_server \
         --model $MODEL_NAME \
         --port $PORT \
         --dtype float16 \
