@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Coze 底层原理与应用架构 - 极简复习笔记 (V4 完整版)</title>
+  <style>
+    /* 极致紧凑的极客风 CSS 排版 */
+    :root { --border: #c0c4cc; --bg: #f8f9fa; --text: #111; --theme: #0056b3; --theme-light: #eaf4fc; }
+    body { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; color: var(--text); background: #fff; margin: 0; padding: 4px 8px; line-height: 1.3; }
+    h1 { font-size: 16px; text-align: center; margin: 5px 0; color: var(--theme); font-weight: bold; }
+    h2 { font-size: 13px; margin: 6px 0 3px; padding-bottom: 2px; border-bottom: 1px solid var(--theme); color: var(--theme); }
+    h3 { font-size: 12px; margin: 4px 0 1px; font-weight: 600; color: #333; }
+    p, ul { margin: 2px 0; padding-left: 16px; }
+    li { margin-bottom: 3px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; align-items: start; }
+    .box { border: 1px solid var(--border); background: var(--bg); padding: 5px 6px; border-radius: 4px; }
+    .mermaid-wrapper { border: 1px solid var(--border); background: #fff; padding: 4px; margin-bottom: 6px; border-radius: 4px; text-align: center; overflow-x: auto; }
+    .mermaid svg { max-width: 100%; height: auto !important; display: block; margin: 0 auto; }
+    .qa-item { border-left: 3px solid var(--theme); padding-left: 5px; margin-bottom: 4px; background: #fff; padding-top: 2px; padding-bottom: 2px; }
+    .qa-q { font-weight: bold; color: #222; }
+    .qa-a { color: #444; }
+    code { background: #e9ecef; padding: 1px 3px; border-radius: 2px; color: #d63384; font-family: monospace; font-size: 11px; }
+    .highlight { background: #fff3cd; padding: 0 2px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: { primaryColor: '#e1f5fe', primaryTextColor: '#000', lineColor: '#333', fontSize: '11px' },
+      flowchart: { curve: 'bumpX', nodeSpacing: 15, rankSpacing: 25 }
+    });
+  </script>
+</head>
+<body>
+
+  <h1>Coze 底层架构与应用实战 - 终极复习笔记</h1>
+
+  <div class="mermaid-wrapper">
+    <div class="mermaid">
+      graph LR
+        A[Coze底层架构与应用] --> B(✅ Coze工作原理)
+        A --> C(✅ Coze应用实例)
+        A --> D(底层部署与生态)
+        
+        B --> B1[构建流派: 高代码工具 vs 低代码节点]
+        B --> B2[Agent vs Copilot: 自主规划大脑 vs 协同辅助]
+        B --> B3[Plugin: API鉴权封装为 Function Call]
+        B --> B4[Workflow: 编排逻辑防崩溃 / 变量聚合]
+        B --> B5[RAG: 私有数据分块与向量检索]
+        
+        C --> C1[新闻&天气流: 提取JSON入参/意图分发路由]
+        C --> C2[多模态流: 抖音二创抓取 / 古诗词画图 Agent]
+        C --> C3[外挂搜索流: LLM联网增强提取 Web Query]
+        C --> C4[极限 Agentic RAG: 25TB医疗数据自救 Debug]
+        
+        D --> D1[私有化: Docker Compose 12微服务容器]
+        D --> D2[应用分发: 微信小程序 / 移动应用 / API]
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="box">
+        <h2>✅ Coze 工作原理与技术体系</h2>
+        <ul>
+          <li><strong>AI 应用构建 SOP</strong>：需求描述 (场景示例化) &rarr; 技术选型 (是否需 Tool/RAG) &rarr; 实现细节 &rarr; 测试集验证。</li>
+          <li><strong>双轨制开发模式</strong>：
+            <ul>
+              <li><strong>高代码流派</strong>：底层框架如 LangChain, LangGraph, Qwen-Agent。IDE 辅助使用 Cursor, Trae。开源引擎有 <strong>Claw-code (Python)</strong>。</li>
+              <li><strong>低/零代码流派</strong>：通过 Coze/Dify 拖拉拽节点可视化编排；或使用 <strong>Vibe Coding</strong> 自然语言对话直出代码。</li>
+            </ul>
+          </li>
+          <li><strong>核心组件对齐</strong>：
+            <ul>
+              <li><strong>Agent vs Copilot</strong>：Copilot 侧重“人机协同”辅助；Agent 具备“自主规划大脑”，能根据目标自主拆解并调度工具。</li>
+              <li><strong>Plugin (插件)</strong>：将外部独立 API 接口鉴权并封装，使其变为大模型可调用的 <code>Function Call</code> 工具。</li>
+              <li><strong>Workflow (工作流)</strong>：解决单 Agent 多次交互易崩溃问题。引入了强逻辑控制，如<strong>变量聚合节点</strong>（多进一出，取分组中第一个非空值兜底）。</li>
+              <li><strong>RAG 知识库</strong>：弥补幻觉。将私有数据切片、向量化存入数据库，提问时优先通过相似度召回作为上下文。</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+
+      <div class="box" style="margin-top: 6px;">
+        <h2>✅ 底层私有部署与生态输出</h2>
+        <ul>
+          <li><strong>Docker Compose 编排</strong>：Coze Studio 本地化部署强依赖 12 个微服务容器（包含 MySQL, ElasticSearch, Redis, Minio, Milvus 向量库, NSQ 等）。命令：<code>docker-compose up -d</code>。</li>
+          <li><strong>脱离网页分发</strong>：配置好工作流后，支持无缝转换为<strong>微信小程序、移动应用</strong>。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="box">
+        <h2>✅ Coze 应用实例与极限场景</h2>
+        <ul>
+          <li><strong>CASE：天气 & 新闻路由 (weather_news)</strong>：典型的<strong>意图识别</strong>工作流。利用 LLM 提取用户非结构化输入并输出标准 JSON（如提取 <code>city</code>, <code>time</code> 等入参），分发至天气 API 或新闻知识库干线。</li>
+          <li><strong>CASE：抖音文案提取 & 二创</strong>：
+            <ul>
+              <li><strong>链路</strong>：URL 解析 &rarr; 提取视频资源 &rarr; 语音转文本 (ASR) &rarr; LLM（爆款文案优化师）重写。</li>
+              <li><strong>防坑机制</strong>：长链路极易超时假死，必须在耗时节点间插入输出反馈状态。</li>
+            </ul>
+          </li>
+          <li><strong>CASE：LLM 联网搜索 & 古诗词 Agent</strong>：结合 Bing Web 提取增量 Query；将诗词意象转化为 Prompt 喂给画图插件引擎，实现图文多模态。</li>
+          <li><strong><span class="highlight">极限突破：Agentic RAG 医疗自救案例</span></strong>：
+            传统医疗疗法失效时，Github 前高管面对晚期癌症，将人体视为软件系统进行 Debug。他抛弃传统固定流程的 RAG，采用 <strong>Agentic RAG</strong> 模式，将高达 <strong>25TB 的白细胞 RNA 测序及医疗数据</strong>投喂给大模型。通过 AI 整合全球碎片化文献与第一性原理，筛选出 FAP 放射性同位素靶向疗法，甚至在机场触发核警报，最终实现临床治愈 (NED)。
+          </li>
+        </ul>
+      </div>
+
+      <div class="box" style="margin-top: 6px; background: var(--theme-light);">
+        <h2>💡 课堂精华 Q&A</h2>
+        <div class="qa-item">
+          <div class="qa-q">Q: 目前大模型选型怎么推荐？GLM是国内版Claude吗？</div>
+          <div class="qa-a">国外首选 Claude Opus 4.6, GPT 5.4；国内推荐 Qwen3-Coder-Plus、GLM、Kimi 2.5、Minimax (写代码实测表现佳)。</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q">Q: 工作流中的节点输入输出该如何定义和衔接？</div>
+          <div class="qa-a">具有强依赖关系。上游提取的 JSON 结构必须完美契合下游参数要求。如果不匹配，必须在中间插入<strong>「代码节点 (Code Node)」</strong>或「LLM 提取节点」进行格式转换清洗。</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q">Q: 本地化部署大模型时，Docker 和 Ollama 怎么选？</div>
+          <div class="qa-a">定位完全不同。<strong>Ollama</strong> 专注于大语言模型（如 Llama3/Qwen）本体的极速拉取与推理运行；而 <strong>Docker</strong> 用于部署 AI 平台的应用层服务环境集群（如微服务及数据库）。</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q">Q: Claw-code 嵌入到 OpenCloud 中有什么底层意义？</div>
+          <div class="qa-a">Claw-code 作为高代码向的 AI IDE 原码，植入后系统会将其作为底层高智能编程大脑 (Engine)，大幅强化整体架构的业务推理和逻辑编排能力。</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q">Q: Coze 做好的智能体可以脱离网页使用吗？</div>
+          <div class="qa-a">可以。Coze 界面右侧支持“创建应用”，能将复杂的底层工作流封装，一键发布多端，无缝转换为<strong>微信小程序、移动应用</strong>，或提供给第三方调用的 <strong>API</strong>。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
